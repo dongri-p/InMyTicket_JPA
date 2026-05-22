@@ -3,8 +3,6 @@ package com.example.dongri.inmyticket.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.relation.Role;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
