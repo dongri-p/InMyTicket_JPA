@@ -36,7 +36,7 @@ public class KopisService {
                             .queryParam("rows", 10) // 뼈대 테스트용 10건만
                             .build())
                     .retrieve()
-                    .bodyToMono(KopisPerformanceListResponse.class) // XML -> 자바 객체 자동 파싱!
+                    .bodyToMono(KopisPerformanceListResponse.class) // XML -> 자바 객체 자동 파싱
                     .block(); // 동기식 테스트를 위해 잠시 블로킹 처리
 
             if (response != null && response.getPerformances() != null) {
