@@ -20,7 +20,7 @@ public class KopisService {
             .baseUrl("http://www.kopis.or.kr/openApi/restful")
             .build();
 
-    private final String apiKey = "test_api_key_1234";
+    private final String apiKey = "ac849e5c3a0c458687d4a190acd4e026";
 
     public List<KopisPerformanceResponse> fetchRecentPerformances() {
         try {
@@ -33,14 +33,14 @@ public class KopisService {
                             .queryParam("stdate", "20260101") // 2026년 이후 공연 조회
                             .queryParam("eddate", "20261231")
                             .queryParam("cpage", 1)
-                            .queryParam("rows", 10) // 뼈대 테스트용 10건만
+                            .queryParam("rows", 10) // 테스트용 10건만
                             .build())
                     .retrieve()
-                    .bodyToMono(KopisPerformanceListResponse.class) // XML -> 자바 객체 자동 파싱
-                    .block(); // 동기식 테스트를 위해 잠시 블로킹 처리
+                    .bodyToMono(KopisPerformanceListResponse.class) // 자바 객체 자동 매핑
+                    .block(); // 동기식 블로킹 처리
 
             if (response != null && response.getPerformances() != null) {
-                log.info("KOPIS 외부 API 수신 성공! 대수: {}건", response.getPerformances().size());
+                log.info("KOPIS 외부 API 수신 성공. 대수: {}건", response.getPerformances().size());
                 return response.getPerformances();
             }
 
