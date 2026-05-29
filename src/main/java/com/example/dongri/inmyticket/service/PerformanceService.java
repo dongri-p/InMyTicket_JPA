@@ -53,5 +53,16 @@ public class PerformanceService {
 
         log.info("외부 데이터 DB 동기화 완료");
     }
+
+    // DB에 저장된 모든 공연 목록 조회
+    public List<Performance> findPerformances() {
+        return performanceRepository.findAll();
+    }
+
+    // 특정 공연 한편 상세 조회
+    public Performance findOne(Long performanceId) {
+        return performanceRepository.findById(performanceId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연입니다. id=" + performanceId));
+    }
     
 }
