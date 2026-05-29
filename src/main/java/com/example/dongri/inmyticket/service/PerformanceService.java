@@ -3,13 +3,11 @@ package com.example.dongri.inmyticket.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
-import com.example.dongri.inmyticket.external.dto.KopisPerformanceListResponse;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 
