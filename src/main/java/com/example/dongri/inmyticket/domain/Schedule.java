@@ -47,7 +47,7 @@ public class Schedule {
     }
 
     // 공연 회차 생성 시, 공연장 정보까지 포함하여 좌석을 자동 빌드하는 메서드
-    public static Schedule creatSchedule(Performance performance, Hall hall, LocalDateTime starTime, int totalSeatCount) {
+    public static Schedule createSchedule(Performance performance, Hall hall, LocalDateTime starTime, int totalSeatCount) {
         Schedule schedule = new Schedule();
         schedule.setPerformance(performance);
         schedule.setHall(hall);

@@ -26,20 +26,20 @@ public class ScheduleService {
 
     @Transactional
     public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount) {
-
-        // 1. 엔티티 조회
+        // 1. 공연 엔티티 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연입니다. id=" + performanceId));
         
-        // 2. 공연장 조회
+        // 2. 공연장 엔티티 조회
         Hall hall = hallRepository.findById(hallId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연장입니다. id=" + hallId));
 
-        // 3. 도메인 생성 메서드 호출
-        Schedule schedule = Schedule.creatSchedule(performance, hall, startTime, totalSeatCount);
+        // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)
+        Schedule schedule = Schedule.createSchedule(performance, hall, startTime, totalSeatCount);
 
-        // 4. 저장
+        // 4. 데이터베이스 저장
         scheduleRepository.save(schedule);
+        
         return schedule.getId();
     }
 
