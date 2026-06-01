@@ -32,4 +32,24 @@ public class Seat {
 
     @Version
     private Long version;
+
+
+    // 좌석 예매 처리
+    public void reserve() {
+
+        // 이미 누군가 예매를 한 상태라면 예외 터트리기
+        if("RESERVED".equals(this.status)) {
+            throw new IllegalStateException("이미 예매 완료된 좌석입니다.");
+        }
+
+        // 문제가 없다면 상태를 RESERVED로 변경
+        this.setStatus("RESERVED");
+
+        if(this.schedule != null) {
+            int currentAvailable = this.schedule.getAvailableSeatCount();
+            if(currentAvailable > 0) {
+                this.schedule.setAvailableSeatCount(currentAvailable - 1);
+            }
+        }
+    }
 }

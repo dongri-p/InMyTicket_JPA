@@ -45,4 +45,15 @@ public class Reservation {
 
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Payment payment;
+
+    public static Reservation createReservation(Member member, Seat seat) {
+        Reservation reservation = new Reservation();
+        reservation.setMember(member);
+
+        seat.reserve();
+        reservation.setStatus(ReservationStatus.PENDING); // 결제 전 상태인 PENDING으로 초기화
+        reservation.setReservedAt(java.time.LocalDateTime.now());
+
+        return reservation;
+    }
 }
