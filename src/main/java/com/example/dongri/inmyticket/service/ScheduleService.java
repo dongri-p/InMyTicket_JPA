@@ -45,6 +45,6 @@ public class ScheduleService {
 
     // 특정 공연의 전체 회차 목록 조회
     public List<Schedule> findSchedulesByPerformance(Long performanceId) {
-        return scheduleRepository.findByPerformanceId(performanceId);
+        return scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);
     }
 }
