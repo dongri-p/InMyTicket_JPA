@@ -27,12 +27,12 @@ public class ReservationService {
     @Transactional
     public Long reserve(Long memberId, Long seatId) {
 
-        // 1. 엔티티 조회
+        // 1. 엔티티 조회 (회원은 일반 조회, 좌석은 비관적 락 조회)
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. id=" + memberId));
 
-        Seat seat = seatRepository.findById(seatId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다."));
+        Seat seat = seatRepository.findByIdWithLock(seatId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. id=" + seatId));
 
         // 2. 예매 생성
         Reservation reservation = Reservation.createReservation(member, seat);
