@@ -18,7 +18,7 @@ public class PaymentApiController {
     private final PaymentService paymentService;
 
     // 외부 결제 승인 완료 및 반영 API
-    @PostMapping("/api/v1/payment")
+    @PostMapping("/api/v1/payments")
     public CreatePaymentResponse pay(@RequestBody CreatePaymentRequest request) {
 
         // 외부-내부-외부 전략이 적용된 서비스 호출
