@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,10 +20,16 @@ import lombok.Setter;
 public class Member {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String loginId;
+
+    @Column(nullable = false)
+    private String password;
     private String name;
     private String email;
-    private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;

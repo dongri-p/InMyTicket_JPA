@@ -9,5 +9,7 @@ import com.example.dongri.inmyticket.domain.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmail(String email);
+
+    Optional<Member> findByLoginId(String loginId);
     
 }
