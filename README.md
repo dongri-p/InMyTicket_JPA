@@ -30,7 +30,7 @@
 ```text
 src/main/java/com/example/dongri/inmyticket
 ├── api             # REST API 컨트롤러 및 Request/Response DTO 레이어
-├── config          # Spring Security, JWT, Swagger 등 전역 설정 레이어
+├── config          # Spring Security, JWT 등 전역 설정 레이어
 ├── domain          # Member, Order, Item, Schedule 등 핵심 비즈니스 엔티티 및 Enum
 ├── repository      # Spring Data JPA 기반 데이터 접근 레이어
 └── service         # 트랜잭션 경계 및 핵심 비즈니스 로직 레이어
