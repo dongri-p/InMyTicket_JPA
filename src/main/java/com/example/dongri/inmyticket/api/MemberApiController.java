@@ -22,6 +22,7 @@ public class MemberApiController {
     public CreateMemberResponse saveMemberV1(@RequestBody CreateMemberRequest request) {
 
         Member member = new Member();
+        member.setLoginId(request.getLoginId());
         member.setEmail(request.getEmail());
         member.setPassword(request.getPassword());
         member.setName(request.getName());
@@ -29,6 +30,5 @@ public class MemberApiController {
 
         Long id = memberService.join(member);
         return new CreateMemberResponse(id);
-
     }
 }

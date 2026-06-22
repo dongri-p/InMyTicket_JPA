@@ -33,7 +33,7 @@ public class SecurityConfig {
             // API 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // 회원가입이랑 로그인은 토큰이 없는 상태에서 들어와야 하니까 무조건 통과(permitAll)
-                .requestMatchers("/api/v1/members/signup", "/api/v1/members/login").permitAll()
+                .requestMatchers("/api/v1/members", "/api/v1/members/login").permitAll()
                 // 그 외 나머지 모든 예매, 결제 API는 로그인을 해야만 접근 가능하게 잠그기
                 .anyRequest().authenticated()
             );
