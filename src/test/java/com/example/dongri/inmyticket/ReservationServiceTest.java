@@ -30,7 +30,11 @@ public class ReservationServiceTest {
     @DisplayName("동시에 100명이 딱 하나 남은 좌석을 예매하려고 광클해도, 정확히 1명만 성공해야 한다.")
     public void 동시에_100명_티켓팅_테스트() throws InterruptedException {
         // given
-        Member member = new Member(); 
+        Member member = new Member();
+        member.setLoginId("testUser");       // login_id가 null이 아니도록 채워주기!
+        member.setPassword("password123");
+        member.setName("테스터");
+        member.setEmail("test@test.com");
         memberRepository.save(member);
 
         Seat seat = new Seat(); 

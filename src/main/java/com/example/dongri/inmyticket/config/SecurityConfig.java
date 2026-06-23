@@ -8,7 +8,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,28 +16,25 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
     
-    private final JwtProvider jwtProvider;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // 회원가입 시 비밀번호 암호화 기능은 정상 작동하도록 유지
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // CSRF 및 세션 stateless 설정
+            // 1. 포스트맨 테스트를 방해하는 CSRF 차단막 해제
             .csrf(csrf -> csrf.disable())
+            
+            // 2. 세션 쓰지 않는 Stateless 유지
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             
-            // API 접근 권한 설정
+            // 3. 🌟 [핵심] 모든 API 경로를 로그인 없이 프리패스(permitAll)로 전면 개방!!
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/members", "/api/v1/members/login").permitAll()
-                .anyRequest().authenticated()
-            )
-            
-            // UsernamePasswordAuthenticationFilter 바로 앞에 JWT 검증 필터를 강제로 끼워 넣기
-            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().permitAll()
+            );
 
         return http.build();
     }

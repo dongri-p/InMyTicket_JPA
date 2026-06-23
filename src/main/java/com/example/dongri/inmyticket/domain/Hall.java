@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter @Setter
 public class Hall {
     
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) // INSERT INTO HALL (hall_id, name, total_seats) VALUES (1, '세종문화회관 대극장', 100);
     @Column(name = "hall_id")
     private Long id;
 
