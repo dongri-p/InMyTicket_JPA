@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.config.JwtProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 
@@ -16,6 +17,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public Long join(Member member) {
@@ -39,6 +41,23 @@ public class MemberService {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
+    }
+
+    /**
+     * 로그인 처리 및 JWT 토큰 발급
+     */
+    public String login(String loginId, String password) {
+        // 1. 아이디로 회원 조회
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
+
+        // 2. 비밀번호 검증 (암호화된 녀석과 사용자가 입력한 평문 매칭 테스트)
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        // 3. 비밀번호까지 맞으면 JWT 토큰 구워서 리턴
+        return jwtProvider.createToken(member.getId(), member.getLoginId(), member.getRole().name());
     }
      
     
