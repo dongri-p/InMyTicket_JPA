@@ -26,7 +26,7 @@
 ## 3. 시스템 아키텍처 및 구조 (Structure)
 
 ### 프로젝트 패키지 구조
-김영한 강사님의 도메인 중심 설계 및 REST API 최적화 규격을 준수하여 레이어를 엄격히 분리했습니다.
+도메인 중심 설계 및 REST API 최적화 규격을 준수하여 레이어를 엄격히 분리했습니다.
 ```text
 src/main/java/com/example/dongri/inmyticket
 ├── api             # REST API 컨트롤러 및 Request/Response DTO 레이어
