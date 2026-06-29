@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.config;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,30 +25,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 포스트맨 Bearer Token이 담겨오는 Authorization 헤더 추출
         String authorizationHeader = request.getHeader("Authorization");
 
-        // 2. 헤더가 Bearer로 시작하는지 검증
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7); // "Bearer " 제거한 순수 토큰 추출
+            String token = authorizationHeader.substring(7);
 
-            // 원래는 jwtProvider에서 토큰 만료 여부나 서명을 검증해야 하지만,
-            // 우선 포스트맨 통과 및 인증 객체 주입 시뮬레이션을 위해 통과 처리
             try {
-                // 시큐리티가 "아, 이 유저는 정상 인증된 유저구나"라고 판단할 수 있도록 Authentication에 담기
+                Claims claims = jwtProvider.parseClaims(token);
+
+                String loginId = claims.getSubject();
+                String role = claims.get("role", String.class);
+                Long memberId = claims.get("memberId", Long.class);
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        "dongri", // Principal (인증 유저 아이디)
+                        new AuthenticatedMember(memberId, loginId),
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER")) // 권한 부여
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
 
-                // 중요: 시큐리티의 핵심 보관함(Context)에 인증 객체 장착
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception e) {
-                // 토큰이 변조되었거나 문제 발생 시 통과시키지 않음
+
+            } catch (ExpiredJwtException e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
+                return;
+            } catch (JwtException e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+                return;
             }
         }
-        // 3. 다음 시큐리티 경비원 단계로 요청 넘기기
+
         filterChain.doFilter(request, response);
     }
 }

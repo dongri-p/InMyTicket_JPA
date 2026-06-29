@@ -1,38 +1,61 @@
 package com.example.dongri.inmyticket.config;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtProvider {
 
-    // 토큰을 서명할 때 쓸 비밀 열쇠(원래는 yml에 숨겨야 하지만, 우선 테스트용으로 자동 생성)
-    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final SecretKey secretKey;
+    private final long tokenValidityInMilliseconds;
 
-    // 토큰 유효 시간 설정(1시간)
-    private final long tokenValidityInMilliseconds = 3600000;
+    public JwtProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration}") long expiration) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.tokenValidityInMilliseconds = expiration;
+    }
 
-    // 로그인 성공 시 JWT 토큰을 구워주는 메서드
     public String createToken(Long memberId, String loginId, String role) {
-
         Date now = new Date();
-        Date vaildity = new Date(now.getTime() + tokenValidityInMilliseconds);
+        Date validity = new Date(now.getTime() + tokenValidityInMilliseconds);
 
         return Jwts.builder()
-                .setSubject(loginId)
+                .subject(loginId)
                 .claim("memberId", memberId)
                 .claim("role", role)
-                .setIssuedAt(now)
-                .setExpiration(vaildity)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(secretKey)
                 .compact();
     }
-    
+
+    public Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public String getLoginId(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public Long getMemberId(String token) {
+        return parseClaims(token).get("memberId", Long.class);
+    }
+
+    public String getRole(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
 }
