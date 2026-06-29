@@ -31,9 +31,13 @@ public class MemberService {
     }
 
     private void validateDuplicateMember(Member member) {
+        memberRepository.findByLoginId(member.getLoginId())
+            .ifPresent(m -> {
+                throw new IllegalStateException("이미 사용 중인 아이디입니다.");
+            });
         memberRepository.findByEmail(member.getEmail())
             .ifPresent(m -> {
-                throw new IllegalStateException("이미 존재하는 회원입니다.");
+                throw new IllegalStateException("이미 사용 중인 이메일입니다.");
             });
     }
 

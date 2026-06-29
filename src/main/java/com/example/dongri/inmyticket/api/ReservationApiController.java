@@ -1,10 +1,12 @@
 package com.example.dongri.inmyticket.api;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreateReservationRequest;
+import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.service.ReservationService;
 
 import lombok.AllArgsConstructor;
@@ -17,11 +19,13 @@ public class ReservationApiController {
 
     private final ReservationService reservationService;
 
-    // 티켓 예매 API
+    // 티켓 예매 API - memberId는 JWT에서 추출 (요청 바디로 받으면 타인 명의 예매 가능)
     @PostMapping("/api/v1/reservations")
-    public CreateReservationResponse reserve(@RequestBody CreateReservationRequest request) {
+    public CreateReservationResponse reserve(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @RequestBody CreateReservationRequest request) {
 
-        Long reservationId = reservationService.reserve(request.getMemberId(), request.getSeatId());
+        Long reservationId = reservationService.reserve(authenticatedMember.getMemberId(), request.getSeatId());
 
         return new CreateReservationResponse(reservationId, "티켓 예매가 완료되었습니다. 결제를 진행해주세요.");
     }

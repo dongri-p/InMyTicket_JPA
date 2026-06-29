@@ -51,8 +51,14 @@ public class Reservation {
         reservation.setMember(member);
 
         seat.reserve();
-        reservation.setStatus(ReservationStatus.PENDING); // 결제 전 상태인 PENDING으로 초기화
+        reservation.setStatus(ReservationStatus.PENDING);
         reservation.setReservedAt(java.time.LocalDateTime.now());
+        reservation.setTotalPrice(seat.getPrice());
+
+        Ticket ticket = new Ticket();
+        ticket.setReservation(reservation);
+        ticket.setSeat(seat);
+        reservation.getTickets().add(ticket);
 
         return reservation;
     }

@@ -5,7 +5,5 @@ import lombok.Setter;
 
 @Getter @Setter
 public class CreateReservationRequest {
-    private Long memberId;
     private Long seatId;
-
 }
