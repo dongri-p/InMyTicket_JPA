@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
@@ -37,7 +38,8 @@ public class ReservationServiceTest {
         member.setEmail("test@test.com");
         memberRepository.save(member);
 
-        Seat seat = new Seat(); 
+        Seat seat = new Seat();
+        seat.setStatus(SeatStatus.AVAILABLE);
         seatRepository.save(seat);
 
         int threadCount = 100;

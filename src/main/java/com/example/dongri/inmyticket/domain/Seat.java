@@ -2,6 +2,8 @@ package com.example.dongri.inmyticket.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,7 +30,8 @@ public class Seat {
     private int seatNumber;
     private int price;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private SeatStatus status;
 
     @Version
     private Long version;
@@ -37,13 +40,11 @@ public class Seat {
     // 좌석 예매 처리
     public void reserve() {
 
-        // 이미 누군가 예매를 한 상태라면 예외 터트리기
-        if("RESERVED".equals(this.status)) {
+        if (this.status != SeatStatus.AVAILABLE) {
             throw new IllegalStateException("이미 예매 완료된 좌석입니다.");
         }
 
-        // 문제가 없다면 상태를 RESERVED로 변경
-        this.setStatus("RESERVED");
+        this.status = SeatStatus.RESERVED;
 
         if(this.schedule != null) {
             int currentAvailable = this.schedule.getAvailableSeatCount();

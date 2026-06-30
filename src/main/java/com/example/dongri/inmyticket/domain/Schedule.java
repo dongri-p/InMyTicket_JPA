@@ -61,7 +61,7 @@ public class Schedule {
             seat.setSeatNumber(i);
             seat.setGrade("VIP");
             seat.setPrice(150000);
-            seat.setStatus("AVAILABLE");
+            seat.setStatus(SeatStatus.AVAILABLE);
 
             schedule.addSeat(seat);
         }
