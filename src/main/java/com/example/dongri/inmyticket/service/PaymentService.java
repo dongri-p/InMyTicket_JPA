@@ -11,7 +11,7 @@ public class PaymentService {
     private final PaymentApprovalService paymentApprovalService;
 
     // 외부 PG사 결제 승인 요청 껍데기 메서드
-    public Long processPayment(Long reservationId, int amount, String paymentKey) {
+    public Long processPayment(Long memberId, Long reservationId, String paymentKey) {
 
         // 1. 외부 결제 대행사(PG) API 네트워크 통신 시뮬레이션
         try {
@@ -22,6 +22,6 @@ public class PaymentService {
         }
 
         // 2. 외부 통신이 성공하면, 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출
-        return paymentApprovalService.approve(reservationId, amount, paymentKey);
+        return paymentApprovalService.approve(memberId, reservationId, paymentKey);
     }
 }

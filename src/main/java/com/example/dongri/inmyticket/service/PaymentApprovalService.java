@@ -21,17 +21,22 @@ public class PaymentApprovalService {
     private final ReservationRepository reservationRepository;
 
     // DB 작업만 수행하는 핵심 트랜잭션 로직
-    public Long approve(Long reservationId, int amount, String paymentKey) {
+    public Long approve(Long memberId, Long reservationId, String paymentKey) {
 
         // 1. 예약 조회
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
-        
-        // 2. 결제 엔티티 생성(내부 상태 COMPLETED로 세팅)
-        Payment payment = Payment.createPayment(reservation, amount, paymentKey);
+
+        // 2. 예약 소유자 검증 (타인 명의 결제 방지)
+        if (!reservation.getMember().getId().equals(memberId)) {
+            throw new IllegalArgumentException("본인의 예약만 결제할 수 있습니다.");
+        }
+
+        // 3. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
+        Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey);
         paymentRepository.save(payment);
 
-        // 3. 예약의 상태도 결제 완료로 변경
+        // 4. 예약의 상태도 결제 완료로 변경
         reservation.setStatus(ReservationStatus.CONFIRMED);
 
         return payment.getId();

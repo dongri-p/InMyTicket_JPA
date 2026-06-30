@@ -12,6 +12,10 @@ jwt:
   secret: ${JWT_SECRET:inmyticket-secret-key-must-be-at-least-32-chars-long}
   expiration: 3600000
 
+kopis:
+  api-key: ${KOPIS_API_KEY:ac849e5c3a0c458687d4a190acd4e026}
+  base-url: http://www.kopis.or.kr/openApi/restful
+
 logging:
   level:
     org.hibernate.SQL: debug

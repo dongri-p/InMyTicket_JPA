@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.api;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +24,7 @@ public class ReservationApiController {
     @PostMapping("/api/v1/reservations")
     public CreateReservationResponse reserve(
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
-            @RequestBody CreateReservationRequest request) {
+            @Validated @RequestBody CreateReservationRequest request) {
 
         Long reservationId = reservationService.reserve(authenticatedMember.getMemberId(), request.getSeatId());
 

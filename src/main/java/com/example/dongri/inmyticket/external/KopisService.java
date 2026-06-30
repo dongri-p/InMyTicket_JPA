@@ -3,24 +3,28 @@ package com.example.dongri.inmyticket.external;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceListResponse;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class KopisService {
 
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("http://www.kopis.or.kr/openApi/restful")
-            .build();
+    private final WebClient webClient;
+    private final String apiKey;
 
-    private final String apiKey = "ac849e5c3a0c458687d4a190acd4e026";
+    public KopisService(
+            WebClient.Builder webClientBuilder,
+            @Value("${kopis.base-url}") String baseUrl,
+            @Value("${kopis.api-key}") String apiKey) {
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+        this.apiKey = apiKey;
+    }
 
     public List<KopisPerformanceResponse> fetchRecentPerformances() {
         try {

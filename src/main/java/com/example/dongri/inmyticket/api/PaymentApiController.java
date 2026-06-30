@@ -1,10 +1,13 @@
 package com.example.dongri.inmyticket.api;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreatePaymentRequest;
+import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.service.PaymentService;
 
 import lombok.AllArgsConstructor;
@@ -19,12 +22,14 @@ public class PaymentApiController {
 
     // 외부 결제 승인 완료 및 반영 API
     @PostMapping("/api/v1/payments")
-    public CreatePaymentResponse pay(@RequestBody CreatePaymentRequest request) {
+    public CreatePaymentResponse pay(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @Validated @RequestBody CreatePaymentRequest request) {
 
         // 외부-내부-외부 전략이 적용된 서비스 호출
         Long paymentId = paymentService.processPayment(
+            authenticatedMember.getMemberId(),
             request.getReservationId(),
-            request.getAmount(),
             request.getPaymentKey()
         );
 
