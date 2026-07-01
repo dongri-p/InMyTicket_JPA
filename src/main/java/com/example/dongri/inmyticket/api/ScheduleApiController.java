@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreateScheduleRequest;
 import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
+import com.example.dongri.inmyticket.api.dto.SeatListDto;
 import com.example.dongri.inmyticket.domain.Schedule;
+import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.service.ScheduleService;
 
 import lombok.AllArgsConstructor;
@@ -43,6 +45,18 @@ public class ScheduleApiController {
 
         List<ScheduleListDto> collect = findSchedules.stream()
                 .map(ScheduleListDto::new)
+                .collect(Collectors.toList());
+
+        return new Result(collect.size(), collect);
+    }
+
+    // 특정 회차의 좌석 목록 조회 (예매 전 좌석 현황 확인용)
+    @GetMapping("/api/v1/schedules/{scheduleId}/seats")
+    public Result seatsBySchedule(@PathVariable("scheduleId") Long scheduleId) {
+        List<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId);
+
+        List<SeatListDto> collect = seats.stream()
+                .map(SeatListDto::new)
                 .collect(Collectors.toList());
 
         return new Result(collect.size(), collect);

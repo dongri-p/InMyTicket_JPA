@@ -9,9 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.Schedule;
+import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.HallRepository;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
+import com.example.dongri.inmyticket.repository.SeatRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +25,7 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final PerformanceRepository performanceRepository;
     private final HallRepository hallRepository;
+    private final SeatRepository seatRepository;
 
     @Transactional
     public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount) {
@@ -46,5 +49,13 @@ public class ScheduleService {
     // 특정 공연의 전체 회차 목록 조회
     public List<Schedule> findSchedulesByPerformance(Long performanceId) {
         return scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);
+    }
+
+    // 특정 회차의 좌석 목록 조회
+    public List<Seat> findSeatsBySchedule(Long scheduleId) {
+        // 회차가 실제 존재하는지 먼저 검증
+        scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회차입니다. id=" + scheduleId));
+        return seatRepository.findByScheduleId(scheduleId);
     }
 }
