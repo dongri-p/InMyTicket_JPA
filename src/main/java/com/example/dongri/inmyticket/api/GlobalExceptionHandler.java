@@ -1,0 +1,37 @@
+package com.example.dongri.inmyticket.api;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.example.dongri.inmyticket.api.dto.ErrorResponse;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // @NotBlank, @NotNull, @Email 등 validation 실패
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        String message = (fieldError != null) ? fieldError.getDefaultMessage() : "입력값이 올바르지 않습니다.";
+        return new ErrorResponse(400, message);
+    }
+
+    // 중복 회원, 이미 예매된 좌석 등 비즈니스 규칙 위반
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(IllegalStateException.class)
+    public ErrorResponse handleIllegalStateException(IllegalStateException e) {
+        return new ErrorResponse(409, e.getMessage());
+    }
+
+    // 존재하지 않는 리소스 조회, 본인 아닌 예약 결제 시도 등
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        return new ErrorResponse(400, e.getMessage());
+    }
+}
