@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class PaymentApprovalService {
 
         // 2. 예약 소유자 검증 (타인 명의 결제 방지)
         if (!reservation.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("본인의 예약만 결제할 수 있습니다.");
+            throw new AccessDeniedException("본인의 예약만 결제할 수 있습니다.");
         }
 
         // 3. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)

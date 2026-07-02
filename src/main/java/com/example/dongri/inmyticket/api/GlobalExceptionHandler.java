@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket.api;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,10 +37,17 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(409, "이미 사용 중인 값입니다.");
     }
 
-    // 존재하지 않는 리소스 조회, 본인 아닌 예약 결제 시도 등
+    // 존재하지 않는 리소스 조회 등
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
         return new ErrorResponse(400, e.getMessage());
+    }
+
+    // 본인 소유가 아닌 리소스에 대한 접근/조작 시도
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
+        return new ErrorResponse(403, e.getMessage());
     }
 }
