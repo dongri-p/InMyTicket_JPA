@@ -8,6 +8,7 @@ import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
+import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
     private final SeatRepository seatRepository;
+    private final ScheduleRepository scheduleRepository;
 
     // 티켓 예매하기
     @Transactional
@@ -37,7 +39,12 @@ public class ReservationService {
         // 2. 예매 생성
         Reservation reservation = Reservation.createReservation(member, seat);
 
-        // 3. 저장
+        // 3. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
+        if (seat.getSchedule() != null) {
+            scheduleRepository.decrementAvailableSeatCount(seat.getSchedule().getId());
+        }
+
+        // 4. 저장
         reservationRepository.save(reservation);
 
         return reservation.getId();

@@ -45,12 +45,5 @@ public class Seat {
         }
 
         this.status = SeatStatus.RESERVED;
-
-        if(this.schedule != null) {
-            int currentAvailable = this.schedule.getAvailableSeatCount();
-            if(currentAvailable > 0) {
-                this.schedule.setAvailableSeatCount(currentAvailable - 1);
-            }
-        }
     }
 }
