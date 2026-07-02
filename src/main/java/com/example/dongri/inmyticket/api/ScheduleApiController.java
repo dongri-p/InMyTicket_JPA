@@ -3,6 +3,7 @@ package com.example.dongri.inmyticket.api;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +29,7 @@ public class ScheduleApiController {
 
     // 관리자 기능. 공연 회차 등록 API
     @PostMapping("/api/v1/schedules")
-    public CreateScheduleResponse saveSchedule(@RequestBody CreateScheduleRequest request) {
+    public CreateScheduleResponse saveSchedule(@Validated @RequestBody CreateScheduleRequest request) {
         Long id = scheduleService.saveSchedule(
                 request.getPerformanceId(),
                 request.getHallId(),
