@@ -33,11 +33,16 @@ public class PaymentApprovalService {
             throw new AccessDeniedException("본인의 예약만 결제할 수 있습니다.");
         }
 
-        // 3. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
+        // 3. 이미 결제 완료된 예약인지 확인 (중복 결제 방지)
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException("이미 결제가 완료된 예약입니다.");
+        }
+
+        // 4. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
         Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey);
         paymentRepository.save(payment);
 
-        // 4. 예약의 상태도 결제 완료로 변경
+        // 5. 예약의 상태도 결제 완료로 변경
         reservation.setStatus(ReservationStatus.CONFIRMED);
 
         return payment.getId();
