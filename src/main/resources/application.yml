@@ -16,6 +16,10 @@ kopis:
   api-key: ${KOPIS_API_KEY:ac849e5c3a0c458687d4a190acd4e026}
   base-url: http://www.kopis.or.kr/openApi/restful
 
+admin:
+  login-id: ${ADMIN_LOGIN_ID:admin}
+  password: ${ADMIN_PASSWORD:ChangeMe1234!}
+
 logging:
   level:
     org.hibernate.SQL: debug
