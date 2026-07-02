@@ -13,7 +13,7 @@ jwt:
   expiration: 3600000
 
 kopis:
-  api-key: ${KOPIS_API_KEY:ac849e5c3a0c458687d4a190acd4e026}
+  api-key: ${KOPIS_API_KEY}
   base-url: http://www.kopis.or.kr/openApi/restful
 
 admin:
