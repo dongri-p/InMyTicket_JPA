@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.api;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ErrorResponse handleIllegalStateException(IllegalStateException e) {
         return new ErrorResponse(409, e.getMessage());
+    }
+
+    // loginId/email 등 DB unique 제약 위반 (동시 가입 등으로 앱 레벨 중복 검사를 통과한 경우)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ErrorResponse handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        return new ErrorResponse(409, "이미 사용 중인 값입니다.");
     }
 
     // 존재하지 않는 리소스 조회, 본인 아닌 예약 결제 시도 등
