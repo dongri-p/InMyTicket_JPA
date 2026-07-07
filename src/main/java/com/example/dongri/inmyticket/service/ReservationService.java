@@ -41,7 +41,10 @@ public class ReservationService {
 
         // 3. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
         if (seat.getSchedule() != null) {
-            scheduleRepository.decrementAvailableSeatCount(seat.getSchedule().getId());
+            int updated = scheduleRepository.decrementAvailableSeatCount(seat.getSchedule().getId());
+            if (updated == 0) {
+                throw new IllegalStateException("잔여 좌석이 없습니다. scheduleId=" + seat.getSchedule().getId());
+            }
         }
 
         // 4. 저장
