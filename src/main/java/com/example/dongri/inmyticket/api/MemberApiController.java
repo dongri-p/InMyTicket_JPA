@@ -36,7 +36,7 @@ public class MemberApiController {
     }
 
     @PostMapping("/api/v1/members/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@Validated @RequestBody LoginRequest request) {
         // 로그인 검증 후 토큰 받아오기
         String token = memberService.login(request.getLoginId(), request.getPassword());
         
