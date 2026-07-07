@@ -1,11 +1,16 @@
 package com.example.dongri.inmyticket.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.Member;
+import com.example.dongri.inmyticket.domain.Payment;
+import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
+import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.Ticket;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -53,6 +58,40 @@ public class ReservationService {
         return reservation.getId();
     }
 
-    
-    
+    // 예매 취소하기
+    @Transactional
+    public void cancel(Long memberId, Long reservationId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+
+        // 본인 예약만 취소 가능
+        if (!reservation.getMember().getId().equals(memberId)) {
+            throw new AccessDeniedException("본인의 예약만 취소할 수 있습니다.");
+        }
+
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("이미 취소된 예약입니다.");
+        }
+
+        // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구
+        for (Ticket ticket : reservation.getTickets()) {
+            Seat seat = seatRepository.findByIdWithLock(ticket.getSeat().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. id=" + ticket.getSeat().getId()));
+
+            seat.release();
+
+            if (seat.getSchedule() != null) {
+                scheduleRepository.incrementAvailableSeatCount(seat.getSchedule().getId());
+            }
+        }
+
+        // 결제가 완료된 예약이면 결제도 취소 처리
+        Payment payment = reservation.getPayment();
+        if (payment != null) {
+            payment.setStatus(PaymentStatus.CANCELED);
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+    }
 }

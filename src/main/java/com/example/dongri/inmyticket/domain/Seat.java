@@ -46,4 +46,14 @@ public class Seat {
 
         this.status = SeatStatus.RESERVED;
     }
+
+    // 좌석 예매 취소 시 다시 예매 가능 상태로 되돌림
+    public void release() {
+
+        if (this.status != SeatStatus.RESERVED) {
+            throw new IllegalStateException("예매되지 않은 좌석은 취소할 수 없습니다.");
+        }
+
+        this.status = SeatStatus.AVAILABLE;
+    }
 }

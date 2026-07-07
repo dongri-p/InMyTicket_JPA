@@ -25,6 +25,15 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     int decrementAvailableSeatCount(@Param("scheduleId") Long scheduleId);
 
     /**
+     * 예약 취소로 좌석이 반환될 때, 잔여 좌석 수를 DB 레벨에서 원자적으로 1 증가시킴
+     * totalSeatCount를 넘지 않도록 가드
+     */
+    @Modifying
+    @Query("update Schedule s set s.availableSeatCount = s.availableSeatCount + 1 " +
+           "where s.id = :scheduleId and s.availableSeatCount < s.totalSeatCount")
+    int incrementAvailableSeatCount(@Param("scheduleId") Long scheduleId);
+
+    /**
      * N+1 문제를 원천 차단하는 페치 조인 조회
      * Schedule을 가져올 때 연관된 performance와 hall을 한방 쿼리로 묶어서 즉시 로딩
      */
