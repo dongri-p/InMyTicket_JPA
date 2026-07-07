@@ -33,9 +33,9 @@ public class PaymentApprovalService {
             throw new AccessDeniedException("본인의 예약만 결제할 수 있습니다.");
         }
 
-        // 3. 이미 결제 완료된 예약인지 확인 (중복 결제 방지)
-        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
-            throw new IllegalStateException("이미 결제가 완료된 예약입니다.");
+        // 3. 결제 가능한 상태(PENDING)인지 확인 (중복 결제, 취소된 예약 결제 방지)
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("결제할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
         }
 
         // 4. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
