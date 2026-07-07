@@ -52,12 +52,13 @@ public class MemberService {
      */
     public String login(String loginId, String password) {
         // 1. 아이디로 회원 조회
+        // 계정 존재 여부가 드러나지 않도록 아이디 없음/비밀번호 불일치를 동일한 메시지로 응답
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         // 2. 비밀번호 검증 (암호화된 녀석과 사용자가 입력한 평문 매칭 테스트)
         if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
         // 3. 비밀번호까지 맞으면 JWT 토큰 구워서 리턴
