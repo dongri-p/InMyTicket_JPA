@@ -42,6 +42,8 @@ public class ReservationServiceTest {
         seat.setStatus(SeatStatus.AVAILABLE);
         seatRepository.save(seat);
 
+        long reservationCountBefore = reservationRepository.count();
+
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -72,6 +74,7 @@ public class ReservationServiceTest {
 
         // 기대하는값(1), 실제결과값 순서로 넣는 정석 JUnit 5 문법
         Assertions.assertEquals(1, successCount.get());
-        Assertions.assertEquals(1, reservationRepository.count());
+        // 다른 테스트가 같은 컨텍스트에서 먼저 만들어둔 예약 행이 섞여도 이 테스트가 만든 증가분(1건)만 검증
+        Assertions.assertEquals(reservationCountBefore + 1, reservationRepository.count());
     }
 }
