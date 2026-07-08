@@ -24,8 +24,8 @@ public class PaymentApprovalService {
     // DB 작업만 수행하는 핵심 트랜잭션 로직
     public Long approve(Long memberId, Long reservationId, String paymentKey) {
 
-        // 1. 예약 조회
-        Reservation reservation = reservationRepository.findById(reservationId)
+        // 1. 예약 조회 (취소와 동시 발생 시 경쟁을 막기 위해 비관적 락 사용)
+        Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
         // 2. 예약 소유자 검증 (타인 명의 결제 방지)

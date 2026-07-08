@@ -46,6 +46,8 @@ public class PaymentApprovalServiceTest {
         reservation.setReservedAt(LocalDateTime.now());
         reservationRepository.save(reservation);
 
+        long paymentCountBefore = paymentRepository.count();
+
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -75,6 +77,7 @@ public class PaymentApprovalServiceTest {
         System.out.println("결제 실패(거부) 횟수: " + failedCount.get());
 
         Assertions.assertEquals(1, successCount.get());
-        Assertions.assertEquals(1, paymentRepository.count());
+        // 다른 테스트가 같은 컨텍스트에서 먼저 만들어둔 결제 행이 섞여도 이 테스트가 만든 증가분(1건)만 검증
+        Assertions.assertEquals(paymentCountBefore + 1, paymentRepository.count());
     }
 }

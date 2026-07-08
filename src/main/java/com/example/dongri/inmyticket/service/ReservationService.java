@@ -62,7 +62,7 @@ public class ReservationService {
     @Transactional
     public void cancel(Long memberId, Long reservationId) {
 
-        Reservation reservation = reservationRepository.findById(reservationId)
+        Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
         // 본인 예약만 취소 가능
@@ -82,7 +82,10 @@ public class ReservationService {
             seat.release();
 
             if (seat.getSchedule() != null) {
-                scheduleRepository.incrementAvailableSeatCount(seat.getSchedule().getId());
+                int updated = scheduleRepository.incrementAvailableSeatCount(seat.getSchedule().getId());
+                if (updated == 0) {
+                    throw new IllegalStateException("잔여 좌석 수 복구에 실패했습니다. scheduleId=" + seat.getSchedule().getId());
+                }
             }
         }
 
