@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -13,6 +15,8 @@ import com.example.dongri.inmyticket.api.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // @NotBlank, @NotNull, @Email 등 validation 실패
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -49,5 +53,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
         return new ErrorResponse(403, e.getMessage());
+    }
+
+    // 위에서 다루지 않은 예상치 못한 예외 - 내부 정보를 노출하지 않고 표준 포맷으로 응답
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public ErrorResponse handleException(Exception e) {
+        log.error("처리되지 않은 예외 발생", e);
+        return new ErrorResponse(500, "서버 내부 오류가 발생했습니다.");
     }
 }
