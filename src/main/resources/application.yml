@@ -19,8 +19,3 @@ kopis:
 admin:
   login-id: ${ADMIN_LOGIN_ID}
   password: ${ADMIN_PASSWORD}
-
-logging:
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
