@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
@@ -46,12 +47,27 @@ public class SecurityConfig {
         };
     }
 
+    // 인증은 됐지만 권한이 없는 요청(예: 일반 회원이 관리자 API 호출)은 403으로 응답
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(403);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+            try (PrintWriter writer = response.getWriter()) {
+                writer.write(objectMapper.writeValueAsString(new ErrorResponse(403, "접근 권한이 없습니다.")));
+            }
+        };
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint()))
+            .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(authenticationEntryPoint())
+                    .accessDeniedHandler(accessDeniedHandler()))
             .authorizeHttpRequests(auth -> auth
                 // 회원가입, 로그인은 인증 없이 허용
                 .requestMatchers(HttpMethod.POST, "/api/v1/members", "/api/v1/members/login").permitAll()
