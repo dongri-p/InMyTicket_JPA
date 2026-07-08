@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -25,5 +26,6 @@ public class CreateScheduleRequest {
     private LocalDateTime startTime;
 
     @Min(1)
+    @Max(100000)
     private int totalSeatCount;
 }
