@@ -2,6 +2,8 @@ package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +31,23 @@ public class PerformanceService {
         // Kopis로부터 dto 리스트 땡겨오기
         List<KopisPerformanceResponse> kopisData = kopisService.fetchRecentPerformances();
 
+        if (kopisData.isEmpty()) {
+            log.info("동기화할 외부 데이터가 없습니다.");
+            return;
+        }
+
         log.info("가져온 외부 데이터 DB 동기화 시작");
+
+        // 이미 DB에 들어있는 공연들의 apiId를 한 번에 조회 (아이템별 개별 조회로 인한 N+1 방지)
+        List<String> apiIds = kopisData.stream()
+                .map(KopisPerformanceResponse::getMt20id)
+                .collect(Collectors.toList());
+        Set<String> existingApiIds = Set.copyOf(performanceRepository.findApiIdsIn(apiIds));
 
         for(KopisPerformanceResponse dto : kopisData) {
 
-            // 이미 DB에 들어있는 공연인지 apiId로 체크
-            if(performanceRepository.findByApiId(dto.getMt20id()).isPresent()) {
+            // 이미 DB에 들어있는 공연인지 체크
+            if(existingApiIds.contains(dto.getMt20id())) {
                 continue;
             }
 
