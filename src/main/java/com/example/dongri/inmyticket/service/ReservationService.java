@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,7 +13,6 @@ import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Seat;
-import com.example.dongri.inmyticket.domain.Ticket;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -74,11 +76,16 @@ public class ReservationService {
             throw new IllegalStateException("이미 취소된 예약입니다.");
         }
 
-        // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구
-        for (Ticket ticket : reservation.getTickets()) {
-            Seat seat = seatRepository.findByIdWithLock(ticket.getSeat().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. id=" + ticket.getSeat().getId()));
+        // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구 (티켓 수만큼 반복 조회하지 않도록 한 번에 락 조회)
+        List<Long> seatIds = reservation.getTickets().stream()
+                .map(ticket -> ticket.getSeat().getId())
+                .collect(Collectors.toList());
+        List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
+        if (seats.size() != seatIds.size()) {
+            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. reservationId=" + reservationId);
+        }
 
+        for (Seat seat : seats) {
             seat.release();
 
             if (seat.getSchedule() != null) {
