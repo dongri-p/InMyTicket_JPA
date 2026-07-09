@@ -1,6 +1,5 @@
 package com.example.dongri.inmyticket.service;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +28,7 @@ public class PaymentApprovalService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
         // 2. 예약 소유자 검증 (타인 명의 결제 방지)
-        if (!reservation.getMember().getId().equals(memberId)) {
-            throw new AccessDeniedException("본인의 예약만 결제할 수 있습니다.");
-        }
+        reservation.assertOwner(memberId);
 
         // 3. 결제 가능한 상태(PENDING)인지 확인 (중복 결제, 취소된 예약 결제 방지)
         if (reservation.getStatus() != ReservationStatus.PENDING) {

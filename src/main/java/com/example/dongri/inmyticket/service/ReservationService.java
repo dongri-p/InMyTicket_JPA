@@ -3,7 +3,6 @@ package com.example.dongri.inmyticket.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +66,7 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
-        // 본인 예약만 취소 가능
-        if (!reservation.getMember().getId().equals(memberId)) {
-            throw new AccessDeniedException("본인의 예약만 취소할 수 있습니다.");
-        }
+        reservation.assertOwner(memberId);
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalStateException("이미 취소된 예약입니다.");

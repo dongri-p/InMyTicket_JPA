@@ -18,6 +18,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+
+import org.springframework.security.access.AccessDeniedException;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -61,5 +64,12 @@ public class Reservation {
         reservation.getTickets().add(ticket);
 
         return reservation;
+    }
+
+    // 본인 예약이 아니면 접근 거부 (취소/결제 승인에서 공통으로 사용)
+    public void assertOwner(Long memberId) {
+        if (!this.member.getId().equals(memberId)) {
+            throw new AccessDeniedException("본인의 예약만 처리할 수 있습니다.");
+        }
     }
 }
