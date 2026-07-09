@@ -11,10 +11,6 @@ import com.example.dongri.inmyticket.domain.Schedule;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
-    // 특정 공연에 속한 모든 회차 일정을 조회하는 메서드
-    @Query("select s from Schedule s where s.performance.id = :performanceId")
-    List<Schedule> findByPerformanceId(@Param("performanceId") Long performanceId);
-
     /**
      * 잔여 좌석 수를 DB 레벨에서 원자적으로 1 감소시킴
      * (좌석 락과 별개로 Schedule 로우를 잠그지 않고도 lost-update를 방지)
