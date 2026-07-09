@@ -54,7 +54,7 @@ public class ReservationCancelServiceTest {
         memberRepository.save(stranger);
 
         schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now());
+        schedule.setStartTime(LocalDateTime.now().plusDays(1));
         schedule.setTotalSeatCount(1);
         schedule.setAvailableSeatCount(1);
 
@@ -98,6 +98,28 @@ public class ReservationCancelServiceTest {
         // given
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
         reservationService.cancel(owner.getId(), reservationId);
+
+        // when & then
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> reservationService.cancel(owner.getId(), reservationId));
+    }
+
+    @Test
+    @DisplayName("공연이 이미 시작된 예약은 취소할 수 없다")
+    void cancel_afterScheduleStarted_throwsIllegalState() {
+        // given
+        Schedule startedSchedule = new Schedule();
+        startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));
+        startedSchedule.setTotalSeatCount(1);
+        startedSchedule.setAvailableSeatCount(1);
+
+        Seat startedSeat = new Seat();
+        startedSeat.setStatus(SeatStatus.AVAILABLE);
+        startedSeat.setPrice(150000);
+        startedSchedule.addSeat(startedSeat);
+        scheduleRepository.save(startedSchedule);
+
+        Long reservationId = reservationService.reserve(owner.getId(), startedSeat.getId());
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,

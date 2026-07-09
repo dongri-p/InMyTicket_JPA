@@ -51,7 +51,7 @@ public class ReservationCancelApproveRaceTest {
         memberRepository.save(member);
 
         Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now());
+        schedule.setStartTime(LocalDateTime.now().plusDays(1));
         schedule.setTotalSeatCount(1);
         schedule.setAvailableSeatCount(1);
 

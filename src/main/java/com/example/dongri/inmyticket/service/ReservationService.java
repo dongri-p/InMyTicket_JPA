@@ -1,6 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -78,6 +80,16 @@ public class ReservationService {
         List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
         if (seats.size() != seatIds.size()) {
             throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. reservationId=" + reservationId);
+        }
+
+        // 공연 시작 이후에는 취소 불가
+        LocalDateTime now = LocalDateTime.now();
+        boolean alreadyStarted = seats.stream()
+                .map(Seat::getSchedule)
+                .filter(Objects::nonNull)
+                .anyMatch(s -> !s.getStartTime().isAfter(now));
+        if (alreadyStarted) {
+            throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
 
         for (Seat seat : seats) {
