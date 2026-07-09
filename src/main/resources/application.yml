@@ -19,3 +19,9 @@ kopis:
 admin:
   login-id: ${ADMIN_LOGIN_ID}
   password: ${ADMIN_PASSWORD}
+
+reservation:
+  # 결제 없이 이 시간(분)이 지난 PENDING 예약은 좌석을 자동 회수함
+  pending-timeout-minutes: 10
+  # 자동 회수 스케줄러 실행 주기(ms)
+  expiration-check-interval-ms: 60000

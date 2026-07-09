@@ -80,14 +80,7 @@ public class ReservationService {
             throw new IllegalStateException("이미 취소된 예약입니다.");
         }
 
-        // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구 (티켓 수만큼 반복 조회하지 않도록 한 번에 락 조회)
-        List<Long> seatIds = reservation.getTickets().stream()
-                .map(ticket -> ticket.getSeat().getId())
-                .collect(Collectors.toList());
-        List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
-        if (seats.size() != seatIds.size()) {
-            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. reservationId=" + reservationId);
-        }
+        List<Seat> seats = lockReservedSeats(reservation);
 
         // 공연 시작 이후에는 취소 불가
         LocalDateTime now = LocalDateTime.now();
@@ -99,6 +92,54 @@ public class ReservationService {
             throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
 
+        releaseSeatsAndRestoreCounts(seats);
+
+        // 결제가 완료된 예약이면 결제도 취소 처리
+        Payment payment = reservation.getPayment();
+        if (payment != null) {
+            payment.cancel();
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+    }
+
+    // 결제 없이 일정 시간 이상 방치된 PENDING 예약들을 찾아 좌석/잔여석을 회수 (스케줄러 전용, 소유자 검증/공연 시작 제한 없음)
+    @Transactional
+    public int expireStalePendingReservations(LocalDateTime cutoff) {
+
+        List<Reservation> candidates = reservationRepository.findByStatusAndReservedAtBefore(ReservationStatus.PENDING, cutoff);
+
+        int expiredCount = 0;
+        for (Reservation candidate : candidates) {
+            // 후보 조회는 락 없이 했으므로, 실제 처리 직전에 다시 락을 걸고 상태를 재확인 (그 사이 결제/취소가 먼저 끝났을 수 있음)
+            Reservation reservation = reservationRepository.findByIdWithLock(candidate.getId())
+                    .orElse(null);
+            if (reservation == null || reservation.getStatus() != ReservationStatus.PENDING) {
+                continue;
+            }
+
+            releaseSeatsAndRestoreCounts(lockReservedSeats(reservation));
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            expiredCount++;
+        }
+
+        return expiredCount;
+    }
+
+    // 예약에 속한 좌석들을 한 번에 비관적 락으로 조회
+    private List<Seat> lockReservedSeats(Reservation reservation) {
+        List<Long> seatIds = reservation.getTickets().stream()
+                .map(ticket -> ticket.getSeat().getId())
+                .collect(Collectors.toList());
+        List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
+        if (seats.size() != seatIds.size()) {
+            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. reservationId=" + reservation.getId());
+        }
+        return seats;
+    }
+
+    // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구
+    private void releaseSeatsAndRestoreCounts(List<Seat> seats) {
         for (Seat seat : seats) {
             seat.release();
 
@@ -109,13 +150,5 @@ public class ReservationService {
                 }
             }
         }
-
-        // 결제가 완료된 예약이면 결제도 취소 처리
-        Payment payment = reservation.getPayment();
-        if (payment != null) {
-            payment.cancel();
-        }
-
-        reservation.setStatus(ReservationStatus.CANCELLED);
     }
 }
