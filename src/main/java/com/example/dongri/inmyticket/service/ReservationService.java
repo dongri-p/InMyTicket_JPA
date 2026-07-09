@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
-import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Seat;
@@ -95,7 +94,7 @@ public class ReservationService {
         // 결제가 완료된 예약이면 결제도 취소 처리
         Payment payment = reservation.getPayment();
         if (payment != null) {
-            payment.setStatus(PaymentStatus.CANCELED);
+            payment.cancel();
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);

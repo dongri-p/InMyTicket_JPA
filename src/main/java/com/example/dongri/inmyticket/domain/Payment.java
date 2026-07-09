@@ -33,6 +33,7 @@ public class Payment {
     private int amount;
 
     @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.NONE)
     private PaymentStatus status;
 
     // 외부 PG사가 발급해준 고유 결제 키
@@ -50,6 +51,11 @@ public class Payment {
         payment.paidAt = LocalDateTime.now();
         return payment;
     }
-    
+
+    // 예약 취소에 따른 결제 취소 처리
+    public void cancel() {
+        this.status = PaymentStatus.CANCELED;
+    }
+
 }
 
