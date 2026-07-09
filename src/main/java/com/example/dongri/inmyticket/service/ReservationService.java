@@ -60,6 +60,13 @@ public class ReservationService {
         return reservation.getId();
     }
 
+    // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
+    public boolean hasCompletedPayment(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+        return reservation.getPayment() != null;
+    }
+
     // 예매 취소하기
     @Transactional
     public void cancel(Long memberId, Long reservationId) {
