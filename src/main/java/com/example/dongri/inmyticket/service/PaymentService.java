@@ -29,7 +29,9 @@ public class PaymentService {
     // 예약 취소 시 결제가 완료된 상태라면 PG 환불 통신 이후 취소 반영
     public void processCancel(Long memberId, Long reservationId) {
 
-        if (reservationService.hasCompletedPayment(reservationId)) {
+        boolean refundNeeded = reservationService.hasCompletedPayment(memberId, reservationId);
+
+        if (refundNeeded) {
             // 1. 외부 결제 대행사(PG) 환불 API 네트워크 통신 시뮬레이션
             try {
                 Thread.sleep(1500);
@@ -39,7 +41,9 @@ public class PaymentService {
             }
         }
 
-        // 2. 외부 환불 통신이 성공하면(혹은 환불할 결제가 없으면), 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출
-        reservationService.cancel(memberId, reservationId);
+        // 2. 외부 환불 통신이 성공하면(혹은 환불할 결제가 없으면), 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출.
+        // 확인 시점 이후 결제가 새로 완료됐다면(refundNeeded=false였는데 실제로는 결제가 생김) 조용히 넘어가지 않고
+        // cancelAfterRefundCheck가 재시도를 요구하는 예외를 던짐
+        reservationService.cancelAfterRefundCheck(memberId, reservationId, refundNeeded);
     }
 }

@@ -61,15 +61,30 @@ public class ReservationService {
     }
 
     // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
-    public boolean hasCompletedPayment(Long reservationId) {
+    // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함
+    public boolean hasCompletedPayment(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+        reservation.assertOwner(memberId);
         return reservation.getPayment() != null;
     }
 
     // 예매 취소하기
     @Transactional
     public void cancel(Long memberId, Long reservationId) {
+        performCancel(memberId, reservationId, true);
+    }
+
+    // PaymentService.processCancel() 전용 진입점.
+    // hasCompletedPayment()로 환불 필요 여부를 확인한 시점과 여기서 실제 락을 잡는 시점 사이에
+    // 결제가 새로 완료되는 경쟁 상황이 생길 수 있음 - 그 사이 결제가 생겼는데 PG 환불 통신을
+    // 안 거쳤다면(refundHandled=false), 조용히 취소하지 않고 재시도를 요구한다.
+    @Transactional
+    void cancelAfterRefundCheck(Long memberId, Long reservationId, boolean refundHandled) {
+        performCancel(memberId, reservationId, refundHandled);
+    }
+
+    private void performCancel(Long memberId, Long reservationId, boolean refundHandled) {
 
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
@@ -78,6 +93,11 @@ public class ReservationService {
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalStateException("이미 취소된 예약입니다.");
+        }
+
+        Payment payment = reservation.getPayment();
+        if (payment != null && !refundHandled) {
+            throw new IllegalStateException("결제 상태가 변경되었습니다. 취소를 다시 시도해주세요.");
         }
 
         List<Seat> seats = lockReservedSeats(reservation);
@@ -95,7 +115,6 @@ public class ReservationService {
         releaseSeatsAndRestoreCounts(seats);
 
         // 결제가 완료된 예약이면 결제도 취소 처리
-        Payment payment = reservation.getPayment();
         if (payment != null) {
             payment.cancel();
         }

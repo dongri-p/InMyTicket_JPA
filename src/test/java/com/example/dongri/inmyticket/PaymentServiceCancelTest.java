@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -100,5 +101,35 @@ public class PaymentServiceCancelTest {
         Assertions.assertEquals(ReservationStatus.CANCELLED, reservation.getStatus());
         Assertions.assertNull(reservation.getPayment());
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seat.getId()).get().getStatus());
+    }
+
+    @Test
+    @DisplayName("타인의 결제완료 예약은 PG 환불 통신 없이 즉시 거부된다 (소유권 검증이 외부 통신보다 먼저 실행돼야 함)")
+    void processCancel_byStranger_rejectedBeforeRefundCall() {
+        // given
+        Seat seat = createSeat();
+        Long reservationId = reservationService.reserve(member.getId(), seat.getId());
+        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        Member stranger = new Member();
+        stranger.setLoginId("refundStranger" + suffix);
+        stranger.setPassword("password123");
+        stranger.setName("타인");
+        stranger.setEmail("refundStranger" + suffix + "@test.com");
+        memberRepository.save(stranger);
+
+        // when & then
+        long start = System.currentTimeMillis();
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> paymentService.processCancel(stranger.getId(), reservationId));
+        long elapsedMs = System.currentTimeMillis() - start;
+
+        // PG 환불 통신(1.5초 시뮬레이션)이 실행되지 않고 즉시 거부됐는지 확인
+        Assertions.assertTrue(elapsedMs < 1000, "소유권 검증 전에 외부 환불 통신이 실행된 것으로 보임 (elapsedMs=" + elapsedMs + ")");
+
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
+        Assertions.assertEquals(ReservationStatus.CONFIRMED, reservation.getStatus());
+        Assertions.assertEquals(PaymentStatus.COMPLETED, reservation.getPayment().getStatus());
     }
 }
