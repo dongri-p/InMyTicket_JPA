@@ -53,9 +53,11 @@ public class ScheduleService {
 
     // 특정 회차의 좌석 목록 조회
     public List<Seat> findSeatsBySchedule(Long scheduleId) {
-        // 회차가 실제 존재하는지 먼저 검증
-        scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회차입니다. id=" + scheduleId));
-        return seatRepository.findByScheduleId(scheduleId);
+        List<Seat> seats = seatRepository.findByScheduleId(scheduleId);
+        // 좌석이 하나도 없을 때만 회차 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
+        if (seats.isEmpty() && scheduleRepository.findById(scheduleId).isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 회차입니다. id=" + scheduleId);
+        }
+        return seats;
     }
 }
