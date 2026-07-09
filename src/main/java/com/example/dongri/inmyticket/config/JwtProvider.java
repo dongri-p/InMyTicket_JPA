@@ -46,16 +46,4 @@ public class JwtProvider {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
-    public String getLoginId(String token) {
-        return parseClaims(token).getSubject();
-    }
-
-    public Long getMemberId(String token) {
-        return parseClaims(token).get("memberId", Long.class);
-    }
-
-    public String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
-    }
 }
