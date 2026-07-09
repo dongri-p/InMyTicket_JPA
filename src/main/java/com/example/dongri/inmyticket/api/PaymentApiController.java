@@ -7,11 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreatePaymentRequest;
+import com.example.dongri.inmyticket.api.dto.CreatePaymentResponse;
 import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.service.PaymentService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,12 +33,5 @@ public class PaymentApiController {
         );
 
         return new CreatePaymentResponse(paymentId, "결제가 승인 완료되었습니다. 티켓 예매가 확정되었습니다.");
-    }
-
-    @Data
-    @AllArgsConstructor
-    static class CreatePaymentResponse {
-        private Long paymentId;
-        private String message;
     }
 }

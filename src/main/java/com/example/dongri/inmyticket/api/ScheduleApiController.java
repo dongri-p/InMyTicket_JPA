@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreateScheduleRequest;
+import com.example.dongri.inmyticket.api.dto.CreateScheduleResponse;
 import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
 import com.example.dongri.inmyticket.api.dto.SeatListDto;
 import com.example.dongri.inmyticket.domain.Schedule;
@@ -68,12 +69,5 @@ public class ScheduleApiController {
     static class Result<T> {
         private int count;
         private T data;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static class CreateScheduleResponse {
-        private Long scheduleId;
-        private String message;
     }
 }

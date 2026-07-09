@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.dongri.inmyticket.api.dto.CancelReservationResponse;
 import com.example.dongri.inmyticket.api.dto.CreateReservationRequest;
+import com.example.dongri.inmyticket.api.dto.CreateReservationResponse;
 import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.service.ReservationService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -44,17 +44,4 @@ public class ReservationApiController {
         return new CancelReservationResponse("예매가 취소되었습니다.");
     }
 
-    @Data
-    @AllArgsConstructor
-    static class CancelReservationResponse {
-        private String message;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static class CreateReservationResponse {
-        private Long reservationId;
-        private String message;
-    }
-    
 }
