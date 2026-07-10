@@ -21,14 +21,16 @@ public class PaymentService {
         try {
             // 1. 외부 결제 대행사(PG) API 네트워크 통신 시뮬레이션
             simulatePgCommunication("외부 PG사 결제 승인 통신 완료.", "결제 통신 중 오류가 발생했습니다.");
-        } catch (IllegalStateException e) {
-            // PG 통신이 실패했으므로 PENDING으로 되돌려 재시도/자동만료가 가능하게 함
+
+            // 2. 외부 통신이 성공하면, 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출
+            return paymentApprovalService.approve(memberId, reservationId, paymentKey);
+        } catch (RuntimeException e) {
+            // PG 통신 실패든 approve() 내부 오류든, PROCESSING에 갇힌 채로 남으면
+            // 취소도(PROCESSING 거부) 자동만료도(PENDING만 대상) 닿지 않는 회수 불가 상태가 되므로
+            // 실패 시 항상 PENDING으로 되돌려 재시도/자동만료가 가능하게 함
             reservationService.revertProcessingToPending(reservationId);
             throw e;
         }
-
-        // 2. 외부 통신이 성공하면, 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출
-        return paymentApprovalService.approve(memberId, reservationId, paymentKey);
     }
 
     // 예약 취소 시 결제가 완료된 상태라면 PG 환불 통신 이후 취소 반영
