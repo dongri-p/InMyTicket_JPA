@@ -96,6 +96,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/members", "/api/v1/members/login").permitAll()
                 // 공연 목록/상세 조회는 인증 없이 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/performances", "/api/v1/performances/**").permitAll()
+                // 회차/좌석 현황 조회도 예매 전(로그인 전) 확인이 가능해야 하므로 인증 없이 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/schedules/**").permitAll()
                 // 관리자 전용 기능
                 .requestMatchers(HttpMethod.POST, "/api/v1/performances/sync").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/schedules").hasRole("ADMIN")
