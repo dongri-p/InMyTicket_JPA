@@ -30,8 +30,9 @@ public class PaymentApprovalService {
         // 2. 예약 소유자 검증 (타인 명의 결제 방지)
         reservation.assertOwner(memberId);
 
-        // 3. 결제 가능한 상태(PENDING)인지 확인 (중복 결제, 취소된 예약 결제 방지)
-        if (reservation.getStatus() != ReservationStatus.PENDING) {
+        // 3. 결제 가능한 상태인지 확인 (PENDING: 단위테스트 등에서 직접 승인, PROCESSING: PaymentService 정상 흐름)
+        // CONFIRMED(중복 결제)/CANCELLED(취소된 예약 결제)만 명시적으로 거부
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED || reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalStateException("결제할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
         }
 

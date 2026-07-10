@@ -14,11 +14,17 @@ public class PaymentService {
     // 외부 PG사 결제 승인 요청 껍데기 메서드
     public Long processPayment(Long memberId, Long reservationId, String paymentKey) {
 
+        // 0. 긴 PG 통신에 들어가기 전, 예약을 PROCESSING으로 전환해 자동만료 스케줄러가
+        // 결제 진행 중인 예약을 건드리지 못하게 함
+        reservationService.beginPaymentProcessing(memberId, reservationId);
+
         // 1. 외부 결제 대행사(PG) API 네트워크 통신 시뮬레이션
         try {
             Thread.sleep(1500);
             System.out.println("외부 PG사 결제 승인 통신 완료.");
         } catch(InterruptedException e) {
+            // PG 통신이 실패했으므로 PENDING으로 되돌려 재시도/자동만료가 가능하게 함
+            reservationService.revertProcessingToPending(reservationId);
             throw new IllegalStateException("결제 통신 중 오류가 발생했습니다.", e);
         }
 

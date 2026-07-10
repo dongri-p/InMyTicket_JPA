@@ -60,6 +60,31 @@ public class ReservationService {
         return reservation.getId();
     }
 
+    // PaymentService.processPayment() 전용 진입점.
+    // 긴 PG 통신을 시작하기 전에 예약을 PROCESSING으로 전환해, 그 사이 자동만료 스케줄러(PENDING만 대상)가
+    // 결제 진행 중인 예약의 좌석을 회수해버리는 경쟁을 원천 차단한다.
+    @Transactional
+    public void beginPaymentProcessing(Long memberId, Long reservationId) {
+        Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+
+        reservation.assertOwner(memberId);
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("결제를 시작할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
+        }
+
+        reservation.setStatus(ReservationStatus.PROCESSING);
+    }
+
+    // PG 통신 실패 시 PROCESSING으로 전환했던 예약을 PENDING으로 되돌려 재시도/자동만료가 가능하게 한다.
+    @Transactional
+    public void revertProcessingToPending(Long reservationId) {
+        reservationRepository.findByIdWithLock(reservationId)
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.PROCESSING)
+                .ifPresent(reservation -> reservation.setStatus(ReservationStatus.PENDING));
+    }
+
     // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
     // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함
     public boolean hasCompletedPayment(Long memberId, Long reservationId) {
