@@ -47,12 +47,6 @@ public class MemberService {
             });
     }
 
-    public Member findOne(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
-    }
-
     /**
      * 로그인 처리 및 JWT 토큰 발급
      */
