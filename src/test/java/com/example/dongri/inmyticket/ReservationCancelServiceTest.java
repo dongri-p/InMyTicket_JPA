@@ -74,7 +74,7 @@ public class ReservationCancelServiceTest {
         Assertions.assertEquals(0, scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount());
 
         // when
-        reservationService.cancel(owner.getId(), reservationId);
+        reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId);
 
         // then
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seat.getId()).get().getStatus());
@@ -89,7 +89,7 @@ public class ReservationCancelServiceTest {
 
         // when & then
         Assertions.assertThrows(AccessDeniedException.class,
-                () -> reservationService.cancel(stranger.getId(), reservationId));
+                () -> reservationService.cancelWithoutRefundCheck(stranger.getId(), reservationId));
     }
 
     @Test
@@ -97,11 +97,11 @@ public class ReservationCancelServiceTest {
     void cancel_alreadyCancelled_throwsIllegalState() {
         // given
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
-        reservationService.cancel(owner.getId(), reservationId);
+        reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId);
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
-                () -> reservationService.cancel(owner.getId(), reservationId));
+                () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
     }
 
     @Test
@@ -123,6 +123,6 @@ public class ReservationCancelServiceTest {
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
-                () -> reservationService.cancel(owner.getId(), reservationId));
+                () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
     }
 }

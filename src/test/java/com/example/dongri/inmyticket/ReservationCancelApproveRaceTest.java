@@ -73,7 +73,7 @@ public class ReservationCancelApproveRaceTest {
             readyLatch.countDown();
             await(startLatch);
             try {
-                reservationService.cancel(member.getId(), reservationId);
+                reservationService.cancelWithoutRefundCheck(member.getId(), reservationId);
             } catch (Exception ignored) {
             } finally {
                 doneLatch.countDown();

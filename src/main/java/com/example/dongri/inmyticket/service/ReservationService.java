@@ -94,9 +94,12 @@ public class ReservationService {
         return reservation.getPayment() != null;
     }
 
-    // 예매 취소하기
+    // 예매 취소하기 (PG 환불 통신 없이 즉시 DB 상태만 취소 처리함)
+    // 주의: 결제 완료된 예약을 이 메서드로 취소하면 실제 PG 환불 없이 조용히 CANCELLED 처리됨.
+    // 컨트롤러 등 운영 경로에서는 반드시 PaymentService.processCancel()을 통해야 하며,
+    // 이 메서드는 결제 자체가 없는 케이스를 다루는 테스트/내부 용도로만 사용할 것.
     @Transactional
-    public void cancel(Long memberId, Long reservationId) {
+    public void cancelWithoutRefundCheck(Long memberId, Long reservationId) {
         performCancel(memberId, reservationId, true);
     }
 
