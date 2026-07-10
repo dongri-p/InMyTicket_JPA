@@ -10,3 +10,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+  flyway:
+    # 이미 스키마가 있지만(예: 과거 ddl-auto로 생성) Flyway 히스토리 테이블은 없는 기존 DB에 처음 적용할 때,
+    # V1(현재 스키마와 동일해야 함) 시점으로 자동 베이스라인 처리 후 그 다음 버전(V2~)부터 이어서 마이그레이션함.
+    # 스키마가 아예 없는 새 DB에는 영향 없음(V1부터 정상 적용).
+    baseline-on-migrate: true
+    baseline-version: 1
