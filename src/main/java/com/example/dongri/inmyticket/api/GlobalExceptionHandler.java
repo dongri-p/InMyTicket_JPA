@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
 
@@ -46,6 +47,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
         return new ErrorResponse(400, e.getMessage());
+    }
+
+    // 쿼리 파라미터 타입 불일치 (예: size=abc) - 클라이언트 입력 오류이므로 500이 아닌 400
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ErrorResponse handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return new ErrorResponse(400, "요청 파라미터 형식이 올바르지 않습니다: " + e.getName());
     }
 
     // 본인 소유가 아닌 리소스에 대한 접근/조작 시도
