@@ -30,7 +30,15 @@ public class PaymentService {
             // PG 통신 실패든 approve() 내부 오류든, PROCESSING에 갇힌 채로 남으면
             // 취소도(PROCESSING 거부) 자동만료도(PENDING만 대상) 닿지 않는 회수 불가 상태가 되므로
             // 실패 시 항상 PENDING으로 되돌려 재시도/자동만료가 가능하게 함
-            reservationService.revertProcessingToPending(reservationId);
+            try {
+                reservationService.revertProcessingToPending(reservationId);
+            } catch (RuntimeException revertFailure) {
+                // 되돌리기 자체가 실패하면(락 경합 등) 예약이 PROCESSING에 그대로 고착될 수 있음.
+                // 원래 실패 원인(e)을 덮어쓰지 않고 그대로 재전파하되, 고착 가능성을 로그로 남겨
+                // 운영 중 발견/수동 확인할 수 있게 함
+                log.error("예약(id={})을 PENDING으로 되돌리는 데 실패했습니다. PROCESSING 상태로 고착되었을 수 있어 수동 확인이 필요합니다.",
+                        reservationId, revertFailure);
+            }
             throw e;
         }
     }
