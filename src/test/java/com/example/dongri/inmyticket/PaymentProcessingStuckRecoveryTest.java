@@ -4,9 +4,7 @@ import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
-import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.PaymentRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
@@ -14,15 +12,13 @@ import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.PaymentService;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 // approve() 실패 시 예약이 PROCESSING에 영구히 갇히지 않고 PENDING으로 돌아가는지 검증(13차 발견)
 @SpringBootTest
@@ -40,24 +36,8 @@ public class PaymentProcessingStuckRecoveryTest {
     @DisplayName("PG 통신 이후 approve()가 실패해도 예약은 PROCESSING에 갇히지 않고 PENDING으로 되돌아간다")
     void processPayment_whenApproveFails_revertsToPendingInsteadOfStuck() {
         // given
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        Member member = new Member();
-        member.setLoginId("stuckRecoveryUser" + suffix);
-        member.setPassword("password123");
-        member.setName("고착복구테스터");
-        member.setEmail("stuckRecovery" + suffix + "@test.com");
-        memberRepository.save(member);
-
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-        scheduleRepository.save(schedule);
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "stuckRecoveryUser");
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
 

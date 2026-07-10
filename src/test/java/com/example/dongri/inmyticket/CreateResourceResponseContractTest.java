@@ -4,10 +4,9 @@ import com.example.dongri.inmyticket.api.dto.CreateMemberRequest;
 import com.example.dongri.inmyticket.api.dto.CreateReservationRequest;
 import com.example.dongri.inmyticket.api.dto.LoginRequest;
 import com.example.dongri.inmyticket.api.dto.LoginResponse;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
-import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,16 +35,7 @@ public class CreateResourceResponseContractTest {
     @DisplayName("예매 생성 응답의 리소스 id 필드명은 reservationId가 아니라 id이다")
     void reserveResponse_usesUnifiedIdField() {
         // given: 좌석 준비
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-        scheduleRepository.save(schedule);
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         // 회원가입 + 로그인
         String suffix = UUID.randomUUID().toString().substring(0, 8);

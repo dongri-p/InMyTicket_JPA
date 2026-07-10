@@ -14,6 +14,7 @@ import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.PaymentApprovalService;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -21,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,25 +40,9 @@ public class ReservationCancelApproveRaceTest {
     @DisplayName("같은 예약에 대해 취소와 결제 승인이 동시에 발생해도 예약/좌석/결제 상태가 항상 일관되어야 한다")
     void cancelAndApprove_concurrently_endsInConsistentState() throws InterruptedException {
         // given
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-
-        Member member = new Member();
-        member.setLoginId("raceUser" + suffix);
-        member.setPassword("password123");
-        member.setName("경쟁테스터");
-        member.setEmail("race" + suffix + "@test.com");
-        memberRepository.save(member);
-
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-        scheduleRepository.save(schedule);
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "raceUser");
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        Schedule schedule = seat.getSchedule();
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
 

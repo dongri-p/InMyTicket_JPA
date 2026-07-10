@@ -3,7 +3,6 @@ package com.example.dongri.inmyticket;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -12,6 +11,7 @@ import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.PaymentService;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 // PaymentService.processPayment()의 실제 진입점(beginPaymentProcessing -> PG통신 -> approve)을
@@ -40,24 +38,8 @@ public class PaymentProcessingCancelRaceTest {
     @DisplayName("결제 진행 중 취소 요청이 들어와도 취소는 거부되고 결제는 정상 완료된다")
     void payAndCancel_racing_paymentWinsAndCancelIsRejected() throws InterruptedException {
         // given
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        Member member = new Member();
-        member.setLoginId("payCancelRaceUser" + suffix);
-        member.setPassword("password123");
-        member.setName("결제취소경쟁테스터");
-        member.setEmail("payCancelRace" + suffix + "@test.com");
-        memberRepository.save(member);
-
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-        scheduleRepository.save(schedule);
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "payCancelRaceUser");
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
 

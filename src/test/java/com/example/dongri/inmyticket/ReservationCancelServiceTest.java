@@ -9,6 +9,7 @@ import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @SpringBootTest
 public class ReservationCancelServiceTest {
@@ -37,33 +37,11 @@ public class ReservationCancelServiceTest {
 
     @BeforeEach
     void setUp() {
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        owner = TestFixtures.createAndSaveMember(memberRepository, "cancelOwner");
+        stranger = TestFixtures.createAndSaveMember(memberRepository, "cancelStranger");
 
-        owner = new Member();
-        owner.setLoginId("cancelOwner" + suffix);
-        owner.setPassword("password123");
-        owner.setName("취소테스터");
-        owner.setEmail("cancelOwner" + suffix + "@test.com");
-        memberRepository.save(owner);
-
-        stranger = new Member();
-        stranger.setLoginId("cancelStranger" + suffix);
-        stranger.setPassword("password123");
-        stranger.setName("타인");
-        stranger.setEmail("cancelStranger" + suffix + "@test.com");
-        memberRepository.save(stranger);
-
-        schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-
-        scheduleRepository.save(schedule);
+        seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        schedule = seat.getSchedule();
     }
 
     @Test
@@ -124,16 +102,7 @@ public class ReservationCancelServiceTest {
     @DisplayName("공연이 이미 시작된 예약은 취소할 수 없다")
     void cancel_afterScheduleStarted_throwsIllegalState() {
         // given
-        Schedule startedSchedule = new Schedule();
-        startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));
-        startedSchedule.setTotalSeatCount(1);
-        startedSchedule.setAvailableSeatCount(1);
-
-        Seat startedSeat = new Seat();
-        startedSeat.setStatus(SeatStatus.AVAILABLE);
-        startedSeat.setPrice(150000);
-        startedSchedule.addSeat(startedSeat);
-        scheduleRepository.save(startedSchedule);
+        Seat startedSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository, LocalDateTime.now().minusMinutes(1));
 
         Long reservationId = reservationService.reserve(owner.getId(), startedSeat.getId());
 

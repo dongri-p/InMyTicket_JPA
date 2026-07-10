@@ -3,7 +3,6 @@ package com.example.dongri.inmyticket;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -12,6 +11,7 @@ import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.PaymentApprovalService;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @SpringBootTest
 public class ReservationExpirationTest {
@@ -37,28 +36,11 @@ public class ReservationExpirationTest {
 
     @BeforeEach
     void setUp() {
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        member = new Member();
-        member.setLoginId("expireUser" + suffix);
-        member.setPassword("password123");
-        member.setName("만료테스터");
-        member.setEmail("expire" + suffix + "@test.com");
-        memberRepository.save(member);
+        member = TestFixtures.createAndSaveMember(memberRepository, "expireUser");
     }
 
     private Seat createSeat() {
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-
-        scheduleRepository.save(schedule);
-        return seat;
+        return TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
     }
 
     @Test

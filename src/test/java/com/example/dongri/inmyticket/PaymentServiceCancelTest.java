@@ -5,7 +5,6 @@ import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -15,6 +14,7 @@ import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.PaymentApprovalService;
 import com.example.dongri.inmyticket.service.PaymentService;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,9 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @SpringBootTest
 public class PaymentServiceCancelTest {
@@ -42,28 +39,11 @@ public class PaymentServiceCancelTest {
 
     @BeforeEach
     void setUp() {
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        member = new Member();
-        member.setLoginId("refundUser" + suffix);
-        member.setPassword("password123");
-        member.setName("환불테스터");
-        member.setEmail("refund" + suffix + "@test.com");
-        memberRepository.save(member);
+        member = TestFixtures.createAndSaveMember(memberRepository, "refundUser");
     }
 
     private Seat createSeat() {
-        Schedule schedule = new Schedule();
-        schedule.setStartTime(LocalDateTime.now().plusDays(1));
-        schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
-
-        Seat seat = new Seat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seat.setPrice(150000);
-        schedule.addSeat(seat);
-
-        scheduleRepository.save(schedule);
-        return seat;
+        return TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
     }
 
     @Test
@@ -111,13 +91,7 @@ public class PaymentServiceCancelTest {
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
         paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
 
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        Member stranger = new Member();
-        stranger.setLoginId("refundStranger" + suffix);
-        stranger.setPassword("password123");
-        stranger.setName("타인");
-        stranger.setEmail("refundStranger" + suffix + "@test.com");
-        memberRepository.save(stranger);
+        Member stranger = TestFixtures.createAndSaveMember(memberRepository, "refundStranger");
 
         // when & then
         long start = System.currentTimeMillis();
