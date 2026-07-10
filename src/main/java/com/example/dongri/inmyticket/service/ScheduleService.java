@@ -48,7 +48,12 @@ public class ScheduleService {
 
     // 특정 공연의 전체 회차 목록 조회
     public List<Schedule> findSchedulesByPerformance(Long performanceId) {
-        return scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);
+        List<Schedule> schedules = scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);
+        // 회차가 하나도 없을 때만 공연 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
+        if (schedules.isEmpty() && !performanceRepository.existsById(performanceId)) {
+            throw new IllegalArgumentException("존재하지 않는 공연입니다. id=" + performanceId);
+        }
+        return schedules;
     }
 
     // 특정 회차의 좌석 목록 조회

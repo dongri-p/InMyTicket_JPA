@@ -88,6 +88,13 @@ public class ScheduleServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 공연의 회차 목록을 조회하면 예외가 발생한다")
+    void findSchedulesByPerformance_withNonExistentPerformance_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.findSchedulesByPerformance(999999L));
+    }
+
+    @Test
     @DisplayName("존재하지 않는 회차의 좌석을 조회하면 예외가 발생한다")
     void findSeatsBySchedule_withNonExistentSchedule_throwsIllegalArgument() {
         Assertions.assertThrows(IllegalArgumentException.class,
