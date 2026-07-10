@@ -19,6 +19,7 @@ public class Performance {
     @Column(name = "performance_id")
     private Long id;
 
+    @Column(unique = true)
     private String apiId;
     private String title;
     private String artist;

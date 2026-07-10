@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,12 +45,14 @@ public class PerformanceService {
         List<String> apiIds = kopisData.stream()
                 .map(KopisPerformanceResponse::getMt20id)
                 .collect(Collectors.toList());
-        Set<String> existingApiIds = Set.copyOf(performanceRepository.findApiIdsIn(apiIds));
+        // 이번 배치 안에서 새로 저장하는 apiId도 즉시 반영해야 하므로 가변 Set 사용
+        // (배치 응답 안에 같은 mt20id가 중복으로 들어와도 두 번 저장되지 않게 함)
+        Set<String> seenApiIds = new HashSet<>(performanceRepository.findApiIdsIn(apiIds));
 
         for(KopisPerformanceResponse dto : kopisData) {
 
-            // 이미 DB에 들어있는 공연인지 체크
-            if(existingApiIds.contains(dto.getMt20id())) {
+            // 이미 DB에 들어있거나, 이번 배치에서 이미 처리한 공연인지 체크
+            if(!seenApiIds.add(dto.getMt20id())) {
                 continue;
             }
 

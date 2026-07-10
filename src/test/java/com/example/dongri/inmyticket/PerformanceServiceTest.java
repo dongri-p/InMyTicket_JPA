@@ -57,6 +57,30 @@ public class PerformanceServiceTest {
     }
 
     @Test
+    @DisplayName("KOPIS 응답 배치 안에 같은 mt20id가 중복으로 들어와도 한 건만 저장된다")
+    void syncPerformances_withDuplicateApiIdInSameBatch_savesOnlyOnce() {
+        // given
+        String duplicateApiId = "kopis-batch-dup-" + UUID.randomUUID();
+        KopisService mockKopisService = Mockito.mock(KopisService.class);
+        Mockito.when(mockKopisService.fetchRecentPerformances())
+                .thenReturn(List.of(
+                        kopisResponse(duplicateApiId, "같은 공연 첫 번째"),
+                        kopisResponse(duplicateApiId, "같은 공연 두 번째(중복)")
+                ));
+
+        PerformanceService performanceService = new PerformanceService(performanceRepository, mockKopisService);
+
+        // when
+        performanceService.syncPerformances();
+
+        // then
+        long count = performanceRepository.findAll().stream()
+                .filter(p -> duplicateApiId.equals(p.getApiId()))
+                .count();
+        Assertions.assertEquals(1, count);
+    }
+
+    @Test
     @DisplayName("findOne()은 존재하지 않는 id에 대해 예외를 던진다")
     void findOne_withNonExistentId_throwsIllegalArgument() {
         PerformanceService performanceService = new PerformanceService(performanceRepository, Mockito.mock(KopisService.class));
