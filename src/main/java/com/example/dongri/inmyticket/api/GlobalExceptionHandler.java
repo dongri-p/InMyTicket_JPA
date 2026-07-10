@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,6 +55,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ErrorResponse handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
         return new ErrorResponse(400, "요청 파라미터 형식이 올바르지 않습니다: " + e.getName());
+    }
+
+    // 요청 본문이 JSON으로 파싱 불가능한 경우 (예: 깨진 JSON) - 클라이언트 입력 오류이므로 500이 아닌 400
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ErrorResponse handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        return new ErrorResponse(400, "요청 본문의 형식이 올바르지 않습니다.");
     }
 
     // 본인 소유가 아닌 리소스에 대한 접근/조작 시도
