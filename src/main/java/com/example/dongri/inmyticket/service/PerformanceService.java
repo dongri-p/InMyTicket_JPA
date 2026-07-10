@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,9 +69,9 @@ public class PerformanceService {
         log.info("외부 데이터 DB 동기화 완료");
     }
 
-    // DB에 저장된 모든 공연 목록 조회
-    public List<Performance> findPerformances() {
-        return performanceRepository.findAll();
+    // DB에 저장된 공연 목록 페이지 조회 (비인증 공개 API라 페이지네이션 없이 전체 조회 시 대량조회 부하 위험이 있어 페이징 처리)
+    public Page<Performance> findPerformances(Pageable pageable) {
+        return performanceRepository.findAll(pageable);
     }
 
     // 특정 공연 한편 상세 조회
