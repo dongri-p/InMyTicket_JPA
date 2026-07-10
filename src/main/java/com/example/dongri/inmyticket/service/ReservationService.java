@@ -123,6 +123,13 @@ public class ReservationService {
             throw new IllegalStateException("이미 취소된 예약입니다.");
         }
 
+        // 결제 승인 통신이 진행 중(PROCESSING)인 예약을 취소해버리면, 이후 PG 통신이 성공해도
+        // approve()가 상태 불일치로 거부해 "PG는 성공했는데 결제 기록이 없는" 상황이 생길 수 있음.
+        // 이 락을 잡은 시점에 PROCESSING이면 취소를 거부해 결제 결과가 확정될 때까지 기다리게 함.
+        if (reservation.getStatus() == ReservationStatus.PROCESSING) {
+            throw new IllegalStateException("결제가 진행 중이라 취소할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        }
+
         Payment payment = reservation.getPayment();
         if (payment != null && !refundHandled) {
             throw new IllegalStateException("결제 상태가 변경되었습니다. 취소를 다시 시도해주세요.");

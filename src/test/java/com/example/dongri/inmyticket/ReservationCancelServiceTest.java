@@ -105,6 +105,22 @@ public class ReservationCancelServiceTest {
     }
 
     @Test
+    @DisplayName("결제 승인 통신이 진행 중(PROCESSING)인 예약은 취소할 수 없다")
+    void cancel_whileProcessingPayment_throwsIllegalState() {
+        // given
+        Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
+        reservationService.beginPaymentProcessing(owner.getId(), reservationId);
+
+        // when & then
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
+
+        // and: 취소가 거부됐으므로 좌석/잔여석은 그대로 유지된다
+        Assertions.assertEquals(SeatStatus.RESERVED, seatRepository.findById(seat.getId()).get().getStatus());
+        Assertions.assertEquals(0, scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount());
+    }
+
+    @Test
     @DisplayName("공연이 이미 시작된 예약은 취소할 수 없다")
     void cancel_afterScheduleStarted_throwsIllegalState() {
         // given
