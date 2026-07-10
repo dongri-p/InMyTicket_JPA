@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CancelReservationResponse;
 import com.example.dongri.inmyticket.api.dto.CreateReservationRequest;
-import com.example.dongri.inmyticket.api.dto.CreateReservationResponse;
+import com.example.dongri.inmyticket.api.dto.CreateResourceResponse;
 import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.service.PaymentService;
 import com.example.dongri.inmyticket.service.ReservationService;
@@ -26,13 +26,13 @@ public class ReservationApiController {
 
     // 티켓 예매 API - memberId는 JWT에서 추출 (요청 바디로 받으면 타인 명의 예매 가능)
     @PostMapping("/api/v1/reservations")
-    public CreateReservationResponse reserve(
+    public CreateResourceResponse reserve(
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
             @Validated @RequestBody CreateReservationRequest request) {
 
         Long reservationId = reservationService.reserve(authenticatedMember.getMemberId(), request.getSeatId());
 
-        return new CreateReservationResponse(reservationId, "티켓 예매가 완료되었습니다. 결제를 진행해주세요.");
+        return new CreateResourceResponse(reservationId, "티켓 예매가 완료되었습니다. 결제를 진행해주세요.");
     }
 
     // 예매 취소 API - 본인 예약만 취소 가능 (JWT로 신원 확인)

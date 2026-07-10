@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.dongri.inmyticket.api.dto.CreateResourceResponse;
 import com.example.dongri.inmyticket.api.dto.CreateScheduleRequest;
-import com.example.dongri.inmyticket.api.dto.CreateScheduleResponse;
 import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
 import com.example.dongri.inmyticket.api.dto.SeatListDto;
 import com.example.dongri.inmyticket.domain.Schedule;
@@ -30,14 +30,14 @@ public class ScheduleApiController {
 
     // 관리자 기능. 공연 회차 등록 API
     @PostMapping("/api/v1/schedules")
-    public CreateScheduleResponse saveSchedule(@Validated @RequestBody CreateScheduleRequest request) {
+    public CreateResourceResponse saveSchedule(@Validated @RequestBody CreateScheduleRequest request) {
         Long id = scheduleService.saveSchedule(
                 request.getPerformanceId(),
                 request.getHallId(),
                 request.getStartTime(),
                 request.getTotalSeatCount()
         );
-        return new CreateScheduleResponse(id, "공연 회차 및 좌석 생성이 완료되었습니다.");
+        return new CreateResourceResponse(id, "공연 회차 및 좌석 생성이 완료되었습니다.");
     }
 
     // 특정 공연의 모든 회차 일정 조회 API
