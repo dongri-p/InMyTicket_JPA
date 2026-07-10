@@ -54,7 +54,8 @@ public class PerformanceApiController {
                 .collect(Collectors.toList());
 
         // 오브젝트 내부 data 필드에 리스트를 넣어 JSON
-        return new Result(collect.size(), collect);
+        // count는 이 페이지에 포함된 항목 수, totalCount는 페이지네이션 이전(size 제한과 무관한) 전체 건수
+        return new Result(collect.size(), findPerformances.getTotalElements(), collect);
     }
 
     // 회원용 API: 특정 공연 상세 조회
@@ -68,6 +69,7 @@ public class PerformanceApiController {
     @AllArgsConstructor
     static class Result<T> {
         private int count;
+        private long totalCount;
         private T data;
     }
 }

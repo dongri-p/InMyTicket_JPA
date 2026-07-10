@@ -38,10 +38,14 @@ public class PerformancePaginationTest {
         ResponseEntity<Map> sizeLimitedResponse =
                 restTemplate.getForEntity("/api/v1/performances?page=0&size=2", Map.class);
 
-        // then: 요청한 size만큼만 반환됨
+        // then: 요청한 size만큼만 반환됨 (count는 페이지 항목 수)
         Assertions.assertEquals(2, sizeLimitedResponse.getBody().get("count"));
         List<?> data = (List<?>) sizeLimitedResponse.getBody().get("data");
         Assertions.assertEquals(2, data.size());
+
+        // totalCount는 size 제한과 무관한 전체 건수이므로 방금 저장한 5건 이상이어야 함
+        long totalCount = ((Number) sizeLimitedResponse.getBody().get("totalCount")).longValue();
+        Assertions.assertTrue(totalCount >= 5);
 
         // when: 상한을 초과하는 size 요청
         ResponseEntity<Map> oversizedResponse =
