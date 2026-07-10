@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 // 무차별 대입(brute-force) 로그인 공격을 막기 위한 loginId 단위 실패 횟수 추적.
@@ -38,6 +39,21 @@ public class LoginAttemptGuard {
 
     public void recordSuccess(String loginId) {
         attempts.remove(loginId);
+    }
+
+    // 성공으로만 제거되던 attempts 맵이, 존재하지 않는 loginId로 실패를 반복 유발하면 무한정 커질 수 있어
+    // 잠금 기간이 지난(더 이상 잠금에 영향 없는) 기록을 주기적으로 청소함
+    @Scheduled(fixedDelay = 600_000)
+    public void evictExpiredAttempts() {
+        evictAttemptsOlderThan(LocalDateTime.now().minus(LOCKOUT_DURATION));
+    }
+
+    void evictAttemptsOlderThan(LocalDateTime cutoff) {
+        attempts.entrySet().removeIf(entry -> entry.getValue().lastFailureAt.isBefore(cutoff));
+    }
+
+    int trackedLoginIdCount() {
+        return attempts.size();
     }
 
     private static class Attempt {
