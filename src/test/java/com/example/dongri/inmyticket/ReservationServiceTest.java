@@ -7,6 +7,7 @@ import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 import com.example.dongri.inmyticket.service.ReservationService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions; // 🌟 임포트 꼬일 일 없는 순수 JUnit 5
 import org.junit.jupiter.api.DisplayName;
@@ -31,13 +32,9 @@ public class ReservationServiceTest {
     @DisplayName("동시에 100명이 딱 하나 남은 좌석을 예매하려고 광클해도, 정확히 1명만 성공해야 한다.")
     public void 동시에_100명_티켓팅_테스트() throws InterruptedException {
         // given
-        Member member = new Member();
-        member.setLoginId("testUser");       // login_id가 null이 아니도록 채워주기!
-        member.setPassword("password123");
-        member.setName("테스터");
-        member.setEmail("test@test.com");
-        memberRepository.save(member);
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "ticketingUser");
 
+        // 이 테스트는 순수 좌석 락 경쟁만 검증하므로, 회차(Schedule)에 속하지 않은 좌석을 그대로 둠
         Seat seat = new Seat();
         seat.setStatus(SeatStatus.AVAILABLE);
         seatRepository.save(seat);

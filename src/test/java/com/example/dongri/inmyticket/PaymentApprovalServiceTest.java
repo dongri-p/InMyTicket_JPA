@@ -7,6 +7,7 @@ import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.PaymentRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.service.PaymentApprovalService;
+import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -32,12 +33,7 @@ public class PaymentApprovalServiceTest {
     @DisplayName("같은 예약에 대해 결제 승인을 동시에 여러 번 요청해도, 정확히 1건만 성공해야 한다.")
     public void 동시_결제_중복승인_테스트() throws InterruptedException {
         // given
-        Member member = new Member();
-        member.setLoginId("payTestUser");
-        member.setPassword("password123");
-        member.setName("결제테스터");
-        member.setEmail("paytest@test.com");
-        memberRepository.save(member);
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "payTestUser");
 
         Reservation reservation = new Reservation();
         reservation.setMember(member);
