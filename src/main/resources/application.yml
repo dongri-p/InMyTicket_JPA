@@ -25,3 +25,7 @@ reservation:
   pending-timeout-minutes: 10
   # 자동 회수 스케줄러 실행 주기(ms)
   expiration-check-interval-ms: 60000
+
+cors:
+  # 프런트엔드가 붙는 도메인 목록(콤마 구분). 운영 배포 시 CORS_ALLOWED_ORIGINS 환경변수로 실제 프런트엔드 도메인을 지정할 것
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
