@@ -43,6 +43,11 @@ public class ReservationService {
         Seat seat = seatRepository.findByIdWithLock(seatId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. id=" + seatId));
 
+        // 공연이 이미 시작된 회차는 예매 불가 (취소 제한과 대칭 - 그렇지 않으면 취소도 안 되는 예약이 생김)
+        if (seat.getSchedule() != null && !seat.getSchedule().getStartTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("공연이 이미 시작되어 예매할 수 없습니다.");
+        }
+
         // 2. 예매 생성
         Reservation reservation = Reservation.createReservation(member, seat);
 

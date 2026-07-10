@@ -99,12 +99,28 @@ public class ReservationCancelServiceTest {
     }
 
     @Test
-    @DisplayName("공연이 이미 시작된 예약은 취소할 수 없다")
-    void cancel_afterScheduleStarted_throwsIllegalState() {
+    @DisplayName("공연이 이미 시작된 회차의 좌석은 새로 예매할 수 없다")
+    void reserve_afterScheduleStarted_throwsIllegalState() {
         // given
         Seat startedSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository, LocalDateTime.now().minusMinutes(1));
 
+        // when & then
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> reservationService.reserve(owner.getId(), startedSeat.getId()));
+    }
+
+    @Test
+    @DisplayName("공연이 이미 시작된 예약은 취소할 수 없다")
+    void cancel_afterScheduleStarted_throwsIllegalState() {
+        // given: 예매 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현
+        Seat startedSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationId = reservationService.reserve(owner.getId(), startedSeat.getId());
+
+        // reserve()가 다른 트랜잭션에서 좌석을 변경했으므로, 새로 조회한 관리 상태의 엔티티에 반영해야
+        // cascade로 묶인 Seat의 버전 불일치(OptimisticLockException) 없이 저장된다
+        Schedule startedSchedule = scheduleRepository.findById(startedSeat.getSchedule().getId()).orElseThrow();
+        startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));
+        scheduleRepository.save(startedSchedule);
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
