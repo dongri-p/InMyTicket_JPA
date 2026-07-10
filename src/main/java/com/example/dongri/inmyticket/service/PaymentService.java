@@ -3,7 +3,9 @@ package com.example.dongri.inmyticket.service;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor // 클래스 위에 @Transactional이 없는게 핵심 최적화
 public class PaymentService {
@@ -53,7 +55,7 @@ public class PaymentService {
     private void simulatePgCommunication(String successLogMessage, String failureMessage) {
         try {
             Thread.sleep(1500);
-            System.out.println(successLogMessage);
+            log.info(successLogMessage);
         } catch (InterruptedException e) {
             throw new IllegalStateException(failureMessage, e);
         }
