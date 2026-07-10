@@ -2,7 +2,6 @@ package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.api.dto.CreateMemberRequest;
 import com.example.dongri.inmyticket.api.dto.LoginRequest;
-import com.example.dongri.inmyticket.api.dto.LoginResponse;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
