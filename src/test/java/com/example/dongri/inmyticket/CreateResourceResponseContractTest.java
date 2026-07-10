@@ -70,4 +70,21 @@ public class CreateResourceResponseContractTest {
         Assertions.assertNotNull(response.getBody().get("id"));
         Assertions.assertFalse(response.getBody().containsKey("reservationId"));
     }
+
+    @Test
+    @DisplayName("회원가입 응답도 다른 생성 API와 동일하게 id+message 필드를 가진다")
+    void signupResponse_usesUnifiedIdField() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        CreateMemberRequest signupRequest = new CreateMemberRequest();
+        signupRequest.setLoginId("signupCt" + suffix);
+        signupRequest.setPassword("password123");
+        signupRequest.setName("가입계약테스터");
+        signupRequest.setEmail("signupCt" + suffix + "@test.com");
+
+        ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/members", signupRequest, Map.class);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertNotNull(response.getBody().get("id"));
+        Assertions.assertNotNull(response.getBody().get("message"));
+    }
 }

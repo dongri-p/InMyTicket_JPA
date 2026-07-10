@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreateMemberRequest;
-import com.example.dongri.inmyticket.api.dto.CreateMemberResponse;
+import com.example.dongri.inmyticket.api.dto.CreateResourceResponse;
 import com.example.dongri.inmyticket.api.dto.LoginRequest;
 import com.example.dongri.inmyticket.api.dto.LoginResponse;
 import com.example.dongri.inmyticket.domain.Member;
@@ -22,7 +22,7 @@ public class MemberApiController {
     private final MemberService memberService;
     
     @PostMapping("/api/v1/members")
-    public CreateMemberResponse saveMemberV1(@Validated @RequestBody CreateMemberRequest request) {
+    public CreateResourceResponse saveMemberV1(@Validated @RequestBody CreateMemberRequest request) {
 
         Member member = new Member();
         member.setLoginId(request.getLoginId());
@@ -32,7 +32,7 @@ public class MemberApiController {
         member.setRole(Role.USER);
 
         Long id = memberService.join(member);
-        return new CreateMemberResponse(id);
+        return new CreateResourceResponse(id, "회원가입이 완료되었습니다.");
     }
 
     @PostMapping("/api/v1/members/login")
