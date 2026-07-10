@@ -15,9 +15,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MemberService {
 
+    // 존재하지 않는 loginId용 더미 BCrypt 해시 (특정 평문과 무관, 형식만 유효하면 됨) -
+    // 계정 미존재 시에도 동일하게 BCrypt 비교를 수행해 응답시간으로 계정 존재 여부가 드러나지 않게 함
+    private static final String DUMMY_PASSWORD_HASH =
+            "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final LoginAttemptGuard loginAttemptGuard;
 
     @Transactional
     public Long join(Member member) {
@@ -51,17 +57,25 @@ public class MemberService {
      * 로그인 처리 및 JWT 토큰 발급
      */
     public String login(String loginId, String password) {
-        // 1. 아이디로 회원 조회
-        // 계정 존재 여부가 드러나지 않도록 아이디 없음/비밀번호 불일치를 동일한 메시지로 응답
-        Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
+        // 0. 반복된 로그인 실패가 있었다면 잠금 여부부터 확인 (무차별 대입 방지)
+        loginAttemptGuard.checkNotLocked(loginId);
 
-        // 2. 비밀번호 검증 (암호화된 녀석과 사용자가 입력한 평문 매칭 테스트)
-        if (!passwordEncoder.matches(password, member.getPassword())) {
+        // 1. 아이디로 회원 조회
+        Member member = memberRepository.findByLoginId(loginId).orElse(null);
+
+        // 2. 비밀번호 검증 - 계정이 없어도 더미 해시로 동일하게 BCrypt 비교를 수행해
+        // 응답시간 차이로 계정 존재 여부가 드러나는 타이밍 사이드채널을 막음
+        String hashToCompare = (member != null) ? member.getPassword() : DUMMY_PASSWORD_HASH;
+        boolean passwordMatches = passwordEncoder.matches(password, hashToCompare);
+
+        // 3. 아이디 없음/비밀번호 불일치를 동일한 메시지로 응답 (계정 존재 여부 노출 방지)
+        if (member == null || !passwordMatches) {
+            loginAttemptGuard.recordFailure(loginId);
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        // 3. 비밀번호까지 맞으면 JWT 토큰 구워서 리턴
+        // 4. 로그인 성공 시 실패 기록 초기화 후 JWT 토큰 구워서 리턴
+        loginAttemptGuard.recordSuccess(loginId);
         return jwtProvider.createToken(member.getId(), member.getLoginId(), member.getRole().name());
     }
      
