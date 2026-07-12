@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 // approve() 실패 시 예약이 PROCESSING에 영구히 갇히지 않고 PENDING으로 돌아가는지 검증(13차 발견)
 @SpringBootTest
 public class PaymentProcessingStuckRecoveryTest {
@@ -44,11 +46,11 @@ public class PaymentProcessingStuckRecoveryTest {
         // 이 예약에 이미 결제(Payment)가 있는 상태를 인위적으로 만들어, approve()가
         // reservation_id unique 제약 위반(DataIntegrityViolationException)으로 실패하도록 유도
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
-        paymentRepository.save(Payment.createPayment(reservation, reservation.getTotalPrice(), "pre-existing-key"));
+        paymentRepository.save(Payment.createPayment(reservation, reservation.getTotalPrice(), "pre-existing-key-" + UUID.randomUUID()));
 
         // when & then: processPayment()는 실패하고
         Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(member.getId(), reservationId, "new-key"));
+                () -> paymentService.processPayment(member.getId(), reservationId, "new-key-" + UUID.randomUUID()));
 
         // 예약은 PROCESSING에 갇히지 않고 PENDING으로 되돌아가 있어야 함
         Reservation result = reservationRepository.findById(reservationId).orElseThrow();

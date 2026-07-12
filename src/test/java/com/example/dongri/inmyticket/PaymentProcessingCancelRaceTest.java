@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 // PaymentService.processPayment()의 실제 진입점(beginPaymentProcessing -> PG통신 -> approve)을
@@ -50,7 +51,7 @@ public class PaymentProcessingCancelRaceTest {
         // when: 결제 시작(내부적으로 PENDING -> PROCESSING 전환 후 1.5초 PG 통신)
         Thread paymentThread = new Thread(() -> {
             try {
-                paymentId.set(paymentService.processPayment(member.getId(), reservationId, "race-payment-key"));
+                paymentId.set(paymentService.processPayment(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID()));
             } catch (Exception e) {
                 paymentException.set(e);
             }

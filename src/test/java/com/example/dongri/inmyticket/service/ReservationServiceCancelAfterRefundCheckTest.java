@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 // package-private cancelAfterRefundCheck()를 직접 호출하기 위해 service 패키지에 위치
 @SpringBootTest
 public class ReservationServiceCancelAfterRefundCheckTest {
@@ -33,7 +35,7 @@ public class ReservationServiceCancelAfterRefundCheckTest {
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key");
+        paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID());
 
         // when & then: refundHandled=false로 넘어왔지만 실제로는 결제가 있으므로 재시도 예외를 던짐
         IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,

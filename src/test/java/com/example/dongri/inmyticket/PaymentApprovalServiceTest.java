@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +36,12 @@ public class PaymentApprovalServiceTest {
     @Autowired private ReservationRepository reservationRepository;
     @Autowired private ScheduleRepository scheduleRepository;
     @Autowired private PaymentRepository paymentRepository;
+
+    // Payment.paymentKey는 DB 유니크 제약이 있어, 같은 프로세스에서 여러 테스트가 공유 DB에
+    // 동시에 결제를 승인해도 충돌하지 않도록 매번 새 키를 사용
+    private String newPaymentKey() {
+        return "test-payment-key-" + UUID.randomUUID();
+    }
 
     @Test
     @DisplayName("같은 예약에 대해 결제 승인을 동시에 여러 번 요청해도, 정확히 1건만 성공해야 한다.")
@@ -57,12 +64,13 @@ public class PaymentApprovalServiceTest {
 
         AtomicInteger successCount = new AtomicInteger();
         AtomicInteger failedCount = new AtomicInteger();
+        String paymentKey = newPaymentKey();
 
         // when
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    paymentApprovalService.approve(member.getId(), reservation.getId(), "test-payment-key");
+                    paymentApprovalService.approve(member.getId(), reservation.getId(), paymentKey);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failedCount.incrementAndGet();
@@ -99,7 +107,7 @@ public class PaymentApprovalServiceTest {
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
-                () -> paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key"));
+                () -> paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey()));
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.PENDING, reservation.getStatus());
@@ -115,12 +123,13 @@ public class PaymentApprovalServiceTest {
         Seat seatB = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationIdA = reservationService.reserve(member.getId(), seatA.getId());
         Long reservationIdB = reservationService.reserve(member.getId(), seatB.getId());
+        String duplicateKey = newPaymentKey();
 
-        paymentApprovalService.approve(member.getId(), reservationIdA, "duplicate-key");
+        paymentApprovalService.approve(member.getId(), reservationIdA, duplicateKey);
 
         // when & then
         Assertions.assertThrows(DataIntegrityViolationException.class,
-                () -> paymentApprovalService.approve(member.getId(), reservationIdB, "duplicate-key"));
+                () -> paymentApprovalService.approve(member.getId(), reservationIdB, duplicateKey));
 
         Reservation reservationB = reservationRepository.findById(reservationIdB).orElseThrow();
         Assertions.assertEquals(ReservationStatus.PENDING, reservationB.getStatus());

@@ -26,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @SpringBootTest
 public class PaymentServiceCancelTest {
@@ -49,13 +50,19 @@ public class PaymentServiceCancelTest {
         return TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
     }
 
+    // Payment.paymentKey는 DB 유니크 제약이 있어, 같은 프로세스에서 여러 테스트가 공유 DB에
+    // 동시에 결제를 승인해도 충돌하지 않도록 매번 새 키를 사용
+    private String newPaymentKey() {
+        return "test-payment-key-" + UUID.randomUUID();
+    }
+
     @Test
     @DisplayName("결제가 완료된 예약을 취소하면 PG 환불 통신 후 결제/좌석 상태가 취소로 반영된다")
     void processCancel_withCompletedPayment_refundsAndCancels() {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
 
         // when
         paymentService.processCancel(member.getId(), reservationId);
@@ -92,7 +99,7 @@ public class PaymentServiceCancelTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
 
         Member stranger = TestFixtures.createAndSaveMember(memberRepository, "refundStranger");
 
@@ -116,7 +123,7 @@ public class PaymentServiceCancelTest {
         // given: 예매/결제 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
 
         Schedule startedSchedule = scheduleRepository.findById(seat.getSchedule().getId()).orElseThrow();
         startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));

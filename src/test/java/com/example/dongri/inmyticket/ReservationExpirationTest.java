@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @SpringBootTest
 public class ReservationExpirationTest {
@@ -116,7 +117,7 @@ public class ReservationExpirationTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key-" + UUID.randomUUID());
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         reservation.setReservedAt(LocalDateTime.now().minusMinutes(20));

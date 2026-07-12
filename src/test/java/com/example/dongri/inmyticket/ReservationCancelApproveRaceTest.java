@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,7 +68,7 @@ public class ReservationCancelApproveRaceTest {
             readyLatch.countDown();
             await(startLatch);
             try {
-                paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key");
+                paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID());
             } catch (Exception ignored) {
             } finally {
                 doneLatch.countDown();
