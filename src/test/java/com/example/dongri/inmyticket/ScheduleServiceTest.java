@@ -79,6 +79,14 @@ public class ScheduleServiceTest {
     }
 
     @Test
+    @DisplayName("공연장 정원을 초과하는 좌석 수로 회차를 등록하면 예외가 발생한다")
+    void saveSchedule_exceedingHallCapacity_throwsIllegalArgument() {
+        // given: setUp()에서 hall.totalSeats=100으로 생성됨
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 101));
+    }
+
+    @Test
     @DisplayName("특정 공연의 회차 목록을 조회할 수 있다")
     void findSchedulesByPerformance_returnsSchedules() {
         scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 3);

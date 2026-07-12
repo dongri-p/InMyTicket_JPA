@@ -39,6 +39,12 @@ public class ScheduleService {
         Hall hall = hallRepository.findById(hallId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공연장입니다. id=" + hallId));
 
+        // 공연장 정원을 초과하는 좌석 수로 회차가 만들어지지 않도록 검증
+        if (totalSeatCount > hall.getTotalSeats()) {
+            throw new IllegalArgumentException(
+                    "좌석 수가 공연장 정원을 초과했습니다. totalSeatCount=" + totalSeatCount + ", hallCapacity=" + hall.getTotalSeats());
+        }
+
         // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)
         Schedule schedule = Schedule.createSchedule(performance, hall, startTime, totalSeatCount);
 
