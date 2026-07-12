@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
@@ -103,5 +104,26 @@ public class PaymentApprovalServiceTest {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.PENDING, reservation.getStatus());
         Assertions.assertNull(reservation.getPayment());
+    }
+
+    @Test
+    @DisplayName("서로 다른 예약에 같은 paymentKey로 결제를 승인하면 두 번째는 거부된다")
+    void approve_withDuplicatePaymentKey_secondRejected() {
+        // given
+        Member member = TestFixtures.createAndSaveMember(memberRepository, "dupKeyUser");
+        Seat seatA = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        Seat seatB = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        Long reservationIdA = reservationService.reserve(member.getId(), seatA.getId());
+        Long reservationIdB = reservationService.reserve(member.getId(), seatB.getId());
+
+        paymentApprovalService.approve(member.getId(), reservationIdA, "duplicate-key");
+
+        // when & then
+        Assertions.assertThrows(DataIntegrityViolationException.class,
+                () -> paymentApprovalService.approve(member.getId(), reservationIdB, "duplicate-key"));
+
+        Reservation reservationB = reservationRepository.findById(reservationIdB).orElseThrow();
+        Assertions.assertEquals(ReservationStatus.PENDING, reservationB.getStatus());
+        Assertions.assertNull(reservationB.getPayment());
     }
 }

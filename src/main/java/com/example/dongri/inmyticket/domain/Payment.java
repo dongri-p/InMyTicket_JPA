@@ -36,7 +36,8 @@ public class Payment {
     @Setter(AccessLevel.NONE)
     private PaymentStatus status;
 
-    // 외부 PG사가 발급해준 고유 결제 키
+    // 외부 PG사가 발급해준 고유 결제 키 (동일 키로 여러 예약을 결제 승인하는 재사용/재생 방지)
+    @Column(unique = true)
     private String paymentKey;
 
     private LocalDateTime paidAt;
