@@ -3,11 +3,14 @@ package com.example.dongri.inmyticket.api;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.CreateResourceResponse;
@@ -51,15 +54,22 @@ public class ScheduleApiController {
         return new ListResult<>(collect.size(), collect.size(), collect);
     }
 
-    // 특정 회차의 좌석 목록 조회 (예매 전 좌석 현황 확인용)
-    @GetMapping("/api/v1/schedules/{scheduleId}/seats")
-    public ListResult<List<SeatListDto>> seatsBySchedule(@PathVariable("scheduleId") Long scheduleId) {
-        List<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId);
+    private static final int MAX_PAGE_SIZE = 100;
 
-        List<SeatListDto> collect = seats.stream()
+    // 특정 회차의 좌석 목록 조회 (예매 전 좌석 현황 확인용)
+    // 비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면 대량조회로 인한 부하 위험이 있어 size를 제한
+    @GetMapping("/api/v1/schedules/{scheduleId}/seats")
+    public ListResult<List<SeatListDto>> seatsBySchedule(
+            @PathVariable("scheduleId") Long scheduleId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        Page<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId, PageRequest.of(Math.max(page, 0), pageSize));
+
+        List<SeatListDto> collect = seats.getContent().stream()
                 .map(SeatListDto::new)
                 .collect(Collectors.toList());
 
-        return new ListResult<>(collect.size(), collect.size(), collect);
+        return new ListResult<>(collect.size(), seats.getTotalElements(), collect);
     }
 }

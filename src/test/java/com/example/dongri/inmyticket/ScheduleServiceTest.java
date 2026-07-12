@@ -15,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,8 +60,8 @@ public class ScheduleServiceTest {
         Assertions.assertEquals(5, schedule.getTotalSeatCount());
         Assertions.assertEquals(5, schedule.getAvailableSeatCount());
 
-        List<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId);
-        Assertions.assertEquals(5, seats.size());
+        Page<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId, PageRequest.of(0, 20));
+        Assertions.assertEquals(5, seats.getTotalElements());
     }
 
     @Test
@@ -98,6 +100,18 @@ public class ScheduleServiceTest {
     @DisplayName("존재하지 않는 회차의 좌석을 조회하면 예외가 발생한다")
     void findSeatsBySchedule_withNonExistentSchedule_throwsIllegalArgument() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> scheduleService.findSeatsBySchedule(999999L));
+                () -> scheduleService.findSeatsBySchedule(999999L, PageRequest.of(0, 20)));
+    }
+
+    @Test
+    @DisplayName("좌석 목록 조회는 페이지 크기를 넘는 좌석을 한 번에 반환하지 않는다")
+    void findSeatsBySchedule_respectsPageSize() {
+        Long scheduleId = scheduleService.saveSchedule(
+                performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 10);
+
+        Page<Seat> firstPage = scheduleService.findSeatsBySchedule(scheduleId, PageRequest.of(0, 3));
+
+        Assertions.assertEquals(3, firstPage.getContent().size());
+        Assertions.assertEquals(10, firstPage.getTotalElements());
     }
 }

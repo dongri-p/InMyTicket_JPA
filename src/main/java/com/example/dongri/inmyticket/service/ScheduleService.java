@@ -3,6 +3,8 @@ package com.example.dongri.inmyticket.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +58,12 @@ public class ScheduleService {
         return schedules;
     }
 
-    // 특정 회차의 좌석 목록 조회
-    public List<Seat> findSeatsBySchedule(Long scheduleId) {
-        List<Seat> seats = seatRepository.findByScheduleId(scheduleId);
+    // 특정 회차의 좌석 목록 조회 (비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면
+    // 대량조회로 인한 부하 위험이 있어 size를 제한 - 공연 목록 API와 동일한 이유)
+    public Page<Seat> findSeatsBySchedule(Long scheduleId, Pageable pageable) {
+        Page<Seat> seats = seatRepository.findByScheduleId(scheduleId, pageable);
         // 좌석이 하나도 없을 때만 회차 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
-        if (seats.isEmpty() && scheduleRepository.findById(scheduleId).isEmpty()) {
+        if (seats.getTotalElements() == 0 && scheduleRepository.findById(scheduleId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 회차입니다. id=" + scheduleId);
         }
         return seats;

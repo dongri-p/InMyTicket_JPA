@@ -3,6 +3,8 @@ package com.example.dongri.inmyticket.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +16,7 @@ import jakarta.persistence.LockModeType;
 
 public interface SeatRepository extends JpaRepository<Seat, Long> {
 
-    List<Seat> findByScheduleId(Long scheduleId);
+    Page<Seat> findByScheduleId(Long scheduleId, Pageable pageable);
     
     /**
      * 비관적 락을 걸고 좌석을 조회
