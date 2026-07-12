@@ -1,6 +1,8 @@
 package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.Member;
+import com.example.dongri.inmyticket.domain.Reservation;
+import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
@@ -125,5 +127,25 @@ public class ReservationCancelServiceTest {
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
                 () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
+    }
+
+    @Test
+    @DisplayName("공연이 이미 시작된 예약은 결제를 시작할 수 없다")
+    void beginPaymentProcessing_afterScheduleStarted_throwsIllegalState() {
+        // given: 예매 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현
+        Seat startedSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        Long reservationId = reservationService.reserve(owner.getId(), startedSeat.getId());
+
+        Schedule startedSchedule = scheduleRepository.findById(startedSeat.getSchedule().getId()).orElseThrow();
+        startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));
+        scheduleRepository.save(startedSchedule);
+
+        // when & then
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId));
+
+        // and: 결제 시작이 거부됐으므로 예약 상태는 PENDING 그대로 유지된다
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
+        Assertions.assertEquals(ReservationStatus.PENDING, reservation.getStatus());
     }
 }

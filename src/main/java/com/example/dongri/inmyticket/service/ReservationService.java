@@ -78,6 +78,12 @@ public class ReservationService {
             throw new IllegalStateException("결제를 시작할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
         }
 
+        // reserve()/performCancel()과 대칭 - 공연 시작 이후에는 결제도 확정할 수 없어야
+        // "시작 이후 확정된, 취소도 안 되는 예약"이 생기지 않는다
+        if (reservation.isShowStarted()) {
+            throw new IllegalStateException("공연이 이미 시작되어 결제를 진행할 수 없습니다.");
+        }
+
         reservation.setStatus(ReservationStatus.PROCESSING);
     }
 

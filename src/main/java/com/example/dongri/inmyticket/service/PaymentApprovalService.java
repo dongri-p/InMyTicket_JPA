@@ -36,6 +36,12 @@ public class PaymentApprovalService {
             throw new IllegalStateException("결제할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
         }
 
+        // beginPaymentProcessing()에서도 조기 검사하지만, approve()는 단위테스트 등에서
+        // 직접 호출되기도 하므로 여기서도 최종 방어선으로 다시 확인
+        if (reservation.isShowStarted()) {
+            throw new IllegalStateException("공연이 이미 시작되어 결제를 진행할 수 없습니다.");
+        }
+
         // 4. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
         Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey);
         paymentRepository.save(payment);
