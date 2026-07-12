@@ -5,6 +5,7 @@ import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
+import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
+
+import java.time.LocalDateTime;
 
 @SpringBootTest
 public class PaymentServiceCancelTest {
@@ -102,6 +105,33 @@ public class PaymentServiceCancelTest {
         // PG 환불 통신(1.5초 시뮬레이션)이 실행되지 않고 즉시 거부됐는지 확인
         Assertions.assertTrue(elapsedMs < 1000, "소유권 검증 전에 외부 환불 통신이 실행된 것으로 보임 (elapsedMs=" + elapsedMs + ")");
 
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
+        Assertions.assertEquals(ReservationStatus.CONFIRMED, reservation.getStatus());
+        Assertions.assertEquals(PaymentStatus.COMPLETED, reservation.getPayment().getStatus());
+    }
+
+    @Test
+    @DisplayName("공연이 이미 시작된 결제완료 예약은 PG 환불 통신 없이 즉시 거부된다 (환불 나가고 취소는 거부되는 상황 방지)")
+    void processCancel_afterScheduleStarted_rejectedBeforeRefundCall() {
+        // given: 예매/결제 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현
+        Seat seat = createSeat();
+        Long reservationId = reservationService.reserve(member.getId(), seat.getId());
+        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key");
+
+        Schedule startedSchedule = scheduleRepository.findById(seat.getSchedule().getId()).orElseThrow();
+        startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));
+        scheduleRepository.save(startedSchedule);
+
+        // when & then
+        long start = System.currentTimeMillis();
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> paymentService.processCancel(member.getId(), reservationId));
+        long elapsedMs = System.currentTimeMillis() - start;
+
+        // PG 환불 통신(1.5초 시뮬레이션)이 실행되지 않고 즉시 거부됐는지 확인
+        Assertions.assertTrue(elapsedMs < 1000, "공연 시작 검사 전에 외부 환불 통신이 실행된 것으로 보임 (elapsedMs=" + elapsedMs + ")");
+
+        // and: 취소가 거부됐으므로 결제/예약 상태는 그대로 유지된다
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.CONFIRMED, reservation.getStatus());
         Assertions.assertEquals(PaymentStatus.COMPLETED, reservation.getPayment().getStatus());

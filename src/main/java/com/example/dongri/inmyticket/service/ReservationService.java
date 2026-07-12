@@ -2,7 +2,6 @@ package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -91,11 +90,16 @@ public class ReservationService {
     }
 
     // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
-    // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함
+    // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함.
+    // 공연 시작 이후 취소는 어차피 performCancel()에서 거부되므로, 되돌릴 수 없는 PG 환불 통신을
+    // 먼저 내보내지 않도록 여기서도 미리 막는다(환불은 나갔는데 취소는 거부되는 상황 방지).
     public boolean hasCompletedPayment(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
         reservation.assertOwner(memberId);
+        if (reservation.isShowStarted()) {
+            throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
+        }
         return reservation.getPayment() != null;
     }
 
@@ -140,17 +144,13 @@ public class ReservationService {
             throw new IllegalStateException("결제 상태가 변경되었습니다. 취소를 다시 시도해주세요.");
         }
 
-        List<Seat> seats = lockReservedSeats(reservation);
-
-        // 공연 시작 이후에는 취소 불가
-        LocalDateTime now = LocalDateTime.now();
-        boolean alreadyStarted = seats.stream()
-                .map(Seat::getSchedule)
-                .filter(Objects::nonNull)
-                .anyMatch(s -> !s.getStartTime().isAfter(now));
-        if (alreadyStarted) {
+        // 공연 시작 이후에는 취소 불가 (hasCompletedPayment()에서도 조기 검사하지만, 그 사이 시간이
+        // 흘러 공연이 막 시작됐을 수 있으므로 락을 잡은 시점에 다시 확인)
+        if (reservation.isShowStarted()) {
             throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
+
+        List<Seat> seats = lockReservedSeats(reservation);
 
         releaseSeatsAndRestoreCounts(seats);
 
