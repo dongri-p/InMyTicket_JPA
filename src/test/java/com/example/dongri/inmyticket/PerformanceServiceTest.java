@@ -5,6 +5,7 @@ import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 import com.example.dongri.inmyticket.service.PerformanceService;
+import com.example.dongri.inmyticket.service.PerformanceSyncService;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,10 @@ public class PerformanceServiceTest {
 
     @Autowired private PerformanceRepository performanceRepository;
 
+    private PerformanceService newPerformanceService(KopisService kopisService) {
+        return new PerformanceService(performanceRepository, kopisService, new PerformanceSyncService(performanceRepository));
+    }
+
     @Test
     @DisplayName("KOPIS 동기화 시 신규 공연은 저장되고, 이미 존재하는 apiId는 중복 저장되지 않는다")
     void syncPerformances_savesNewAndSkipsExisting() {
@@ -43,7 +48,7 @@ public class PerformanceServiceTest {
                         kopisResponse(newApiId, "신규 공연")
                 ));
 
-        PerformanceService performanceService = new PerformanceService(performanceRepository, mockKopisService);
+        PerformanceService performanceService = newPerformanceService(mockKopisService);
 
         // when
         performanceService.syncPerformances();
@@ -68,7 +73,7 @@ public class PerformanceServiceTest {
                         kopisResponse(duplicateApiId, "같은 공연 두 번째(중복)")
                 ));
 
-        PerformanceService performanceService = new PerformanceService(performanceRepository, mockKopisService);
+        PerformanceService performanceService = newPerformanceService(mockKopisService);
 
         // when
         performanceService.syncPerformances();
@@ -83,7 +88,7 @@ public class PerformanceServiceTest {
     @Test
     @DisplayName("findOne()은 존재하지 않는 id에 대해 예외를 던진다")
     void findOne_withNonExistentId_throwsIllegalArgument() {
-        PerformanceService performanceService = new PerformanceService(performanceRepository, Mockito.mock(KopisService.class));
+        PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> performanceService.findOne(999999L));
     }
@@ -99,7 +104,7 @@ public class PerformanceServiceTest {
             performanceRepository.save(performance);
         }
 
-        PerformanceService performanceService = new PerformanceService(performanceRepository, Mockito.mock(KopisService.class));
+        PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
         Page<Performance> page = performanceService.findPerformances(PageRequest.of(0, 2));
 
