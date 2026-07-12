@@ -173,13 +173,19 @@ public class ReservationService {
     public int expireStalePendingReservations(LocalDateTime cutoff) {
 
         List<Reservation> candidates = reservationRepository.findByStatusAndReservedAtBefore(ReservationStatus.PENDING, cutoff);
+        if (candidates.isEmpty()) {
+            return 0;
+        }
+
+        // 후보 조회는 락 없이 했으므로, 실제 처리 직전에 한 번에 락을 걸고 상태를 재확인
+        // (그 사이 결제/취소가 먼저 끝났을 수 있음). 후보마다 개별 조회하던 N+1을
+        // IN 절 일괄 조회로 대체 (cancel 흐름의 좌석 락과 동일한 패턴)
+        List<Long> candidateIds = candidates.stream().map(Reservation::getId).collect(Collectors.toList());
+        List<Reservation> lockedReservations = reservationRepository.findByIdInWithLock(candidateIds);
 
         int expiredCount = 0;
-        for (Reservation candidate : candidates) {
-            // 후보 조회는 락 없이 했으므로, 실제 처리 직전에 다시 락을 걸고 상태를 재확인 (그 사이 결제/취소가 먼저 끝났을 수 있음)
-            Reservation reservation = reservationRepository.findByIdWithLock(candidate.getId())
-                    .orElse(null);
-            if (reservation == null || reservation.getStatus() != ReservationStatus.PENDING) {
+        for (Reservation reservation : lockedReservations) {
+            if (reservation.getStatus() != ReservationStatus.PENDING) {
                 continue;
             }
 

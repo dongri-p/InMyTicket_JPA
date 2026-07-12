@@ -24,6 +24,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("select r from Reservation r where r.id = :id")
     Optional<Reservation> findByIdWithLock(@Param("id") Long id);
 
+    // 여러 예약을 한 번에 비관적 락으로 조회 (자동 만료 스케줄러가 후보 예약마다 개별 조회하는 N+1 방지)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Reservation r where r.id in :ids")
+    List<Reservation> findByIdInWithLock(@Param("ids") List<Long> ids);
+
     // 결제 없이 일정 시간 이상 방치된 PENDING 예약 조회 (자동 해제 스케줄러용)
     List<Reservation> findByStatusAndReservedAtBefore(ReservationStatus status, LocalDateTime cutoff);
 }
