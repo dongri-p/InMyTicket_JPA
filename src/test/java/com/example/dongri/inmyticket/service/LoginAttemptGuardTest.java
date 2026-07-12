@@ -15,8 +15,8 @@ public class LoginAttemptGuardTest {
     void evictAttemptsOlderThan_removesOnlyStaleEntries() {
         // given
         LoginAttemptGuard guard = new LoginAttemptGuard();
-        guard.recordFailure("stale-user");
-        guard.recordFailure("fresh-user");
+        guard.recordFailure("stale-user", "127.0.0.1");
+        guard.recordFailure("fresh-user", "127.0.0.1");
         Assertions.assertEquals(2, guard.trackedLoginIdCount());
 
         // when: 미래 시각을 cutoff로 주면 방금 기록한 stale-user/fresh-user 모두 그 이전이라 청소 대상이 되지만,
@@ -34,7 +34,7 @@ public class LoginAttemptGuardTest {
         // given
         LoginAttemptGuard guard = new LoginAttemptGuard();
         for (int i = 0; i < 100; i++) {
-            guard.recordFailure("non-existent-user-" + i);
+            guard.recordFailure("non-existent-user-" + i, "127.0.0.1");
         }
         Assertions.assertEquals(100, guard.trackedLoginIdCount());
 
@@ -43,5 +43,22 @@ public class LoginAttemptGuardTest {
 
         // then
         Assertions.assertEquals(0, guard.trackedLoginIdCount());
+    }
+
+    @Test
+    @DisplayName("같은 loginId라도 IP가 다르면 실패 횟수가 서로 섞이지 않는다 (타인 계정 lockout DoS 방지)")
+    void differentIpsForSameLoginId_trackSeparately() {
+        // given: 공격자가 피해자의 loginId로 자신의 IP에서 5회 연속 실패시킴
+        LoginAttemptGuard guard = new LoginAttemptGuard();
+        for (int i = 0; i < 5; i++) {
+            guard.recordFailure("victim-user", "attacker-ip");
+        }
+
+        // when & then: 공격자의 IP에서는 잠기지만
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> guard.checkNotLocked("victim-user", "attacker-ip"));
+
+        // 피해자 본인의 IP에서는 영향받지 않는다
+        Assertions.assertDoesNotThrow(() -> guard.checkNotLocked("victim-user", "victim-ip"));
     }
 }

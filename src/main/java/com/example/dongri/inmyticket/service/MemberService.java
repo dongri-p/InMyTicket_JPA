@@ -50,9 +50,11 @@ public class MemberService {
     /**
      * 로그인 처리 및 JWT 토큰 발급
      */
-    public String login(String loginId, String password) {
-        // 0. 반복된 로그인 실패가 있었다면 잠금 여부부터 확인 (무차별 대입 방지)
-        loginAttemptGuard.checkNotLocked(loginId);
+    public String login(String loginId, String password, String clientIp) {
+        // 0. 반복된 로그인 실패가 있었다면 잠금 여부부터 확인 (무차별 대입 방지).
+        // (loginId, clientIp) 조합으로 잠그므로, 공격자가 타인의 loginId로 실패를 유발해도
+        // 그 계정의 정상적인 로그인(다른 IP)까지 막히지 않는다
+        loginAttemptGuard.checkNotLocked(loginId, clientIp);
 
         // 1. 아이디로 회원 조회
         Member member = memberRepository.findByLoginId(loginId).orElse(null);
@@ -64,12 +66,12 @@ public class MemberService {
 
         // 3. 아이디 없음/비밀번호 불일치를 동일한 메시지로 응답 (계정 존재 여부 노출 방지)
         if (member == null || !passwordMatches) {
-            loginAttemptGuard.recordFailure(loginId);
+            loginAttemptGuard.recordFailure(loginId, clientIp);
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
         // 4. 로그인 성공 시 실패 기록 초기화 후 JWT 토큰 구워서 리턴
-        loginAttemptGuard.recordSuccess(loginId);
+        loginAttemptGuard.recordSuccess(loginId, clientIp);
         return jwtProvider.createToken(member.getId(), member.getLoginId(), member.getRole().name());
     }
      

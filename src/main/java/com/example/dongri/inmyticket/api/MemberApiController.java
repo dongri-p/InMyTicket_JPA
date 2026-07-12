@@ -13,6 +13,7 @@ import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Role;
 import com.example.dongri.inmyticket.service.MemberService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -36,10 +37,10 @@ public class MemberApiController {
     }
 
     @PostMapping("/api/v1/members/login")
-    public LoginResponse login(@Validated @RequestBody LoginRequest request) {
-        // 로그인 검증 후 토큰 받아오기
-        String token = memberService.login(request.getLoginId(), request.getPassword());
-        
+    public LoginResponse login(@Validated @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        // 로그인 검증 후 토큰 받아오기 (로그인 실패 잠금은 loginId+클라이언트 IP 조합 단위로 추적)
+        String token = memberService.login(request.getLoginId(), request.getPassword(), httpRequest.getRemoteAddr());
+
         // 포스트맨에게 토큰이 담긴 응답 전달!
         return new LoginResponse(token);
     }
