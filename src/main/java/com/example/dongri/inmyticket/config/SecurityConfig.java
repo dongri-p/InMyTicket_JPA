@@ -104,7 +104,7 @@ public class SecurityConfig {
                 // 나머지는 모두 JWT 인증 필요
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, objectMapper), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

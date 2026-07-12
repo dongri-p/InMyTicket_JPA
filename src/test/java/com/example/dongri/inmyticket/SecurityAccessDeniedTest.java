@@ -57,4 +57,24 @@ public class SecurityAccessDeniedTest {
         Assertions.assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
         Assertions.assertTrue(response.getBody().contains("\"status\":403"));
     }
+
+    @Test
+    @DisplayName("위조/무효한 JWT로 요청하면 서블릿 기본 에러 페이지가 아닌 커스텀 JSON 401 응답을 받는다")
+    void invalidToken_returnsCustom401() {
+        // given: 서명 검증에 실패하는 임의의 토큰 (JwtAuthenticationFilter가 sendError() 대신
+        // AuthenticationEntryPoint와 동일한 {status,message} JSON 포맷으로 응답해야 함)
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("invalid.jwt.token");
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        // when
+        ResponseEntity<String> response =
+                restTemplate.exchange("/api/v1/performances/sync", org.springframework.http.HttpMethod.POST, request, String.class);
+
+        // then
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Assertions.assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+        Assertions.assertTrue(response.getBody().contains("\"status\":401"));
+        Assertions.assertTrue(response.getBody().contains("\"message\""));
+    }
 }
