@@ -29,7 +29,9 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     Optional<Seat> findByIdWithLock(@Param("id") Long id);
 
     // 여러 좌석을 한 번에 비관적 락으로 조회 (예약 취소 시 티켓 수만큼 반복 조회하는 N+1 방지)
+    // ORDER BY로 락 획득 순서를 항상 id 오름차순으로 고정 — 호출부가 넘기는 ids 순서가 제각각이어도
+    // 겹치는 좌석 집합을 동시에 잠그는 두 트랜잭션이 서로 다른 순서로 락을 잡아 데드락 나는 것을 방지
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select s from Seat s where s.id in :ids")
+    @Query("select s from Seat s where s.id in :ids order by s.id")
     List<Seat> findByIdInWithLock(@Param("ids") List<Long> ids);
 }
