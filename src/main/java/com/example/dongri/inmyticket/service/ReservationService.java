@@ -114,7 +114,7 @@ public class ReservationService {
     // 컨트롤러 등 운영 경로에서는 반드시 PaymentService.processCancel()을 통해야 하며,
     // 이 메서드는 결제 자체가 없는 케이스를 다루는 테스트/내부 용도로만 사용할 것.
     @Transactional
-    public void cancelWithoutRefundCheck(Long memberId, Long reservationId) {
+    void cancelWithoutRefundCheck(Long memberId, Long reservationId) {
         performCancel(memberId, reservationId, true);
     }
 

@@ -1,4 +1,4 @@
-package com.example.dongri.inmyticket;
+package com.example.dongri.inmyticket.service;
 
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
@@ -12,8 +12,6 @@ import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
-import com.example.dongri.inmyticket.service.PaymentApprovalService;
-import com.example.dongri.inmyticket.service.ReservationService;
 import com.example.dongri.inmyticket.support.TestFixtures;
 
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// package-private cancelWithoutRefundCheck()를 직접 호출하기 위해 service 패키지에 위치
 @SpringBootTest
 public class ReservationCancelApproveRaceTest {
 
