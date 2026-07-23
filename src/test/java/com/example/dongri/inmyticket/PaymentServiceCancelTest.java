@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.Member;
+import com.example.dongri.inmyticket.domain.OwnershipViolationException;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -105,7 +105,7 @@ public class PaymentServiceCancelTest {
 
         // when & then
         long start = System.currentTimeMillis();
-        Assertions.assertThrows(AccessDeniedException.class,
+        Assertions.assertThrows(OwnershipViolationException.class,
                 () -> paymentService.processCancel(stranger.getId(), reservationId));
         long elapsedMs = System.currentTimeMillis() - start;
 

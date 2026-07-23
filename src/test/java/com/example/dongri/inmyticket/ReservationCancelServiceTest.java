@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.Member;
+import com.example.dongri.inmyticket.domain.OwnershipViolationException;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 
@@ -68,7 +68,7 @@ public class ReservationCancelServiceTest {
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
 
         // when & then
-        Assertions.assertThrows(AccessDeniedException.class,
+        Assertions.assertThrows(OwnershipViolationException.class,
                 () -> reservationService.cancelWithoutRefundCheck(stranger.getId(), reservationId));
     }
 
