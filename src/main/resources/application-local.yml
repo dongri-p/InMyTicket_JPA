@@ -13,6 +13,17 @@ spring:
   flyway:
     enabled: false
 
+# 로컬 개발 전용 기본값 — 어떤 방식으로 실행하든(VS Code Run/Debug, gradlew bootRun 등)
+# 환경변수 설정 여부와 무관하게 뜨도록 함. prod는 application-prod.yml에 별도 값이 없어
+# 여전히 JWT_SECRET/ADMIN_LOGIN_ID/ADMIN_PASSWORD/KOPIS_API_KEY 환경변수가 필수임.
+jwt:
+  secret: local-dev-only-secret-key-not-for-production-use-32chars
+admin:
+  login-id: admin
+  password: ChangeMe1234!
+kopis:
+  api-key: local-dev-dummy-kopis-key
+
 logging:
   level:
     org.hibernate.SQL: debug
