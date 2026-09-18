@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.api.dto.ReservationListDto;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -62,6 +63,13 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         return reservation.getId();
+    }
+
+    // 내 예매 목록 조회 (읽기 전용이라 클래스 기본 @Transactional(readOnly = true) 그대로 사용)
+    public List<ReservationListDto> findMyReservations(Long memberId) {
+        return reservationRepository.findWithDetailsByMemberId(memberId).stream()
+                .map(ReservationListDto::new)
+                .collect(Collectors.toList());
     }
 
     // PaymentService.processPayment() 전용 진입점.
