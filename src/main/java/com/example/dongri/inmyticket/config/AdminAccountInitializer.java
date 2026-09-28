@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.config;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -30,7 +32,17 @@ public class AdminAccountInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (memberRepository.findByLoginId(adminLoginId).isPresent()) {
+        Optional<Member> existing = memberRepository.findByLoginId(adminLoginId);
+
+        if (existing.isPresent()) {
+            Member admin = existing.get();
+            // .env의 비밀번호가 바뀌었으면 기존 계정 해시를 갱신한다.
+            // ApplicationRunner는 트랜잭션 밖이라 더티 체킹이 안 되므로 save()를 명시적으로 호출한다.
+            if (!passwordEncoder.matches(adminPassword, admin.getPassword())) {
+                admin.setPassword(passwordEncoder.encode(adminPassword));
+                memberRepository.save(admin);
+                log.info("관리자 비밀번호가 갱신되었습니다. loginId={}", adminLoginId);
+            }
             return;
         }
 
