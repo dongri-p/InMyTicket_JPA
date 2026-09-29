@@ -98,6 +98,7 @@ src/main/java/com/example/dongri/inmyticket
 | DELETE | `/api/v1/reservations/{reservationId}` | 예매 취소 (결제 건은 환불) | 회원 |
 | POST | `/api/v1/payments` | 결제 승인 | 회원 |
 | POST | `/api/v1/performances/sync` | KOPIS 공연 정보 동기화 | 관리자 |
+| POST | `/api/v1/halls` | 공연장 등록 | 관리자 |
 | POST | `/api/v1/schedules` | 회차 등록 | 관리자 |
 
 ---------
