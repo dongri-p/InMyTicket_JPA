@@ -3,27 +3,66 @@
 이 프로젝트는 동시 요청이 몰리는 실시간 티켓 예매 시스템의 특성을 고려하여
 데이터 처리 성능을 최적화하고 복잡한 동시성 이슈 및 인프라 고갈 문제를 해결하는 데 초점을 맞춘 백엔드 프로젝트입니다.
 
+* **데모:** https://inmyticket.duckdns.org (회원가입 후 로그인하면 공연 목록 → 회차/좌석 선택 → 예매 → 결제까지 이용할 수 있습니다)
+* **저장소 구성**
+
+| 저장소 | 역할 |
+| --- | --- |
+| [InMyTicket_JPA](https://github.com/dongri-p/InMyTicket_JPA) (현재) | Spring Boot 백엔드 API |
+| [InMyTicket_JPA_frontend](https://github.com/dongri-p/InMyTicket_JPA_frontend) | React(Vite) 프론트엔드 |
+| [InMyTicket_deploy](https://github.com/dongri-p/InMyTicket_deploy) | docker-compose, 배포용 nginx(HTTPS) 설정 |
+
 ---
 
 ## 1. 프로젝트 개요
 * **프로젝트명:** InMyTicket (인마이티켓)
-* **주요 기능:** * 공연 및 회차 정보 실시간 조회 (성능 최적화 적용)
+* **주요 기능:**
+  * KOPIS(공연예술통합전산망) Open API로 실제 공연 정보를 동기화하고, 공연 및 회차 정보를 조회 (N+1 최적화 적용)
   * 다중 사용자의 실시간 좌석 선점 및 예매 프로세스 (동시성 제어 적용)
-  * 외부 PG(토스페이먼츠 등) 연동을 통한 안전한 결제 처리 (커넥션 풀 보호 적용)
+  * 미결제 예약 자동 만료 스케줄러
+  * 가상 PG 결제 승인/환불 처리 (외부 통신 지연 1.5초를 시뮬레이션, 커넥션 풀 보호 적용)
   * Spring Security + JWT 기반의 무상태(Stateless) 회원 인증 시스템
 
 ---
 
 ## 2. 기술 스택 (Tech Stack)
-* **Backend Core:** Java 17, Spring Boot
-* **Data Access:** Spring Data JPA, Hibernate
-* **Database:** H2 Database (테스트 용) / MySQL (추후 운영에 사용)
-* **Security & Auth:** Spring Security, JWT
+* **Backend Core:** Java 17, Spring Boot 3.5
+* **Data Access:** Spring Data JPA, Hibernate, Flyway (운영 DB 스키마 버전 관리)
+* **Database:** H2 (로컬 개발/테스트), MySQL 8.0 (운영)
+* **Security & Auth:** Spring Security, JWT (jjwt)
+* **Frontend:** React 19, Vite, React Router, Axios
+* **Infra:** AWS EC2 (Ubuntu), Docker / Docker Compose, Nginx (리버스 프록시), Let's Encrypt (HTTPS)
 * **Testing & Tools:** JUnit 5, Postman
 
 ---
 
 ## 3. 시스템 아키텍처 및 구조 (Structure)
+
+### 배포 아키텍처
+EC2 한 대에서 Docker Compose로 3개 컨테이너를 띄웁니다. 외부에는 80/443만 열려 있고, 백엔드(8080)와 DB는 외부에 노출하지 않습니다.
+
+```mermaid
+flowchart LR
+    User([사용자 브라우저])
+
+    subgraph EC2["AWS EC2 (Docker Compose)"]
+        direction LR
+        Nginx["frontend 컨테이너<br/>Nginx + React 정적 파일<br/>:80 → 443 리다이렉트<br/>:443 HTTPS 종료"]
+        Backend["backend 컨테이너<br/>Spring Boot :8080"]
+        DB[("db 컨테이너<br/>MySQL 8.0")]
+    end
+
+    KOPIS["KOPIS Open API"]
+
+    User -- "HTTPS" --> Nginx
+    Nginx -- "/api/** 리버스 프록시" --> Backend
+    Backend -- "JPA" --> DB
+    Backend -- "공연 정보 동기화" --> KOPIS
+```
+
+* 프론트엔드와 API가 같은 도메인(`https://inmyticket.duckdns.org`)을 쓰고, `/api/` 요청만 Nginx가 내부 네트워크의 `backend:8080`으로 넘깁니다.
+* 인증서는 EC2 호스트의 certbot이 발급·자동 갱신하고, Nginx 컨테이너에는 읽기 전용으로 마운트합니다.
+* 비밀값(DB 비밀번호, JWT 시크릿, KOPIS 키 등)은 저장소에 올리지 않고 EC2의 `.env` 파일로만 주입합니다.
 
 ### 프로젝트 패키지 구조
 도메인 중심 설계 및 REST API 최적화 규격을 준수하여 레이어를 엄격히 분리했습니다.
@@ -31,18 +70,36 @@
 src/main/java/com/example/dongri/inmyticket
 ├── api             # REST API 컨트롤러 및 Request/Response DTO 레이어
 ├── config          # Spring Security, JWT 등 전역 설정 레이어
-├── domain          # Member, Order, Item, Schedule 등 핵심 비즈니스 엔티티 및 Enum
+├── domain          # Member, Performance, Schedule, Seat, Reservation, Payment 등 핵심 엔티티 및 Enum
+├── external        # KOPIS Open API 연동 클라이언트
 ├── repository      # Spring Data JPA 기반 데이터 접근 레이어
 └── service         # 트랜잭션 경계 및 핵심 비즈니스 로직 레이어
 
-[Client / Postman] ──(JWT 토큰 포함 요청)──> [Spring Security Filter Chain]
-                                                        │ (토큰 검증 완료)
-                                                        ▼
-[MemberApiController] <──(인증 객체 주입)────── [SecurityContext]
+[Client] ──(JWT 토큰 포함 요청)──> [Spring Security Filter Chain]
+                                          │ (토큰 검증 완료)
+                                          ▼
+[ApiController] <──(인증 객체 주입)── [SecurityContext]
         │
         ▼
-[MemberService] ───(비밀번호 암호화 / 중복 검증)───> [MemberRepository] ───> [DB]
+[Service] ───(트랜잭션 / 비즈니스 검증)───> [Repository] ───> [DB]
 ```
+
+### 주요 API
+| Method | URL | 설명 | 권한 |
+| --- | --- | --- | --- |
+| POST | `/api/v1/members` | 회원가입 | 전체 |
+| POST | `/api/v1/members/login` | 로그인 (JWT 발급) | 전체 |
+| GET | `/api/v1/performances` | 공연 목록 (페이징) | 전체 |
+| GET | `/api/v1/performances/{id}` | 공연 상세 | 전체 |
+| GET | `/api/v1/performances/{performanceId}/schedules` | 공연별 회차 목록 | 전체 |
+| GET | `/api/v1/schedules/{scheduleId}/seats` | 회차별 좌석 현황 | 전체 |
+| POST | `/api/v1/reservations` | 좌석 예매 (선점) | 회원 |
+| GET | `/api/v1/reservations/me` | 내 예매 목록 | 회원 |
+| DELETE | `/api/v1/reservations/{reservationId}` | 예매 취소 (결제 건은 환불) | 회원 |
+| POST | `/api/v1/payments` | 결제 승인 | 회원 |
+| POST | `/api/v1/performances/sync` | KOPIS 공연 정보 동기화 | 관리자 |
+| POST | `/api/v1/schedules` | 회차 등록 | 관리자 |
+
 ---------
 
 ## 4. 핵심 문제 해결 경험
@@ -84,3 +141,32 @@ src/main/java/com/example/dongri/inmyticket
 * 기능 구현 이후에도 도메인/서비스, API/보안, 크로스 파일 일관성, 코드 정리 관점의 리뷰를 반복 수행하며 코드베이스를 점진적으로 검증·보완했습니다.
 * 이 과정에서 위 4)~6)번과 같이 **단위 테스트만으로는 드러나지 않는 동시성 레이스, 인가 순서 결함, 사이드채널 취약점**을 다수 발견해 수정했으며, 매 수정마다 실제 로컬 DB 환경에서 테스트를 실행해 회귀 여부를 검증했습니다.
 
+---------
+
+## 5. 배포 과정 트러블슈팅
+
+로컬에서는 잘 되던 것들이 실제 서버(EC2 t2.micro, HTTP → HTTPS 전환)에 올리면서 드러난 문제들입니다.
+
+### 1) HTTP 배포 환경에서 결제 화면이 흰 화면으로 깨짐
+* **문제정의**: 로컬에서는 정상이던 결제 화면이 IP 주소(HTTP)로 배포한 뒤에는 흰 화면만 떴습니다. 원인은 결제 키 생성에 쓴 `crypto.randomUUID()`가 **보안 컨텍스트(HTTPS 또는 localhost)에서만 제공되는 API**라 HTTP 환경에서는 `undefined`였고, `useEffect` 안에서 발생한 TypeError로 React 루트 전체가 언마운트된 것이었습니다.
+* **해결방안**: 즉시 조치로 `crypto.getRandomValues()` 기반 폴백을 둔 키 생성 함수로 교체했고, 근본적으로는 도메인(DuckDNS)과 Let's Encrypt 인증서를 적용해 서비스 전체를 HTTPS로 전환했습니다.
+
+### 2) 작은 인스턴스(t2.micro, 1GB RAM)에서의 메모리·디스크 부족
+* **문제정의**: 백엔드·프론트·MySQL 3개 컨테이너를 한 대에서 빌드/실행하자 메모리 부족으로 빌드가 중단되거나 백엔드가 뜨지 못했고, 이미지 재빌드가 반복되면서 `ENOSPC`(디스크 공간 부족)로 빌드가 실패했습니다.
+* **해결방안**: 스왑 메모리를 추가해 OOM을 막고, EBS 볼륨을 20GiB로 확장(`growpart` + `resize2fs`)했습니다. 또한 프론트만 바꿨을 때는 `docker compose build frontend` 후 `up -d --no-deps frontend`로 **바뀐 서비스만 재빌드**하도록 배포 절차를 정리했습니다(`depends_on` 때문에 그냥 `up --build frontend`를 하면 백엔드까지 빌드됨).
+
+### 3) 인스턴스 재시작 후 SSH 접속 불가
+* **문제정의**: 인스턴스를 재시작한 뒤 SSH 접속이 끊겨 보안 그룹부터 의심했지만, 실제 원인은 **퍼블릭 IP가 재시작 때마다 바뀌는 것**이었습니다. IP가 바뀌면 CORS 허용 Origin, 프론트 빌드에 들어간 API 주소도 함께 틀어집니다.
+* **해결방안**: Elastic IP를 할당해 주소를 고정하고, 그 IP에 도메인을 연결했습니다.
+
+### 4) 백엔드 컨테이너만 재생성하면 502 Bad Gateway
+* **문제정의**: 백엔드만 다시 띄우면 사이트는 열리는데 API가 모두 502로 실패했습니다. Nginx는 `proxy_pass http://backend:8080`의 호스트명을 **기동 시점에 한 번만 DNS 조회**해 캐시하므로, 백엔드 컨테이너가 새 내부 IP로 바뀌어도 예전 IP로 계속 요청을 보내고 있었습니다.
+* **해결방안**: 백엔드를 재생성한 뒤에는 frontend(Nginx) 컨테이너도 재시작하도록 배포 절차에 반영했습니다.
+
+### 5) 환경변수를 바꿔도 관리자 비밀번호가 바뀌지 않음
+* **문제정의**: 관리자 계정은 기동 시 `ADMIN_PASSWORD` 환경변수로 생성되는데, 이미 계정이 있으면 생성을 건너뛰는 구조라 운영 중 `.env`를 바꿔도 DB의 비밀번호 해시는 그대로였습니다.
+* **해결방안**: 기동 시 저장된 해시와 환경변수 값을 비교해, 다르면 해시를 갱신하도록 초기화 로직을 수정하고 단위 테스트로 검증했습니다. 이제 `.env` 변경 후 백엔드 재기동만으로 비밀번호를 교체할 수 있습니다.
+
+### 6) 불필요한 포트 노출 정리
+* **문제정의**: HTTPS와 리버스 프록시를 적용한 뒤에도 백엔드 8080 포트가 외부에 열려 있어, Nginx를 거치지 않고 API에 직접 접근할 수 있었습니다.
+* **해결방안**: compose에서 백엔드의 포트 매핑을 제거하고 보안 그룹 8080 규칙을 삭제했습니다. 현재 인바운드는 22(SSH), 80, 443만 허용합니다.
