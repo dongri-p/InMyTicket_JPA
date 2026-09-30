@@ -1,5 +1,7 @@
 # InMyTicket (실시간 티켓 예매 및 고도화 프로젝트)
 
+[![Backend CI](https://github.com/dongri-p/InMyTicket_JPA/actions/workflows/ci.yml/badge.svg)](https://github.com/dongri-p/InMyTicket_JPA/actions/workflows/ci.yml)
+
 이 프로젝트는 동시 요청이 몰리는 실시간 티켓 예매 시스템의 특성을 고려하여
 데이터 처리 성능을 최적화하고 복잡한 동시성 이슈 및 인프라 고갈 문제를 해결하는 데 초점을 맞춘 백엔드 프로젝트입니다.
 
