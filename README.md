@@ -66,6 +66,21 @@ flowchart LR
 * 인증서는 EC2 호스트의 certbot이 발급·자동 갱신하고, Nginx 컨테이너에는 읽기 전용으로 마운트합니다.
 * 비밀값(DB 비밀번호, JWT 시크릿, KOPIS 키 등)은 저장소에 올리지 않고 EC2의 `.env` 파일로만 주입합니다.
 
+### CI/CD 파이프라인
+GitHub Actions로 `main` 브랜치에 push하면 테스트 → 배포가 자동으로 이어집니다. 테스트가 실패하면 배포 job은 실행되지 않습니다.
+
+```mermaid
+flowchart LR
+    Push(["main push"]) --> CI["CI job<br/>backend: gradlew test<br/>frontend: lint + build"]
+    CI -- "성공 시" --> CD["deploy job<br/>SSH로 EC2 접속"]
+    CD --> Pull["git pull"] --> Build["docker compose build<br/>(바뀐 서비스만)"] --> Up["up -d --no-deps"]
+```
+
+* PR에서는 테스트만 실행하고, 배포는 `main` push일 때만 실행합니다.
+* SSH 접속 정보(호스트, 사용자, 키)는 GitHub Secrets로 관리합니다.
+* 백엔드 배포 후에는 Nginx가 새 백엔드 컨테이너 주소를 다시 찾도록 frontend 컨테이너도 재시작하고, 매 배포마다 사용하지 않는 이미지를 정리해 디스크 부족을 예방합니다.
+* **현재 한계와 개선 방향**: 이미지를 EC2에서 직접 빌드하므로 1GB RAM 인스턴스에 빌드 부하가 걸립니다. 이후 Actions에서 이미지를 빌드해 레지스트리(GHCR)에 올리고 EC2는 pull만 하는 방식으로 개선할 수 있습니다.
+
 ### 프로젝트 패키지 구조
 도메인 중심 설계 및 REST API 최적화 규격을 준수하여 레이어를 엄격히 분리했습니다.
 ```text
