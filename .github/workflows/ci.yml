@@ -27,3 +27,25 @@ jobs:
         env:
           # local 프로필의 H2 TCP 서버 대신 메모리 DB 사용
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            set -e
+            cd ~/InMyTicket/backend
+            git pull --ff-only
+            cd ~/InMyTicket/InMyTicket_deploy
+            sudo docker compose build backend
+            sudo docker compose up -d --no-deps backend
+            sudo docker compose restart frontend
+            sudo docker image prune -f
