@@ -67,19 +67,19 @@ flowchart LR
 * 비밀값(DB 비밀번호, JWT 시크릿, KOPIS 키 등)은 저장소에 올리지 않고 EC2의 `.env` 파일로만 주입합니다.
 
 ### CI/CD 파이프라인
-GitHub Actions로 `main` 브랜치에 push하면 테스트 → 배포가 자동으로 이어집니다. 테스트가 실패하면 배포 job은 실행되지 않습니다.
+GitHub Actions로 `main` 브랜치에 push하면 테스트 → 이미지 빌드 → 배포가 자동으로 이어집니다. 앞 단계가 실패하면 다음 단계는 실행되지 않습니다.
 
 ```mermaid
 flowchart LR
-    Push(["main push"]) --> CI["CI job<br/>backend: gradlew test<br/>frontend: lint + build"]
-    CI -- "성공 시" --> CD["deploy job<br/>SSH로 EC2 접속"]
-    CD --> Pull["git pull"] --> Build["docker compose build<br/>(바뀐 서비스만)"] --> Up["up -d --no-deps"]
+    Push(["main push"]) --> Test["test<br/>gradlew test"]
+    Test --> Image["image<br/>빌드 후 GHCR에 push"]
+    Image --> Deploy["deploy<br/>EC2에서 이미지 pull 후 재기동"]
 ```
 
 * PR에서는 테스트만 실행하고, 배포는 `main` push일 때만 실행합니다.
 * SSH 접속 정보(호스트, 사용자, 키)는 GitHub Secrets로 관리합니다.
 * 백엔드 배포 후에는 Nginx가 새 백엔드 컨테이너 주소를 다시 찾도록 frontend 컨테이너도 재시작하고, 매 배포마다 사용하지 않는 이미지를 정리해 디스크 부족을 예방합니다.
-* **현재 한계와 개선 방향**: 이미지를 EC2에서 직접 빌드하므로 1GB RAM 인스턴스에 빌드 부하가 걸립니다. 이후 Actions에서 이미지를 빌드해 레지스트리(GHCR)에 올리고 EC2는 pull만 하는 방식으로 개선할 수 있습니다.
+* 처음에는 EC2(1GB RAM)에서 직접 빌드했지만, Actions에서 빌드한 이미지를 GHCR에서 받아오도록 바꿔 배포 단계가 약 2분 10초에서 25초로 줄었습니다. 이미지에는 커밋 SHA 태그도 붙여 이전 버전으로 되돌릴 수 있습니다.
 
 ### 프로젝트 패키지 구조
 도메인 중심 설계 및 REST API 최적화 규격을 준수하여 레이어를 엄격히 분리했습니다.
