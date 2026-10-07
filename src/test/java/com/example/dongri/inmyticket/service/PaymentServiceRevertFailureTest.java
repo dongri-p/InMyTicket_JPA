@@ -5,6 +5,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.example.dongri.inmyticket.external.PgClient;
+import com.example.dongri.inmyticket.repository.PaymentRepository;
+
 // approve() 실패 후 되돌리기(revertProcessingToPending)마저 실패하는, 실제 DB로 재현하기 어려운
 // 락 경합 시나리오를 검증하기 위해 협력 객체를 목으로 대체하는 순수 단위 테스트(14차 발견)
 public class PaymentServiceRevertFailureTest {
@@ -22,7 +25,8 @@ public class PaymentServiceRevertFailureTest {
         Mockito.doThrow(new RuntimeException("락 경합으로 되돌리기 실패"))
                 .when(reservationService).revertProcessingToPending(100L);
 
-        PaymentService paymentService = new PaymentService(paymentApprovalService, reservationService);
+        PaymentService paymentService = new PaymentService(paymentApprovalService, reservationService,
+                Mockito.mock(PgClient.class), Mockito.mock(PaymentRepository.class));
 
         // when
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,

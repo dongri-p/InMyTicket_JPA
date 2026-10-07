@@ -30,7 +30,7 @@ public class ReservationServiceCancelAfterRefundCheckTest {
     @Test
     @DisplayName("환불 미처리(refundHandled=false)인데 실제로는 결제가 완료돼 있으면, 조용히 취소하지 않고 재시도를 요구한다")
     void cancelAfterRefundCheck_paymentAppearedAfterCheck_throwsAndDoesNotCancel() {
-        // given: PaymentService.hasCompletedPayment() 확인 시점 이후, 결제가 새로 완료된 상황을 재현
+        // given: ReservationService.findPaymentKeyToRefund() 확인 시점 이후, 결제가 새로 완료된 상황을 재현
         Member member = TestFixtures.createAndSaveMember(memberRepository, "refundRaceUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
