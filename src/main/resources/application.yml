@@ -6,6 +6,12 @@ spring:
       hibernate:
         default_batch_fetch_size: 100
 
+server:
+  # nginx 뒤에서 실행되므로 X-Forwarded-For로 실제 클라이언트 IP를 복원 (로그인 잠금 키에 사용).
+  # Tomcat RemoteIpValve는 내부망(10/8, 172.16/12, 192.168/16, loopback)에서 온 헤더만 신뢰하고
+  # 오른쪽부터 첫 번째 외부 IP를 고르므로, 클라이언트가 헤더를 위조해 앞에 끼워 넣어도 무시됨
+  forward-headers-strategy: native
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
