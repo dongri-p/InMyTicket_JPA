@@ -93,6 +93,7 @@ public class ReservationService {
         }
 
         reservation.setStatus(ReservationStatus.PROCESSING);
+        reservation.setProcessingStartedAt(LocalDateTime.now());
     }
 
     // PG 통신 실패 시 PROCESSING으로 전환했던 예약을 PENDING으로 되돌려 재시도/자동만료가 가능하게 한다.
@@ -100,7 +101,44 @@ public class ReservationService {
     public void revertProcessingToPending(Long reservationId) {
         reservationRepository.findByIdWithLock(reservationId)
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.PROCESSING)
-                .ifPresent(reservation -> reservation.setStatus(ReservationStatus.PENDING));
+                .ifPresent(this::revertToPending);
+    }
+
+    // PG 통신 도중 서버가 죽거나 재배포되면 processPayment()의 catch(revertProcessingToPending)가 실행되지 않아
+    // 예약이 PROCESSING에 영구히 갇힘 - 취소(PROCESSING 거부)도 자동만료(PENDING만 대상)도 닿지 않아 좌석이 묶임.
+    // 결제 시작 후 cutoff가 지나도록 PROCESSING인 예약은 승인되지 않은 것으로 보고 PENDING으로 되돌려
+    // 재결제 또는 기존 자동만료 흐름을 타게 함 (스케줄러 전용).
+    // 한계: 실제 PG라면 되돌리기 전에 PG 거래 조회 API로 승인 여부를 확인해야 함. 이 프로젝트의 PG는
+    // 시뮬레이션이라 조회할 거래 상태가 없으므로 "승인 기록(Payment)이 없으면 미승인"으로 간주함.
+    @Transactional
+    public int recoverStuckProcessingReservations(LocalDateTime cutoff) {
+
+        List<Reservation> candidates =
+                reservationRepository.findByStatusAndProcessingStartedAtBefore(ReservationStatus.PROCESSING, cutoff);
+        if (candidates.isEmpty()) {
+            return 0;
+        }
+
+        // 후보 조회는 락 없이 했으므로, 락을 잡은 뒤 상태를 재확인 (그 사이 승인/되돌리기가 끝났을 수 있음)
+        List<Long> candidateIds = candidates.stream().map(Reservation::getId).collect(Collectors.toList());
+        List<Reservation> lockedReservations = reservationRepository.findByIdInWithLock(candidateIds);
+
+        int recoveredCount = 0;
+        for (Reservation reservation : lockedReservations) {
+            if (reservation.getStatus() != ReservationStatus.PROCESSING
+                    || !reservation.getProcessingStartedAt().isBefore(cutoff)) {
+                continue;
+            }
+            revertToPending(reservation);
+            recoveredCount++;
+        }
+
+        return recoveredCount;
+    }
+
+    private void revertToPending(Reservation reservation) {
+        reservation.setStatus(ReservationStatus.PENDING);
+        reservation.setProcessingStartedAt(null);
     }
 
     // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)

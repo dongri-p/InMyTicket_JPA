@@ -33,6 +33,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // 결제 없이 일정 시간 이상 방치된 PENDING 예약 조회 (자동 해제 스케줄러용)
     List<Reservation> findByStatusAndReservedAtBefore(ReservationStatus status, LocalDateTime cutoff);
 
+    // 결제 시작 후 일정 시간 넘게 PROCESSING에 머문 예약 조회 (고착 복구 스케줄러용)
+    List<Reservation> findByStatusAndProcessingStartedAtBefore(ReservationStatus status, LocalDateTime cutoff);
+
     // 내 예매 목록 조회 - N+1 방지를 위해 좌석/회차/공연을 한 방에 페치 조인
     // payment는 없을 수도 있어서 left join fetch
     @Query("select distinct r from Reservation r " +

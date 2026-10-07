@@ -42,6 +42,10 @@ public class Reservation {
 
     private LocalDateTime reservedAt;
 
+    // PROCESSING으로 전환된 시각 - PG 통신 중 서버가 죽어 PROCESSING에 고착된 예약을 찾는 기준.
+    // reservedAt(예약 시각)을 기준으로 삼으면 예약 직후가 아니라 늦게 결제를 시작한 진행 중인 건까지 되돌릴 수 있어 따로 둠
+    private LocalDateTime processingStartedAt;
+
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
     private List<Ticket> tickets = new ArrayList<>();
 
