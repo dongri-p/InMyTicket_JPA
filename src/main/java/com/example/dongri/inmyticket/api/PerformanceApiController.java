@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,8 +49,11 @@ public class PerformanceApiController {
             // 장르 메뉴 필터 (예: ?genre=CONCERT). 없으면 전체, 잘못된 값이면 400
             @RequestParam(required = false) GenreGroup genre) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        // 정렬 없이 페이징하면 DB가 페이지마다 다른 순서로 줄 수 있어(특히 MySQL) '더 보기' 시
+        // 중복·누락이 생길 수 있으므로 id 순으로 고정. 오름차순인 이유: 회차가 등록된 기존 데모 공연이
+        // 나중에 동기화된 공연들에 밀려 뒤 페이지로 가지 않도록
         Page<Performance> findPerformances = performanceService.findPerformances(
-                genre, PageRequest.of(Math.max(page, 0), pageSize));
+                genre, PageRequest.of(Math.max(page, 0), pageSize, Sort.by(Sort.Direction.ASC, "id")));
 
         // 이 페이지 공연들의 회차 수를 한 번에 조회 (공연별 개별 조회 시 N+1)
         List<Long> performanceIds = findPerformances.getContent().stream()
