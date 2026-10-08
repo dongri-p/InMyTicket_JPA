@@ -54,5 +54,31 @@ public class KopisService {
 
         return Collections.emptyList();
     }
+
+    // 공연 상세(/pblprfr/{mt20id})에서 포스터 URL만 꺼냄. 목록 API는 최근 등록순이라
+    // 예전에 저장된 공연은 다시 내려오지 않으므로, 포스터 backfill은 apiId로 상세를 직접 조회한다.
+    // 실패하거나 데이터가 없으면(NODATA 등) null — 호출 측에서 건너뛰고 다음 기동 때 다시 시도됨
+    public String fetchPosterUrl(String mt20id) {
+        try {
+            KopisPerformanceListResponse response = webClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/pblprfr/{mt20id}")
+                            .queryParam("service", apiKey)
+                            .build(mt20id))
+                    .retrieve()
+                    .bodyToMono(KopisPerformanceListResponse.class)
+                    .block();
+
+            if (response == null || response.getPerformances() == null || response.getPerformances().isEmpty()) {
+                return null;
+            }
+            String poster = response.getPerformances().get(0).getPoster();
+            return (poster == null || poster.isBlank()) ? null : poster;
+
+        } catch (Exception e) {
+            log.warn("KOPIS 공연 상세 조회 실패. mt20id={}, 원인={}", mt20id, e.getMessage());
+            return null;
+        }
+    }
     
 }

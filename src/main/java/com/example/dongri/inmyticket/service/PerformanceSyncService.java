@@ -3,6 +3,7 @@ package com.example.dongri.inmyticket.service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,16 @@ public class PerformanceSyncService {
             performance.setDescription(dto.getPrfnm() + " 공연입니다. 공연장: " + dto.getFcltynm());
 
             performanceRepository.save(performance);
+        }
+    }
+
+    // PerformanceService.backfillPosterUrls()가 KOPIS에서 받아온 포스터 URL을 반영 (performanceId -> posterUrl)
+    // 조회 시점과 반영 시점 사이에 이미 채워졌을 수 있으니 여전히 비어 있는 경우에만 덮어씀
+    public void updatePosterUrls(Map<Long, String> posterUrls) {
+        for (Performance performance : performanceRepository.findAllById(posterUrls.keySet())) {
+            if (performance.getPosterUrl() == null) {
+                performance.setPosterUrl(posterUrls.get(performance.getId()));
+            }
         }
     }
 }

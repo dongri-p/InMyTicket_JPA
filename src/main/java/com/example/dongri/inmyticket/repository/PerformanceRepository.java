@@ -13,4 +13,7 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     // 여러 apiId 중 이미 DB에 존재하는 것만 한 번에 조회 (N+1 방지)
     @Query("select p.apiId from Performance p where p.apiId in :apiIds")
     List<String> findApiIdsIn(@Param("apiIds") List<String> apiIds);
+
+    // 포스터 컬럼(V6) 추가 이전에 저장돼 posterUrl이 비어 있는 공연 (backfill 대상)
+    List<Performance> findByPosterUrlIsNull();
 }

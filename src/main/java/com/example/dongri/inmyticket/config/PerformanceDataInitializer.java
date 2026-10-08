@@ -26,6 +26,13 @@ public class PerformanceDataInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (performanceRepository.count() > 0) {
+            // 이미 데이터가 있는 운영 DB는 sync가 기존 공연을 건너뛰므로, 포스터 컬럼(V6) 이전 데이터를 여기서 채움.
+            // 비어 있는 공연만 대상이라 한 번 채워지면 이후 재배포 때는 KOPIS를 호출하지 않음
+            try {
+                performanceService.backfillPosterUrls();
+            } catch (RuntimeException e) {
+                log.warn("기동 시 공연 포스터 backfill 실패 — 다음 기동 때 다시 시도됨", e);
+            }
             return;
         }
 
