@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.domain.GenreGroup;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
@@ -75,8 +76,12 @@ public class PerformanceService {
     }
 
     // DB에 저장된 공연 목록 페이지 조회 (비인증 공개 API라 페이지네이션 없이 전체 조회 시 대량조회 부하 위험이 있어 페이징 처리)
-    public Page<Performance> findPerformances(Pageable pageable) {
-        return performanceRepository.findAll(pageable);
+    // genre가 null이면 전체, 있으면 해당 장르 묶음만 조회
+    public Page<Performance> findPerformances(GenreGroup genre, Pageable pageable) {
+        if (genre == null) {
+            return performanceRepository.findAll(pageable);
+        }
+        return performanceRepository.findByCategoryIn(genre.getCategories(), pageable);
     }
 
     // 목록 카드의 '예매중/오픈예정' 표시용: 공연 id -> 아직 시작 전인 회차 수 (회차 없는 공연은 맵에 없음)

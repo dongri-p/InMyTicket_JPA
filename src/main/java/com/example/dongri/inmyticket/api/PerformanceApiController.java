@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.dongri.inmyticket.api.dto.ListResult;
 import com.example.dongri.inmyticket.api.dto.PerformanceDetailDto;
 import com.example.dongri.inmyticket.api.dto.PerformanceListDto;
+import com.example.dongri.inmyticket.domain.GenreGroup;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.service.PerformanceService;
 
@@ -43,10 +44,12 @@ public class PerformanceApiController {
     @GetMapping("/api/v1/performances")
     public ListResult<List<PerformanceListDto>> performancesV2(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            // 장르 메뉴 필터 (예: ?genre=CONCERT). 없으면 전체, 잘못된 값이면 400
+            @RequestParam(required = false) GenreGroup genre) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         Page<Performance> findPerformances = performanceService.findPerformances(
-                PageRequest.of(Math.max(page, 0), pageSize));
+                genre, PageRequest.of(Math.max(page, 0), pageSize));
 
         // 이 페이지 공연들의 회차 수를 한 번에 조회 (공연별 개별 조회 시 N+1)
         List<Long> performanceIds = findPerformances.getContent().stream()
