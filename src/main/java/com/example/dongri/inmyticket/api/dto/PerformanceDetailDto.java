@@ -12,6 +12,7 @@ public class PerformanceDetailDto {
     private String title;
     private String category;
     private String status;
+    private String posterUrl;
     private String artist;
     private String description;
     private LocalDateTime lastUpdatedAt;
@@ -21,6 +22,7 @@ public class PerformanceDetailDto {
         this.title = performance.getTitle();
         this.category = performance.getCategory();
         this.status = performance.getStatus();
+        this.posterUrl = performance.getPosterUrl();
         this.artist = performance.getArtist();
         this.description = performance.getDescription();
         this.lastUpdatedAt = performance.getLastUpdatedAt();
