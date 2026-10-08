@@ -35,4 +35,13 @@ public class KopisPerformanceResponse {
 
     @XmlElement(name = "poster")
     private String poster;
+
+    // KOPIS는 포스터를 http://로 내려주는데, 운영 화면은 HTTPS라 그대로 쓰면 mixed content가 됨.
+    // KOPIS 이미지 서버가 https도 지원하므로 저장 전에 https로 바꿔둔다 (목록 sync와 상세 backfill 모두 이 getter를 거침)
+    public String getPoster() {
+        if (poster != null && poster.startsWith("http://")) {
+            return "https://" + poster.substring("http://".length());
+        }
+        return poster;
+    }
 }
