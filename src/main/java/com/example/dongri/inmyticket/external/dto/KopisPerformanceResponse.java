@@ -32,4 +32,7 @@ public class KopisPerformanceResponse {
     
     @XmlElement(name = "prfstate")
     private String prfstate;
+
+    @XmlElement(name = "poster")
+    private String poster;
 }

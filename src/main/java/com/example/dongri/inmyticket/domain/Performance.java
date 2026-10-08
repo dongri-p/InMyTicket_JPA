@@ -30,6 +30,7 @@ public class Performance {
 
     private String category;
     private String status;
+    private String posterUrl;
 
     private LocalDateTime lastUpdatedAt;
     

@@ -46,6 +46,7 @@ public class PerformanceSyncService {
             performance.setTitle(dto.getPrfnm());
             performance.setCategory(dto.getGenrenm());
             performance.setStatus(dto.getPrfstate());
+            performance.setPosterUrl(dto.getPoster());
             performance.setLastUpdatedAt(LocalDateTime.now());
 
             performance.setArtist("KOPIS 연동 아티스트");
