@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.api;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -47,9 +48,15 @@ public class PerformanceApiController {
         Page<Performance> findPerformances = performanceService.findPerformances(
                 PageRequest.of(Math.max(page, 0), pageSize));
 
+        // 이 페이지 공연들의 회차 수를 한 번에 조회 (공연별 개별 조회 시 N+1)
+        List<Long> performanceIds = findPerformances.getContent().stream()
+                .map(Performance::getId)
+                .collect(Collectors.toList());
+        Map<Long, Long> scheduleCounts = performanceService.countUpcomingSchedules(performanceIds);
+
         // 엔티티 리스트를 안전하게 ListDto 리스트로 변환
         List<PerformanceListDto> collect = findPerformances.getContent().stream()
-                .map(PerformanceListDto::new)
+                .map(p -> new PerformanceListDto(p, scheduleCounts.getOrDefault(p.getId(), 0L)))
                 .collect(Collectors.toList());
 
         // count는 이 페이지에 포함된 항목 수, totalCount는 페이지네이션 이전(size 제한과 무관한) 전체 건수

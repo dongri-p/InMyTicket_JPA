@@ -4,6 +4,7 @@ import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
+import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.service.PerformanceService;
 import com.example.dongri.inmyticket.service.PerformanceSyncService;
 
@@ -25,9 +26,10 @@ import java.util.UUID;
 public class PerformanceServiceTest {
 
     @Autowired private PerformanceRepository performanceRepository;
+    @Autowired private ScheduleRepository scheduleRepository;
 
     private PerformanceService newPerformanceService(KopisService kopisService) {
-        return new PerformanceService(performanceRepository, kopisService, new PerformanceSyncService(performanceRepository));
+        return new PerformanceService(performanceRepository, scheduleRepository, kopisService, new PerformanceSyncService(performanceRepository));
     }
 
     @Test
