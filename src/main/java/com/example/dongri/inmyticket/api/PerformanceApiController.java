@@ -47,13 +47,15 @@ public class PerformanceApiController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             // 장르 메뉴 필터 (예: ?genre=CONCERT). 없으면 전체, 잘못된 값이면 400
-            @RequestParam(required = false) GenreGroup genre) {
+            @RequestParam(required = false) GenreGroup genre,
+            // 헤더 검색창: 제목 부분 검색 (예: ?keyword=레미제라블). genre와 같이 쓰면 둘 다 만족하는 공연만
+            @RequestParam(required = false) String keyword) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         // 정렬 없이 페이징하면 DB가 페이지마다 다른 순서로 줄 수 있어(특히 MySQL) '더 보기' 시
         // 중복·누락이 생길 수 있으므로 id 순으로 고정. 오름차순인 이유: 회차가 등록된 기존 데모 공연이
         // 나중에 동기화된 공연들에 밀려 뒤 페이지로 가지 않도록
         Page<Performance> findPerformances = performanceService.findPerformances(
-                genre, PageRequest.of(Math.max(page, 0), pageSize, Sort.by(Sort.Direction.ASC, "id")));
+                genre, keyword, PageRequest.of(Math.max(page, 0), pageSize, Sort.by(Sort.Direction.ASC, "id")));
 
         // 이 페이지 공연들의 회차 수를 한 번에 조회 (공연별 개별 조회 시 N+1)
         List<Long> performanceIds = findPerformances.getContent().stream()

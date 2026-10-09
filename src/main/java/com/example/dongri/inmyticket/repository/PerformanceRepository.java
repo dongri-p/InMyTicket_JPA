@@ -21,4 +21,10 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
 
     // 장르 메뉴 필터: 장르 묶음(GenreGroup)에 속한 KOPIS 장르명 중 하나인 공연만 페이지 조회
     Page<Performance> findByCategoryIn(List<String> categories, Pageable pageable);
+
+    // 헤더 검색창: 제목에 검색어가 포함된 공연 (Containing은 검색어의 %, _를 이스케이프해 줌)
+    Page<Performance> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
+
+    // 장르 메뉴 + 검색어를 같이 쓴 경우
+    Page<Performance> findByCategoryInAndTitleContainingIgnoreCase(List<String> categories, String keyword, Pageable pageable);
 }
