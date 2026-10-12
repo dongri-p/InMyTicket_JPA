@@ -102,6 +102,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/performances/sync").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/schedules").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/halls").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/halls").hasRole("ADMIN")
                 // 나머지는 모두 JWT 인증 필요
                 .anyRequest().authenticated()
             )
