@@ -32,6 +32,7 @@ public class KopisService {
     private static final List<String> GENRE_CODES =
             List.of("AAAA", "GGGA", "CCCA", "CCCC", "CCCD", "BBBC", "BBBE", "EEEB", "EEEA");
     private static final int ROWS_PER_GENRE = 10;
+    private static final long DETAIL_CALL_INTERVAL_MS = 200;
 
     // 장르 구분 없이 최근 등록순으로만 가져오면 특정 장르(대중음악 등)에 몰려 장르 메뉴가 비므로,
     // 장르별로 최근 공연을 ROWS_PER_GENRE건씩 가져온다. 한 장르가 실패해도 나머지는 계속 진행
@@ -78,6 +79,14 @@ public class KopisService {
     // 나중에 추가된 컬럼(포스터, 공연 기간, 공연장명) backfill은 apiId로 상세를 직접 조회한다.
     // 실패하거나 데이터가 없으면(NODATA 등) null — 호출 측에서 건너뛰고 다음 기동 때 다시 시도됨
     public KopisPerformanceResponse fetchDetail(String mt20id) {
+        // KOPIS는 짧은 시간에 연달아 호출하면 400을 돌려줌 (실측: 간격 없이 90건 호출 시 앞 8건만 성공, 100ms 간격이면 전부 성공).
+        // 상세 조회는 backfill에서 공연 수만큼 연속으로 부르므로 호출마다 간격을 둠 (100건 기준 약 20초, 비어 있는 공연이 있을 때만)
+        try {
+            Thread.sleep(DETAIL_CALL_INTERVAL_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
         try {
             KopisPerformanceListResponse response = webClient.get()
                     .uri(uriBuilder -> uriBuilder
