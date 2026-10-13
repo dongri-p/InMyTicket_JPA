@@ -1,5 +1,9 @@
 package com.example.dongri.inmyticket.external.dto;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -43,5 +47,27 @@ public class KopisPerformanceResponse {
             return "https://" + poster.substring("http://".length());
         }
         return poster;
+    }
+
+    // KOPIS 날짜는 "2026.11.07" 형식. 형식이 다르거나 비어 있으면 기간을 모르는 것으로 보고 null
+    private static final DateTimeFormatter KOPIS_DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+    public LocalDate getStartDate() {
+        return parseKopisDate(prfpdfrom);
+    }
+
+    public LocalDate getEndDate() {
+        return parseKopisDate(prfpdto);
+    }
+
+    private static LocalDate parseKopisDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value.strip(), KOPIS_DATE);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 }

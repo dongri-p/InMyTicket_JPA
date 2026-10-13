@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -88,6 +89,36 @@ public class PerformanceServiceTest {
     }
 
     @Test
+    @DisplayName("KOPIS 동기화 시 공연 기간과 공연장명이 함께 저장되고, 형식이 다른 날짜는 비워 둔다")
+    void syncPerformances_savesPeriodAndVenue() {
+        // given
+        String apiId = "kopis-period-" + UUID.randomUUID();
+        String badDateApiId = "kopis-bad-date-" + UUID.randomUUID();
+        KopisPerformanceResponse withPeriod = kopisResponse(apiId, "기간 있는 공연");
+        withPeriod.setPrfpdfrom("2026.11.07");
+        withPeriod.setPrfpdto("2026.11.14");
+        KopisPerformanceResponse badDate = kopisResponse(badDateApiId, "날짜 형식이 다른 공연");
+        badDate.setPrfpdfrom("2026-11-07");
+        badDate.setPrfpdto("");
+
+        KopisService mockKopisService = Mockito.mock(KopisService.class);
+        Mockito.when(mockKopisService.fetchRecentPerformances()).thenReturn(List.of(withPeriod, badDate));
+
+        // when
+        newPerformanceService(mockKopisService).syncPerformances();
+
+        // then
+        Performance saved = findByApiId(apiId);
+        Assertions.assertEquals(LocalDate.of(2026, 11, 7), saved.getStartDate());
+        Assertions.assertEquals(LocalDate.of(2026, 11, 14), saved.getEndDate());
+        Assertions.assertEquals("테스트홀", saved.getVenueName());
+
+        Performance savedBadDate = findByApiId(badDateApiId);
+        Assertions.assertNull(savedBadDate.getStartDate());
+        Assertions.assertNull(savedBadDate.getEndDate());
+    }
+
+    @Test
     @DisplayName("findOne()은 존재하지 않는 id에 대해 예외를 던진다")
     void findOne_withNonExistentId_throwsIllegalArgument() {
         PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
@@ -112,6 +143,13 @@ public class PerformanceServiceTest {
 
         Assertions.assertEquals(2, page.getContent().size());
         Assertions.assertTrue(page.getTotalElements() >= 3);
+    }
+
+    private Performance findByApiId(String apiId) {
+        return performanceRepository.findAll().stream()
+                .filter(p -> apiId.equals(p.getApiId()))
+                .findFirst()
+                .orElseThrow();
     }
 
     private KopisPerformanceResponse kopisResponse(String apiId, String title) {
