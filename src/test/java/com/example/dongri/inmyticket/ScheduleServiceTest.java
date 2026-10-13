@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -84,6 +85,36 @@ public class ScheduleServiceTest {
         // given: setUp()에서 hall.totalSeats=100으로 생성됨
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 101));
+    }
+
+    @Test
+    @DisplayName("공연 기간 밖의 날짜로 회차를 등록하면 예외가 발생한다")
+    void saveSchedule_outsidePerformancePeriod_throwsIllegalArgument() {
+        LocalDate from = LocalDate.now().plusDays(10);
+        LocalDate to = from.plusDays(7);
+        performance.setStartDate(from);
+        performance.setEndDate(to);
+        performanceRepository.save(performance);
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), from.minusDays(1).atTime(19, 0), 5));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), to.plusDays(1).atTime(19, 0), 5));
+    }
+
+    @Test
+    @DisplayName("공연 첫날과 마지막 날에는 시각과 관계없이 회차를 등록할 수 있다")
+    void saveSchedule_onPeriodBoundaryDays_succeeds() {
+        LocalDate from = LocalDate.now().plusDays(10);
+        LocalDate to = from.plusDays(7);
+        performance.setStartDate(from);
+        performance.setEndDate(to);
+        performanceRepository.save(performance);
+
+        Assertions.assertDoesNotThrow(
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), from.atTime(0, 0), 5));
+        Assertions.assertDoesNotThrow(
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), to.atTime(23, 30), 5));
     }
 
     @Test

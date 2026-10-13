@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,6 +44,14 @@ public class ScheduleService {
         if (totalSeatCount > hall.getTotalSeats()) {
             throw new IllegalArgumentException(
                     "좌석 수가 공연장 정원을 초과했습니다. totalSeatCount=" + totalSeatCount + ", hallCapacity=" + hall.getTotalSeats());
+        }
+
+        // KOPIS 공연 기간 밖의 날짜로 회차가 만들어지지 않도록 검증 (기간을 모르는 공연은 검증하지 않음)
+        LocalDate startDate = startTime.toLocalDate();
+        if ((performance.getStartDate() != null && startDate.isBefore(performance.getStartDate()))
+                || (performance.getEndDate() != null && startDate.isAfter(performance.getEndDate()))) {
+            throw new IllegalArgumentException(
+                    "공연 기간(" + performance.getStartDate() + " ~ " + performance.getEndDate() + ") 밖의 날짜에는 회차를 등록할 수 없습니다. startTime=" + startTime);
         }
 
         // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)

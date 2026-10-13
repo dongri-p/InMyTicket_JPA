@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.config;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -43,13 +44,15 @@ public class LocalTestDataInitializer implements ApplicationRunner {
             return;
         }
 
-        Performance performance = performanceRepository.findAll(PageRequest.of(0, 1))
+        // 회차 등록은 공연 기간 안의 날짜만 허용되므로, 아직 끝나지 않은 공연 중 첫 번째를 고름
+        Performance performance = performanceRepository.findAll(PageRequest.of(0, 20))
                 .stream()
+                .filter(p -> demoStartTime(p).isAfter(LocalDateTime.now()))
                 .findFirst()
                 .orElse(null);
 
         if (performance == null) {
-            log.warn("동기화된 공연이 없어 로컬 테스트용 회차를 생성하지 못했습니다.");
+            log.warn("회차를 만들 수 있는(아직 끝나지 않은) 공연이 없어 로컬 테스트용 회차를 생성하지 못했습니다.");
             return;
         }
 
@@ -58,8 +61,7 @@ public class LocalTestDataInitializer implements ApplicationRunner {
                 .findFirst()
                 .orElseGet(this::createTestHall);
 
-        // 실행 시점 기준 항상 미래가 되도록 상대 시각으로 계산 (고정 날짜는 시간이 지나면 과거가 되어 예매 자체가 막힘)
-        LocalDateTime startTime = LocalDateTime.now().plusDays(30).with(LocalTime.of(19, 0));
+        LocalDateTime startTime = demoStartTime(performance);
 
         try {
             Long scheduleId = scheduleService.saveSchedule(performance.getId(), hall.getId(), startTime, TEST_TOTAL_SEAT_COUNT);
@@ -68,6 +70,19 @@ public class LocalTestDataInitializer implements ApplicationRunner {
         } catch (RuntimeException e) {
             log.warn("로컬 테스트용 회차 자동 생성 실패", e);
         }
+    }
+
+    // 실행 시점 기준 30일 뒤 19시를 공연 기간 안으로 맞춤 (고정 날짜는 시간이 지나면 과거가 되어 예매 자체가 막힘)
+    // 이미 끝난 공연이면 과거 시각이 나오므로 호출 측에서 걸러냄
+    private LocalDateTime demoStartTime(Performance performance) {
+        LocalDate date = LocalDate.now().plusDays(30);
+        if (performance.getEndDate() != null && date.isAfter(performance.getEndDate())) {
+            date = performance.getEndDate();
+        }
+        if (performance.getStartDate() != null && date.isBefore(performance.getStartDate())) {
+            date = performance.getStartDate();
+        }
+        return date.atTime(LocalTime.of(19, 0));
     }
 
     private Hall createTestHall() {
