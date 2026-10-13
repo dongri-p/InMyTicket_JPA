@@ -52,27 +52,27 @@ public class PerformanceService {
         log.info("외부 데이터 DB 동기화 완료");
     }
 
-    // 포스터가 비어 있는 기존 공연에 KOPIS 상세 조회로 포스터를 채워 넣음
+    // 포스터나 공연 기간이 비어 있는 기존 공연에 KOPIS 상세 조회로 빈 값을 채워 넣음
     // syncPerformances()와 같은 이유로 KOPIS 호출(공연 수만큼)은 트랜잭션 밖에서 하고, 반영만 짧은 트랜잭션으로 처리
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public int backfillPosterUrls() {
+    public int backfillMissingDetails() {
 
-        List<Performance> targets = performanceRepository.findByPosterUrlIsNull();
+        List<Performance> targets = performanceRepository.findByPosterUrlIsNullOrStartDateIsNull();
         if (targets.isEmpty()) {
             return 0;
         }
 
-        Map<Long, String> posterUrls = new HashMap<>();
+        Map<Long, KopisPerformanceResponse> details = new HashMap<>();
         for (Performance performance : targets) {
-            String posterUrl = kopisService.fetchPosterUrl(performance.getApiId());
-            if (posterUrl != null) {
-                posterUrls.put(performance.getId(), posterUrl);
+            KopisPerformanceResponse detail = kopisService.fetchDetail(performance.getApiId());
+            if (detail != null) {
+                details.put(performance.getId(), detail);
             }
         }
 
-        performanceSyncService.updatePosterUrls(posterUrls);
-        log.info("공연 포스터 backfill 완료: 대상 {}건 중 {}건 반영", targets.size(), posterUrls.size());
-        return posterUrls.size();
+        performanceSyncService.updateMissingDetails(details);
+        log.info("공연 상세 정보 backfill 완료: 대상 {}건 중 {}건 조회 성공", targets.size(), details.size());
+        return details.size();
     }
 
     // DB에 저장된 공연 목록 페이지 조회 (비인증 공개 API라 페이지네이션 없이 전체 조회 시 대량조회 부하 위험이 있어 페이징 처리)

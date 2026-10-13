@@ -60,12 +60,23 @@ public class PerformanceSyncService {
         }
     }
 
-    // PerformanceService.backfillPosterUrls()가 KOPIS에서 받아온 포스터 URL을 반영 (performanceId -> posterUrl)
-    // 조회 시점과 반영 시점 사이에 이미 채워졌을 수 있으니 여전히 비어 있는 경우에만 덮어씀
-    public void updatePosterUrls(Map<Long, String> posterUrls) {
-        for (Performance performance : performanceRepository.findAllById(posterUrls.keySet())) {
-            if (performance.getPosterUrl() == null) {
-                performance.setPosterUrl(posterUrls.get(performance.getId()));
+    // PerformanceService.backfillMissingDetails()가 KOPIS 상세에서 받아온 값을 반영 (performanceId -> 상세 응답)
+    // 조회 시점과 반영 시점 사이에 이미 채워졌을 수 있으니 여전히 비어 있는 필드만 채움
+    public void updateMissingDetails(Map<Long, KopisPerformanceResponse> details) {
+        for (Performance performance : performanceRepository.findAllById(details.keySet())) {
+            KopisPerformanceResponse detail = details.get(performance.getId());
+            String poster = detail.getPoster();
+            if (performance.getPosterUrl() == null && poster != null && !poster.isBlank()) {
+                performance.setPosterUrl(poster);
+            }
+            if (performance.getStartDate() == null) {
+                performance.setStartDate(detail.getStartDate());
+            }
+            if (performance.getEndDate() == null) {
+                performance.setEndDate(detail.getEndDate());
+            }
+            if (performance.getVenueName() == null) {
+                performance.setVenueName(detail.getFcltynm());
             }
         }
     }

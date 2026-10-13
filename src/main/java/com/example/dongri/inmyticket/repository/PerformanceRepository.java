@@ -16,8 +16,8 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     @Query("select p.apiId from Performance p where p.apiId in :apiIds")
     List<String> findApiIdsIn(@Param("apiIds") List<String> apiIds);
 
-    // 포스터 컬럼(V6) 추가 이전에 저장돼 posterUrl이 비어 있는 공연 (backfill 대상)
-    List<Performance> findByPosterUrlIsNull();
+    // 포스터(V6)·공연 기간(V7) 컬럼 추가 이전에 저장돼 값이 비어 있는 공연 (backfill 대상)
+    List<Performance> findByPosterUrlIsNullOrStartDateIsNull();
 
     // 장르 메뉴 필터: 장르 묶음(GenreGroup)에 속한 KOPIS 장르명 중 하나인 공연만 페이지 조회
     Page<Performance> findByCategoryIn(List<String> categories, Pageable pageable);

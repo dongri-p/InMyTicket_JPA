@@ -28,9 +28,11 @@ public class PerformanceServiceTest {
 
     @Autowired private PerformanceRepository performanceRepository;
     @Autowired private ScheduleRepository scheduleRepository;
+    // 직접 new로 만들면 @Transactional 프록시가 없어 backfill의 변경 감지가 DB에 반영되지 않으므로 스프링 빈을 사용
+    @Autowired private PerformanceSyncService performanceSyncService;
 
     private PerformanceService newPerformanceService(KopisService kopisService) {
-        return new PerformanceService(performanceRepository, scheduleRepository, kopisService, new PerformanceSyncService(performanceRepository));
+        return new PerformanceService(performanceRepository, scheduleRepository, kopisService, performanceSyncService);
     }
 
     @Test
@@ -116,6 +118,37 @@ public class PerformanceServiceTest {
         Performance savedBadDate = findByApiId(badDateApiId);
         Assertions.assertNull(savedBadDate.getStartDate());
         Assertions.assertNull(savedBadDate.getEndDate());
+    }
+
+    @Test
+    @DisplayName("기간 컬럼 추가 전에 저장된 공연은 KOPIS 상세 조회로 비어 있는 값만 채워진다")
+    void backfillMissingDetails_fillsOnlyEmptyFields() {
+        // given: 포스터는 있고 기간·공연장명은 비어 있는 기존 공연
+        String apiId = "kopis-backfill-" + UUID.randomUUID();
+        Performance existing = new Performance();
+        existing.setApiId(apiId);
+        existing.setTitle("기간 없는 기존 공연");
+        existing.setPosterUrl("https://example.com/original.jpg");
+        performanceRepository.save(existing);
+
+        KopisPerformanceResponse detail = kopisResponse(apiId, "기간 없는 기존 공연");
+        detail.setPoster("http://example.com/other.jpg");
+        detail.setPrfpdfrom("2026.11.07");
+        detail.setPrfpdto("2026.11.14");
+
+        KopisService mockKopisService = Mockito.mock(KopisService.class);
+        Mockito.when(mockKopisService.fetchDetail(Mockito.anyString())).thenReturn(null);
+        Mockito.when(mockKopisService.fetchDetail(apiId)).thenReturn(detail);
+
+        // when
+        newPerformanceService(mockKopisService).backfillMissingDetails();
+
+        // then: 비어 있던 기간·공연장명만 채워지고, 이미 있던 포스터는 그대로
+        Performance updated = performanceRepository.findById(existing.getId()).orElseThrow();
+        Assertions.assertEquals(LocalDate.of(2026, 11, 7), updated.getStartDate());
+        Assertions.assertEquals(LocalDate.of(2026, 11, 14), updated.getEndDate());
+        Assertions.assertEquals("테스트홀", updated.getVenueName());
+        Assertions.assertEquals("https://example.com/original.jpg", updated.getPosterUrl());
     }
 
     @Test
