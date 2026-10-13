@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.api.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.dongri.inmyticket.domain.Performance;
@@ -13,6 +14,9 @@ public class PerformanceDetailDto {
     private String category;
     private String status;
     private String posterUrl;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String venueName;
     private String artist;
     private String description;
     private LocalDateTime lastUpdatedAt;
@@ -23,6 +27,9 @@ public class PerformanceDetailDto {
         this.category = performance.getCategory();
         this.status = performance.getStatus();
         this.posterUrl = performance.getPosterUrl();
+        this.startDate = performance.getStartDate();
+        this.endDate = performance.getEndDate();
+        this.venueName = performance.getVenueName();
         this.artist = performance.getArtist();
         this.description = performance.getDescription();
         this.lastUpdatedAt = performance.getLastUpdatedAt();
