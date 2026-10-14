@@ -129,6 +129,24 @@ public class ScheduleServiceTest {
     }
 
     @Test
+    @DisplayName("회차 목록은 등록 순서와 관계없이 시작 시각 순으로 반환된다")
+    void findSchedulesByPerformance_orderedByStartTime() {
+        // given: 날짜가 뒤섞인 순서로 등록 (관리자가 나중에 중간 날짜 회차를 추가한 상황)
+        LocalDateTime base = LocalDateTime.now().plusDays(10).withHour(19).withMinute(0).withSecond(0).withNano(0);
+        scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 3);
+        scheduleService.saveSchedule(performance.getId(), hall.getId(), base.plusDays(6), 3);
+        scheduleService.saveSchedule(performance.getId(), hall.getId(), base.plusDays(2), 3);
+
+        // when
+        List<LocalDateTime> startTimes = scheduleService.findSchedulesByPerformance(performance.getId()).stream()
+                .map(Schedule::getStartTime)
+                .toList();
+
+        // then
+        Assertions.assertEquals(List.of(base, base.plusDays(2), base.plusDays(6)), startTimes);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 공연의 회차 목록을 조회하면 예외가 발생한다")
     void findSchedulesByPerformance_withNonExistentPerformance_throwsIllegalArgument() {
         Assertions.assertThrows(IllegalArgumentException.class,

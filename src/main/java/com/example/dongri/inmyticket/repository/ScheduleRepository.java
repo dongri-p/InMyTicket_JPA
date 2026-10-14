@@ -33,11 +33,13 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     /**
      * N+1 문제를 원천 차단하는 페치 조인 조회
      * Schedule을 가져올 때 연관된 performance와 hall을 한방 쿼리로 묶어서 즉시 로딩
+     * 상세 화면 회차 목록이 등록 순서가 아니라 날짜순으로 보이도록 시작 시각 순 정렬 (같은 시각이면 id 순)
      */
     @Query("select s from Schedule s " +
            "join fetch s.performance p " +
            "join fetch s.hall h " +
-           "where p.id = :performanceId")
+           "where p.id = :performanceId " +
+           "order by s.startTime, s.id")
     List<Schedule> findSchedulesWithPerformanceAndHall(@Param("performanceId") Long performanceId);
 
     /**
