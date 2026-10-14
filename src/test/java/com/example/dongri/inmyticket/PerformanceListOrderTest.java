@@ -1,0 +1,107 @@
+package com.example.dongri.inmyticket;
+
+import com.example.dongri.inmyticket.domain.Performance;
+import com.example.dongri.inmyticket.domain.Schedule;
+import com.example.dongri.inmyticket.repository.PerformanceRepository;
+import com.example.dongri.inmyticket.repository.ScheduleRepository;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+// 공연 목록 정렬: 예매중 -> 공연 예정/진행 중(기간 모름 포함) -> 공연 종료, 같은 그룹은 id 순
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class PerformanceListOrderTest {
+
+    @Autowired private TestRestTemplate restTemplate;
+    @Autowired private PerformanceRepository performanceRepository;
+    @Autowired private ScheduleRepository scheduleRepository;
+
+    @Test
+    @DisplayName("예매 가능한 회차가 있는 공연이 먼저, 끝난 공연이 맨 뒤에 온다")
+    void performanceList_bookableFirst_endedLast() {
+        // given: 다른 테스트 데이터와 섞이지 않도록 같은 태그를 제목에 붙이고 검색으로 조회
+        String tag = "order-" + UUID.randomUUID().toString().substring(0, 8);
+        LocalDate today = LocalDate.now();
+
+        // id가 작은 순서대로 저장 -> id 순이었다면 이 순서로 나옴
+        String ended = save(tag + "-ended", today.minusDays(10), today.minusDays(1));
+        String endedWithPastSchedule = save(tag + "-ended-past", today.minusDays(10), today.minusDays(1));
+        addSchedule(endedWithPastSchedule, LocalDateTime.now().minusDays(2));
+        String upcoming = save(tag + "-upcoming", today.plusDays(5), today.plusDays(10));
+        String unknownPeriod = save(tag + "-unknown", null, null);
+        String endsToday = save(tag + "-ends-today", today.minusDays(3), today);
+        String bookable = save(tag + "-bookable", today, today.plusDays(10));
+        addSchedule(bookable, LocalDateTime.now().plusDays(1));
+
+        // when
+        List<Object> titles = titles(restTemplate.getForEntity(
+                "/api/v1/performances?keyword={k}&size=100", Map.class, tag));
+
+        // then: 오늘 끝나는 공연은 아직 진행 중, 지난 회차만 있는 끝난 공연은 예매중이 아님
+        Assertions.assertEquals(
+                List.of(bookable, upcoming, unknownPeriod, endsToday, ended, endedWithPastSchedule),
+                titles);
+    }
+
+    @Test
+    @DisplayName("정렬이 바뀌어도 페이지를 이어 붙이면 중복·누락이 없다")
+    void performanceList_pagesDoNotOverlap() {
+        String tag = "order-page-" + UUID.randomUUID().toString().substring(0, 8);
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 5; i++) {
+            String title = save(tag + "-" + i, today.minusDays(10), i % 2 == 0 ? today.minusDays(1) : today.plusDays(5));
+            if (i == 4) {
+                addSchedule(title, LocalDateTime.now().plusDays(1));
+            }
+        }
+
+        List<Object> page0 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=0", Map.class, tag));
+        List<Object> page1 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=1", Map.class, tag));
+        List<Object> page2 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=2", Map.class, tag));
+
+        // 4(예매중) -> 1, 3(진행 예정) -> 0, 2(종료)
+        Assertions.assertEquals(List.of(tag + "-4", tag + "-1"), page0);
+        Assertions.assertEquals(List.of(tag + "-3", tag + "-0"), page1);
+        Assertions.assertEquals(List.of(tag + "-2"), page2);
+    }
+
+    private List<Object> titles(ResponseEntity<Map> response) {
+        List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+        return data.stream().map(p -> p.get("title")).toList();
+    }
+
+    private String save(String title, LocalDate startDate, LocalDate endDate) {
+        Performance performance = new Performance();
+        performance.setApiId("order-" + UUID.randomUUID());
+        performance.setTitle(title);
+        performance.setCategory("뮤지컬");
+        performance.setStartDate(startDate);
+        performance.setEndDate(endDate);
+        performanceRepository.save(performance);
+        return title;
+    }
+
+    private void addSchedule(String performanceTitle, LocalDateTime startTime) {
+        Performance performance = performanceRepository.findAll().stream()
+                .filter(p -> performanceTitle.equals(p.getTitle()))
+                .findFirst()
+                .orElseThrow();
+        Schedule schedule = new Schedule();
+        schedule.setPerformance(performance);
+        schedule.setStartTime(startTime);
+        schedule.setTotalSeatCount(1);
+        schedule.setAvailableSeatCount(1);
+        scheduleRepository.save(schedule);
+    }
+}
