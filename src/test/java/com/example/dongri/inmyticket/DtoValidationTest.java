@@ -49,4 +49,15 @@ public class DtoValidationTest {
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         Assertions.assertEquals("아이디는 영문과 숫자만 사용할 수 있습니다.", response.getBody().get("message"));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ab cd", " abcd", "abcd "})
+    @DisplayName("로그인 시 공백이 들어간 loginId는 400으로 거부된다 (규칙 이전에 가입한 공백 아이디도 로그인 불가)")
+    void login_withWhitespaceInLoginId_returns400(String loginId) {
+        ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/members/login",
+                Map.of("loginId", loginId, "password", "password123"), Map.class);
+
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Assertions.assertEquals("아이디에 공백을 넣을 수 없습니다.", response.getBody().get("message"));
+    }
 }
