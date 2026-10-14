@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-// 공연 목록 정렬: 예매중 -> 공연 예정/진행 중(기간 모름 포함) -> 공연 종료, 같은 그룹은 id 순
+// 공연 목록 정렬: 예매중 -> 오픈예정(기간 모름 포함) -> 공연종료, 같은 그룹은 id 순 + 예매 상태 필터
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PerformanceListOrderTest {
 
@@ -74,6 +74,35 @@ public class PerformanceListOrderTest {
         Assertions.assertEquals(List.of(tag + "-4", tag + "-1"), page0);
         Assertions.assertEquals(List.of(tag + "-3", tag + "-0"), page1);
         Assertions.assertEquals(List.of(tag + "-2"), page2);
+    }
+
+    @Test
+    @DisplayName("status로 예매중·오픈예정·공연종료 공연만 골라 볼 수 있고, 잘못된 값은 400이다")
+    void performanceList_filterByBookingStatus() {
+        String tag = "status-" + UUID.randomUUID().toString().substring(0, 8);
+        LocalDate today = LocalDate.now();
+        String ended = save(tag + "-ended", today.minusDays(10), today.minusDays(1));
+        String upcoming = save(tag + "-upcoming", today.plusDays(5), today.plusDays(10));
+        String unknownPeriod = save(tag + "-unknown", null, null);
+        String bookable = save(tag + "-bookable", today, today.plusDays(10));
+        addSchedule(bookable, LocalDateTime.now().plusDays(1));
+
+        Assertions.assertEquals(List.of(bookable), titlesWithStatus(tag, "ON_SALE"));
+        Assertions.assertEquals(List.of(upcoming, unknownPeriod), titlesWithStatus(tag, "UPCOMING"));
+        Assertions.assertEquals(List.of(ended), titlesWithStatus(tag, "ENDED"));
+
+        // totalCount도 필터가 적용된 건수 (카운트 쿼리에 같은 조건이 들어갔는지)
+        ResponseEntity<Map> onSale = restTemplate.getForEntity(
+                "/api/v1/performances?keyword={k}&status=ON_SALE&size=1", Map.class, tag);
+        Assertions.assertEquals(1, ((Number) onSale.getBody().get("totalCount")).intValue());
+
+        ResponseEntity<Map> invalid = restTemplate.getForEntity("/api/v1/performances?status=SOLD_OUT", Map.class);
+        Assertions.assertEquals(400, invalid.getStatusCode().value());
+    }
+
+    private List<Object> titlesWithStatus(String keyword, String status) {
+        return titles(restTemplate.getForEntity(
+                "/api/v1/performances?keyword={k}&status={s}&size=100", Map.class, keyword, status));
     }
 
     private List<Object> titles(ResponseEntity<Map> response) {
