@@ -30,6 +30,9 @@ public class KopisPerformanceResponse {
     
     @XmlElement(name = "fcltynm")
     private String fcltynm;  
+
+    @XmlElement(name = "area")
+    private String area;
     
     @XmlElement(name = "genrenm")
     private String genrenm;  

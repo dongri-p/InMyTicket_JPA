@@ -39,6 +39,9 @@ public class Performance {
     private LocalDate endDate;
     private String venueName;
 
+    // KOPIS 공연 지역(시·도, 예: 서울특별시). 목록 지역 필터(RegionGroup)의 기준. V8 이전 공연은 backfill로 채움
+    private String area;
+
     private LocalDateTime lastUpdatedAt;
     
 }

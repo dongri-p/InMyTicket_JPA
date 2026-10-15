@@ -114,6 +114,7 @@ public class PerformanceServiceTest {
         Assertions.assertEquals(LocalDate.of(2026, 11, 7), saved.getStartDate());
         Assertions.assertEquals(LocalDate.of(2026, 11, 14), saved.getEndDate());
         Assertions.assertEquals("테스트홀", saved.getVenueName());
+        Assertions.assertEquals("서울특별시", saved.getArea());
 
         Performance savedBadDate = findByApiId(badDateApiId);
         Assertions.assertNull(savedBadDate.getStartDate());
@@ -149,6 +150,37 @@ public class PerformanceServiceTest {
         Assertions.assertEquals(LocalDate.of(2026, 11, 14), updated.getEndDate());
         Assertions.assertEquals("테스트홀", updated.getVenueName());
         Assertions.assertEquals("https://example.com/original.jpg", updated.getPosterUrl());
+        Assertions.assertEquals("서울특별시", updated.getArea());
+    }
+
+    @Test
+    @DisplayName("포스터·기간은 있고 지역만 비어 있는 공연(V8 이전 저장)도 backfill 대상이 된다")
+    void backfillMissingDetails_fillsAreaOnly() {
+        // given: V7까지의 값은 다 있고 지역만 없는 기존 공연
+        String apiId = "kopis-backfill-area-" + UUID.randomUUID();
+        Performance existing = new Performance();
+        existing.setApiId(apiId);
+        existing.setTitle("지역 없는 기존 공연");
+        existing.setPosterUrl("https://example.com/original.jpg");
+        existing.setStartDate(LocalDate.of(2026, 11, 7));
+        existing.setEndDate(LocalDate.of(2026, 11, 14));
+        existing.setVenueName("기존홀");
+        performanceRepository.save(existing);
+
+        KopisPerformanceResponse detail = kopisResponse(apiId, "지역 없는 기존 공연");
+        detail.setArea("부산광역시");
+
+        KopisService mockKopisService = Mockito.mock(KopisService.class);
+        Mockito.when(mockKopisService.fetchDetail(Mockito.anyString())).thenReturn(null);
+        Mockito.when(mockKopisService.fetchDetail(apiId)).thenReturn(detail);
+
+        // when
+        newPerformanceService(mockKopisService).backfillMissingDetails();
+
+        // then
+        Performance updated = performanceRepository.findById(existing.getId()).orElseThrow();
+        Assertions.assertEquals("부산광역시", updated.getArea());
+        Assertions.assertEquals("기존홀", updated.getVenueName());
     }
 
     @Test
@@ -192,6 +224,7 @@ public class PerformanceServiceTest {
         response.setGenrenm("연극");
         response.setPrfstate("공연중");
         response.setFcltynm("테스트홀");
+        response.setArea("서울특별시");
         return response;
     }
 }

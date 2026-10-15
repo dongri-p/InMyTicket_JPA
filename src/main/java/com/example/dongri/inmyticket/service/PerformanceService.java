@@ -54,12 +54,12 @@ public class PerformanceService {
         log.info("외부 데이터 DB 동기화 완료");
     }
 
-    // 포스터나 공연 기간이 비어 있는 기존 공연에 KOPIS 상세 조회로 빈 값을 채워 넣음
+    // 포스터·공연 기간·지역이 비어 있는 기존 공연에 KOPIS 상세 조회로 빈 값을 채워 넣음
     // syncPerformances()와 같은 이유로 KOPIS 호출(공연 수만큼)은 트랜잭션 밖에서 하고, 반영만 짧은 트랜잭션으로 처리
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public int backfillMissingDetails() {
 
-        List<Performance> targets = performanceRepository.findByPosterUrlIsNullOrStartDateIsNull();
+        List<Performance> targets = performanceRepository.findByPosterUrlIsNullOrStartDateIsNullOrAreaIsNull();
         if (targets.isEmpty()) {
             return 0;
         }

@@ -79,7 +79,7 @@ public class KopisService {
     }
 
     // 공연 상세(/pblprfr/{mt20id}) 조회. 목록 API는 최근 등록순이라 예전에 저장된 공연은 다시 내려오지 않으므로,
-    // 나중에 추가된 컬럼(포스터, 공연 기간, 공연장명) backfill은 apiId로 상세를 직접 조회한다.
+    // 나중에 추가된 컬럼(포스터, 공연 기간, 공연장명, 지역) backfill은 apiId로 상세를 직접 조회한다.
     // 실패하거나 데이터가 없으면(NODATA 등) null — 호출 측에서 건너뛰고 다음 기동 때 다시 시도됨
     public KopisPerformanceResponse fetchDetail(String mt20id) {
         // KOPIS는 짧은 시간에 연달아 호출하면 400을 돌려줌 (실측: 간격 없이 90건 호출 시 앞 8건만 성공, 100ms 간격이면 전부 성공).

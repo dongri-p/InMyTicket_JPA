@@ -18,8 +18,8 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     @Query("select p.apiId from Performance p where p.apiId in :apiIds")
     List<String> findApiIdsIn(@Param("apiIds") List<String> apiIds);
 
-    // 포스터(V6)·공연 기간(V7) 컬럼 추가 이전에 저장돼 값이 비어 있는 공연 (backfill 대상)
-    List<Performance> findByPosterUrlIsNullOrStartDateIsNull();
+    // 포스터(V6)·공연 기간(V7)·지역(V8) 컬럼 추가 이전에 저장돼 값이 비어 있는 공연 (backfill 대상)
+    List<Performance> findByPosterUrlIsNullOrStartDateIsNullOrAreaIsNull();
 
     // 공연 하나의 예매 상태 그룹: 0 예매중(시작 전 회차 있음) / 1 오픈예정(종료일이 오늘 이후거나 모름) / 2 공연종료
     // 목록 정렬과 상태 필터(BookingStatus.code)가 같은 식을 쓰도록 상수로 둠 (어노테이션 값도 상수끼리 이어 붙이는 건 가능)

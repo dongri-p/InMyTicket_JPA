@@ -56,6 +56,7 @@ public class PerformanceSyncService {
             performance.setStartDate(dto.getStartDate());
             performance.setEndDate(dto.getEndDate());
             performance.setVenueName(dto.getFcltynm());
+            performance.setArea(dto.getArea());
             performance.setLastUpdatedAt(LocalDateTime.now());
 
             performance.setArtist("KOPIS 연동 아티스트");
@@ -82,6 +83,9 @@ public class PerformanceSyncService {
             }
             if (performance.getVenueName() == null) {
                 performance.setVenueName(detail.getFcltynm());
+            }
+            if (performance.getArea() == null) {
+                performance.setArea(detail.getArea());
             }
         }
     }
