@@ -43,6 +43,15 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findSchedulesWithPerformanceAndHall(@Param("performanceId") Long performanceId);
 
     /**
+     * 같은 공연장에 시작 시각이 (from, to) 사이(경계 제외)인 회차가 있는지 — 회차 등록 시 겹치는 회차 검사용
+     */
+    @Query("select count(s) > 0 from Schedule s " +
+           "where s.hall.id = :hallId and s.startTime > :from and s.startTime < :to")
+    boolean existsInHallBetween(@Param("hallId") Long hallId,
+                                @Param("from") LocalDateTime from,
+                                @Param("to") LocalDateTime to);
+
+    /**
      * 공연 목록 한 페이지 분량의 공연별 '아직 시작 전인' 회차 수를 group by 한 방으로 조회
      * (공연마다 회차를 따로 세면 목록 크기만큼 쿼리가 나가는 N+1이 되므로 묶어서 조회)
      * 회차가 하나도 없는 공연은 결과에 포함되지 않음 -> 호출 측에서 0으로 처리

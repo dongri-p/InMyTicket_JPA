@@ -24,7 +24,9 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ScheduleService {
-    
+
+    private static final int SAME_HALL_MIN_GAP_HOURS = 3;
+
     private final ScheduleRepository scheduleRepository;
     private final PerformanceRepository performanceRepository;
     private final HallRepository hallRepository;
@@ -46,12 +48,26 @@ public class ScheduleService {
                     "좌석 수가 공연장 정원을 초과했습니다. totalSeatCount=" + totalSeatCount + ", hallCapacity=" + hall.getTotalSeats());
         }
 
+        // 이미 지난 시각의 회차는 예매가 바로 막히므로 등록하지 않음 (관리자 화면의 날짜 min은 우회할 수 있어 서버에서도 검사)
+        // 지난 시각이면서 기간 밖인 경우에도 더 근본적인 이유인 이 문구가 나오도록 기간 검사보다 먼저 확인
+        if (!startTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("이미 지난 시각에는 회차를 등록할 수 없습니다. startTime=" + startTime);
+        }
+
         // KOPIS 공연 기간 밖의 날짜로 회차가 만들어지지 않도록 검증 (기간을 모르는 공연은 검증하지 않음)
         LocalDate startDate = startTime.toLocalDate();
         if ((performance.getStartDate() != null && startDate.isBefore(performance.getStartDate()))
                 || (performance.getEndDate() != null && startDate.isAfter(performance.getEndDate()))) {
             throw new IllegalArgumentException(
                     "공연 기간(" + performance.getStartDate() + " ~ " + performance.getEndDate() + ") 밖의 날짜에는 회차를 등록할 수 없습니다. startTime=" + startTime);
+        }
+
+        // 같은 공연장에 시간이 겹치는 회차가 생기지 않도록 검증.
+        // 러닝타임을 저장하지 않아서, 보통 공연 길이(2~3시간)를 기준으로 시작 시각이 앞뒤 3시간 안이면 겹친다고 봄 (딱 3시간 차이는 허용)
+        if (scheduleRepository.existsInHallBetween(hallId,
+                startTime.minusHours(SAME_HALL_MIN_GAP_HOURS), startTime.plusHours(SAME_HALL_MIN_GAP_HOURS))) {
+            throw new IllegalArgumentException(
+                    "같은 공연장에 시작 시각이 " + SAME_HALL_MIN_GAP_HOURS + "시간 안인 회차가 이미 있습니다. startTime=" + startTime);
         }
 
         // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)

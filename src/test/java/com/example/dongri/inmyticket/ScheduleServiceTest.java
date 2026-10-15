@@ -118,6 +118,44 @@ public class ScheduleServiceTest {
     }
 
     @Test
+    @DisplayName("이미 지난 시각으로 회차를 등록하면 예외가 발생한다")
+    void saveSchedule_inThePast_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().minusMinutes(1), 5));
+    }
+
+    @Test
+    @DisplayName("같은 공연장에 시작 시각이 앞뒤 3시간 안인 회차가 있으면 예외가 발생한다")
+    void saveSchedule_overlappingInSameHall_throwsIllegalArgument() {
+        LocalDateTime base = LocalDateTime.now().plusDays(3).withHour(19).withMinute(0).withSecond(0).withNano(0);
+        scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 5);
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 5));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base.plusHours(2).plusMinutes(59), 5));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base.minusMinutes(30), 5));
+    }
+
+    @Test
+    @DisplayName("같은 공연장이라도 3시간 이상 차이 나거나, 다른 공연장이면 같은 시각에도 등록할 수 있다")
+    void saveSchedule_notOverlapping_succeeds() {
+        LocalDateTime base = LocalDateTime.now().plusDays(3).withHour(14).withMinute(0).withSecond(0).withNano(0);
+        scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 5);
+
+        Hall otherHall = new Hall();
+        otherHall.setName("다른공연장" + UUID.randomUUID().toString().substring(0, 8));
+        otherHall.setTotalSeats(100);
+        hallRepository.save(otherHall);
+
+        Assertions.assertDoesNotThrow(
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base.plusHours(3), 5));
+        Assertions.assertDoesNotThrow(
+                () -> scheduleService.saveSchedule(performance.getId(), otherHall.getId(), base, 5));
+    }
+
+    @Test
     @DisplayName("특정 공연의 회차 목록을 조회할 수 있다")
     void findSchedulesByPerformance_returnsSchedules() {
         scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 3);
