@@ -37,6 +37,11 @@ public class PerformanceSyncService {
 
         for (KopisPerformanceResponse dto : kopisData) {
 
+            // apiId나 제목이 없는 항목은 공연이 아님 (KopisService가 거르지 못한 형식의 에러 응답 등) -> 빈 공연으로 저장하지 않음
+            if (isBlank(dto.getMt20id()) || isBlank(dto.getPrfnm())) {
+                continue;
+            }
+
             // 이미 DB에 들어있거나, 이번 배치에서 이미 처리한 공연인지 체크
             if (!seenApiIds.add(dto.getMt20id())) {
                 continue;
@@ -79,5 +84,9 @@ public class PerformanceSyncService {
                 performance.setVenueName(detail.getFcltynm());
             }
         }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }
