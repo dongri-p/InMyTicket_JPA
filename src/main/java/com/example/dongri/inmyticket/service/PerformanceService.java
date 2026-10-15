@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository.PerformanceScheduleCount;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,6 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PerformanceService {
+
+    private static final int BACKFILL_RETRY_ROUNDS = 2;
+    private static final long BACKFILL_RETRY_PAUSE_MS = 3000;
+
+    // 재시도 전 기본 대기 시간. 테스트에서 실제로 기다리지 않도록 바꿀 수 있게 열어 둠
+    @Setter
+    private long backfillRetryPauseMs = BACKFILL_RETRY_PAUSE_MS;
 
     private final PerformanceRepository performanceRepository;
     private final ScheduleRepository scheduleRepository;
@@ -65,17 +74,41 @@ public class PerformanceService {
             return 0;
         }
 
+        // 운영(EC2)에서는 호출 간격을 둬도 일부(100건 중 13건)가 실패했음 -> 실패한 공연만 모아 잠깐 쉬었다가 다시 조회.
+        // 그래도 실패한 공연은 비어 있는 채로 남고 다음 기동 때 다시 시도됨
         Map<Long, KopisPerformanceResponse> details = new HashMap<>();
-        for (Performance performance : targets) {
-            KopisPerformanceResponse detail = kopisService.fetchDetail(performance.getApiId());
-            if (detail != null) {
-                details.put(performance.getId(), detail);
+        List<Performance> pending = targets;
+        for (int round = 0; round <= BACKFILL_RETRY_ROUNDS && !pending.isEmpty(); round++) {
+            if (round > 0 && !pauseBeforeRetry(round, pending.size())) {
+                break;
             }
+            List<Performance> failed = new ArrayList<>();
+            for (Performance performance : pending) {
+                KopisPerformanceResponse detail = kopisService.fetchDetail(performance.getApiId());
+                if (detail != null) {
+                    details.put(performance.getId(), detail);
+                } else {
+                    failed.add(performance);
+                }
+            }
+            pending = failed;
         }
 
         performanceSyncService.updateMissingDetails(details);
         log.info("공연 상세 정보 backfill 완료: 대상 {}건 중 {}건 조회 성공", targets.size(), details.size());
         return details.size();
+    }
+
+    // 재시도 전 대기 (라운드마다 길게: 3초, 6초). 인터럽트되면 재시도를 그만둠
+    private boolean pauseBeforeRetry(int round, int failedCount) {
+        log.info("공연 상세 조회 실패 {}건 재시도 ({}/{})", failedCount, round, BACKFILL_RETRY_ROUNDS);
+        try {
+            Thread.sleep(backfillRetryPauseMs * round);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     // DB에 저장된 공연 목록 페이지 조회 (비인증 공개 API라 페이지네이션 없이 전체 조회 시 대량조회 부하 위험이 있어 페이징 처리)

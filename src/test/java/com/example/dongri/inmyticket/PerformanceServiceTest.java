@@ -32,7 +32,11 @@ public class PerformanceServiceTest {
     @Autowired private PerformanceSyncService performanceSyncService;
 
     private PerformanceService newPerformanceService(KopisService kopisService) {
-        return new PerformanceService(performanceRepository, scheduleRepository, kopisService, performanceSyncService);
+        PerformanceService performanceService =
+                new PerformanceService(performanceRepository, scheduleRepository, kopisService, performanceSyncService);
+        // backfill 재시도 대기(3초, 6초)를 실제로 기다리지 않도록 0으로
+        performanceService.setBackfillRetryPauseMs(0);
+        return performanceService;
     }
 
     @Test
@@ -181,6 +185,39 @@ public class PerformanceServiceTest {
         Performance updated = performanceRepository.findById(existing.getId()).orElseThrow();
         Assertions.assertEquals("부산광역시", updated.getArea());
         Assertions.assertEquals("기존홀", updated.getVenueName());
+    }
+
+    @Test
+    @DisplayName("상세 조회가 처음에 실패한 공연은 재시도해서 채우고, 계속 실패하면 정해진 횟수만 시도한다")
+    void backfillMissingDetails_retriesFailedOnes() {
+        // given: 첫 조회는 실패하고 재시도에서 성공하는 공연 1건, 끝까지 실패하는 공연 1건
+        String flakyApiId = "kopis-backfill-flaky-" + UUID.randomUUID();
+        String failingApiId = "kopis-backfill-failing-" + UUID.randomUUID();
+        Performance flaky = new Performance();
+        flaky.setApiId(flakyApiId);
+        flaky.setTitle("처음엔 조회 실패하는 공연");
+        performanceRepository.save(flaky);
+        Performance failing = new Performance();
+        failing.setApiId(failingApiId);
+        failing.setTitle("계속 조회 실패하는 공연");
+        performanceRepository.save(failing);
+
+        KopisPerformanceResponse detail = kopisResponse(flakyApiId, "처음엔 조회 실패하는 공연");
+        detail.setArea("제주특별자치도");
+
+        KopisService mockKopisService = Mockito.mock(KopisService.class);
+        Mockito.when(mockKopisService.fetchDetail(Mockito.anyString())).thenReturn(null);
+        Mockito.when(mockKopisService.fetchDetail(flakyApiId)).thenReturn(null, detail);
+
+        // when
+        newPerformanceService(mockKopisService).backfillMissingDetails();
+
+        // then: 재시도에서 채워지고, 끝까지 실패한 공연은 처음 1번 + 재시도 2번만 호출
+        Assertions.assertEquals("제주특별자치도",
+                performanceRepository.findById(flaky.getId()).orElseThrow().getArea());
+        Assertions.assertNull(performanceRepository.findById(failing.getId()).orElseThrow().getArea());
+        Mockito.verify(mockKopisService, Mockito.times(2)).fetchDetail(flakyApiId);
+        Mockito.verify(mockKopisService, Mockito.times(3)).fetchDetail(failingApiId);
     }
 
     @Test
