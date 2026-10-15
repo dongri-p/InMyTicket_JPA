@@ -65,6 +65,9 @@ public class KopisService {
                     .block(); // 동기식 블로킹 처리
 
             if (response != null && response.getPerformances() != null) {
+                if (logIfError(response.getPerformances(), "shcate=" + genreCode)) {
+                    return Collections.emptyList();
+                }
                 return response.getPerformances();
             }
 
@@ -100,6 +103,9 @@ public class KopisService {
             if (response == null || response.getPerformances() == null || response.getPerformances().isEmpty()) {
                 return null;
             }
+            if (logIfError(response.getPerformances(), "mt20id=" + mt20id)) {
+                return null;
+            }
             return response.getPerformances().get(0);
 
         } catch (Exception e) {
@@ -107,5 +113,16 @@ public class KopisService {
             return null;
         }
     }
-    
+
+    // KOPIS 에러 응답(returncode/errmsg)이면 로그를 남기고 true. 그대로 넘기면 필드가 전부 null인 "빈 공연"으로 저장됨
+    private boolean logIfError(List<KopisPerformanceResponse> items, String request) {
+        for (KopisPerformanceResponse item : items) {
+            if (item.isError()) {
+                log.warn("KOPIS 에러 응답. {}, returncode={}, errmsg={}", request, item.getReturncode(), item.getErrmsg());
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

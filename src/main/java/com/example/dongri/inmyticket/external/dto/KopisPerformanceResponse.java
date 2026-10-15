@@ -40,6 +40,19 @@ public class KopisPerformanceResponse {
     @XmlElement(name = "poster")
     private String poster;
 
+    // KOPIS는 키 오류 등 요청이 실패해도 HTTP 200에 정상 응답과 같은 <dbs><db> 구조로 내려주고,
+    // <db> 안에 공연 필드 대신 returncode/errmsg만 담는다 (실측: 등록 안 된 키 -> returncode 02, "SERVICE KEY IS NOT REGISTERED ERROR").
+    // 정상 공연 응답에는 이 태그가 없으므로, 값이 있으면 공연이 아니라 에러 응답이다
+    @XmlElement(name = "returncode")
+    private String returncode;
+
+    @XmlElement(name = "errmsg")
+    private String errmsg;
+
+    public boolean isError() {
+        return returncode != null && !returncode.isBlank();
+    }
+
     // KOPIS는 포스터를 http://로 내려주는데, 운영 화면은 HTTPS라 그대로 쓰면 mixed content가 됨.
     // KOPIS 이미지 서버가 https도 지원하므로 저장 전에 https로 바꿔둔다 (목록 sync와 상세 backfill 모두 이 getter를 거침)
     public String getPoster() {
