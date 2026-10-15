@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.BookingStatus;
 import com.example.dongri.inmyticket.domain.GenreGroup;
+import com.example.dongri.inmyticket.domain.RegionGroup;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
@@ -79,16 +80,18 @@ public class PerformanceService {
 
     // DB에 저장된 공연 목록 페이지 조회 (비인증 공개 API라 페이지네이션 없이 전체 조회 시 대량조회 부하 위험이 있어 페이징 처리)
     // genre가 null이면 전체, 있으면 해당 장르 묶음만 조회
-    // genre, keyword, status는 모두 선택 (keyword는 공백 제거 후 비어 있으면 검색 안 함, status가 null이면 상태 무관)
+    // genre, region, keyword, status는 모두 선택 (keyword는 공백 제거 후 비어 있으면 검색 안 함, status가 null이면 상태 무관)
     // 정렬은 쿼리에 고정(예매중 -> 오픈예정 -> 공연종료, 같은 그룹은 id 순)이므로 pageable의 Sort는 쓰지 않음
-    public Page<Performance> findPerformances(GenreGroup genre, String keyword, BookingStatus status, Pageable pageable) {
+    public Page<Performance> findPerformances(GenreGroup genre, RegionGroup region, String keyword, BookingStatus status,
+                                              Pageable pageable) {
         String trimmed = keyword == null ? "" : keyword.strip();
         String escapedKeyword = trimmed.isEmpty() ? null : escapeLike(trimmed);
         // genre가 없으면 in 절이 무시되지만, 빈 리스트를 넘기면 'in ()'가 되는 DB가 있어 아무 값이나 하나 넣어 둠
         List<String> categories = genre == null ? List.of("") : genre.getCategories();
+        List<String> areas = region == null ? List.of("") : region.getAreas();
 
         LocalDateTime now = LocalDateTime.now();
-        return performanceRepository.findForList(genre == null, categories, escapedKeyword,
+        return performanceRepository.findForList(genre == null, categories, region == null, areas, escapedKeyword,
                 status == null ? -1 : status.getCode(),
                 now, now.toLocalDate(), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }

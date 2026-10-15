@@ -30,10 +30,11 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
               else 2
             end""";
 
-    // 장르·검색어·예매 상태 필터 (모두 선택, status = -1이면 상태 무관)
+    // 장르·지역·검색어·예매 상태 필터 (모두 선택, status = -1이면 상태 무관)
     // keyword는 호출 측에서 %, _ 앞에 ! 를 붙여서 넘김 (Containing이 해 주던 이스케이프. 백슬래시는 DB마다 문자열 해석이 달라 ! 사용)
     String LIST_FILTER = """
             where (:allGenres = true or p.category in :categories)
+              and (:allRegions = true or p.area in :areas)
               and (:keyword is null or lower(p.title) like lower(concat('%', :keyword, '%')) escape '!')
             """
             // 텍스트 블록은 줄 끝 공백을 지우므로 BOOKING_GROUP과 이어 붙이는 부분은 일반 문자열로 씀 ("or case"가 "orcase"가 됨)
@@ -45,6 +46,8 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
            countQuery = "select count(p) from Performance p " + LIST_FILTER)
     Page<Performance> findForList(@Param("allGenres") boolean allGenres,
                                   @Param("categories") List<String> categories,
+                                  @Param("allRegions") boolean allRegions,
+                                  @Param("areas") List<String> areas,
                                   @Param("keyword") String keyword,
                                   @Param("status") int status,
                                   @Param("now") LocalDateTime now,

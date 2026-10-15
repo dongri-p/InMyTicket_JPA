@@ -204,7 +204,7 @@ public class PerformanceServiceTest {
 
         PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
-        Page<Performance> page = performanceService.findPerformances(null, null, null, PageRequest.of(0, 2));
+        Page<Performance> page = performanceService.findPerformances(null, null, null, null, PageRequest.of(0, 2));
 
         Assertions.assertEquals(2, page.getContent().size());
         Assertions.assertTrue(page.getTotalElements() >= 3);
