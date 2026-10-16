@@ -18,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +29,8 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * "외부 통신을 트랜잭션 안에서 하던 개선 전 설계" vs "외부 통신 → 내부 트랜잭션 → 반환으로
  * 분리한 현재 설계(PaymentService/PaymentApprovalService)"의 실제 DB 커넥션 점유 시간을
- * 로컬 H2 TCP 서버 + 실제 HikariPool을 대상으로 반복 실행해 비교 측정한다.
+ * 연결된 DB(로컬 H2 TCP, 또는 SPRING_DATASOURCE_URL로 지정한 MySQL) + 실제 HikariPool을 대상으로
+ * 반복 실행해 비교 측정한다. 결과 출력에는 실제로 연결된 DB 이름과 버전을 함께 찍는다.
  *
  * 측정 기준: 트랜잭션 경계(approve() 호출) 자체의 벽시계 경과 시간.
  * 이 메서드 안에서는 DB 작업 외의 다른 I/O가 없고(PG 통신은 이미 트랜잭션 밖으로 분리되어 있음),
@@ -101,7 +105,7 @@ public class ConnectionHoldTimeMeasurementTest {
 
     @Test
     @DisplayName("개선 전(트랜잭션 안에서 PG 통신) vs 개선 후(트랜잭션 밖에서 PG 통신) 커넥션 점유 시간 실측 비교 - 반복 측정")
-    void compareConnectionHoldTime_beforeAndAfterRefactor() throws InterruptedException {
+    void compareConnectionHoldTime_beforeAndAfterRefactor() throws InterruptedException, SQLException {
         HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
         HikariPoolMXBean poolMXBean = hikariDataSource.getHikariPoolMXBean();
 
@@ -160,7 +164,12 @@ public class ConnectionHoldTimeMeasurementTest {
         long afterMax = afterTimes.stream().mapToLong(Long::longValue).max().orElseThrow();
         double reductionPercent = (1 - (afterAvg / beforeAvg)) * 100;
 
-        System.out.println("=== DB 커넥션 점유 시간 실측 결과 (로컬 H2 TCP + 실제 HikariPool) ===");
+        String dbInfo;
+        try (Connection connection = dataSource.getConnection()) {
+            DatabaseMetaData meta = connection.getMetaData();
+            dbInfo = meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion();
+        }
+        System.out.println("=== DB 커넥션 점유 시간 실측 결과 (" + dbInfo + " + 실제 HikariPool) ===");
         System.out.printf("개선 전 평균 (트랜잭션 내부에서 PG 통신, n=%d): %.1f ms%n", beforeIterations, beforeAvg);
         System.out.printf("개선 후 평균 (트랜잭션 분리, 현재 코드, n=%d)  : %.1f ms (최대 %d ms)%n", afterIterations, afterAvg, afterMax);
         System.out.printf("감소율: %.2f%% (약 %.0f배 단축)%n", reductionPercent, beforeAvg / afterAvg);
