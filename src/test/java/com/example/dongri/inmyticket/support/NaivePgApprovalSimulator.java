@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.support;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public class NaivePgApprovalSimulator {
         }
 
         // 3. PG 통신 이후 DB 반영
-        Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey);
+        Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey, PgProvider.DEMO);
         paymentRepository.save(payment);
         reservation.setStatus(ReservationStatus.CONFIRMED);
 

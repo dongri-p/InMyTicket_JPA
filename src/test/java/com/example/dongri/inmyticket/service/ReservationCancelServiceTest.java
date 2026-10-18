@@ -89,7 +89,7 @@ public class ReservationCancelServiceTest {
     void cancel_whileProcessingPayment_throwsIllegalState() {
         // given
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(owner.getId(), reservationId);
+        reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
@@ -142,7 +142,7 @@ public class ReservationCancelServiceTest {
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
-                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId));
+                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice()));
 
         // and: 결제 시작이 거부됐으므로 예약 상태는 PENDING 그대로 유지된다
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();

@@ -26,6 +26,9 @@ admin:
   password: ChangeMe1234!
 kopis:
   api-key: local-dev-dummy-kopis-key
+toss:
+  # 토스페이먼츠 문서에 공개된 테스트용 시크릿 키 (테스트 결제라 실제 청구 없음). 프론트 기본 클라이언트 키와 짝
+  secret-key: test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R
 
 logging:
   level:

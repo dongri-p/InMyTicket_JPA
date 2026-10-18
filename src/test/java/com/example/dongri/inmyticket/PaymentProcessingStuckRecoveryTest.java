@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -46,11 +47,12 @@ public class PaymentProcessingStuckRecoveryTest {
         // 이 예약에 이미 결제(Payment)가 있는 상태를 인위적으로 만들어, approve()가
         // reservation_id unique 제약 위반(DataIntegrityViolationException)으로 실패하도록 유도
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
-        paymentRepository.save(Payment.createPayment(reservation, reservation.getTotalPrice(), "pre-existing-key-" + UUID.randomUUID()));
+        paymentRepository.save(Payment.createPayment(reservation, reservation.getTotalPrice(), "pre-existing-key-" + UUID.randomUUID(), PgProvider.DEMO));
 
         // when & then: processPayment()는 실패하고
         Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(member.getId(), reservationId, "new-key-" + UUID.randomUUID()));
+                () -> paymentService.processPayment(member.getId(), reservationId, PgProvider.DEMO, "new-key-" + UUID.randomUUID(),
+                        PaymentService.orderIdPrefix(reservationId) + "stuck", reservation.getTotalPrice()));
 
         // 예약은 PROCESSING에 갇히지 않고 PENDING으로 되돌아가 있어야 함
         Reservation result = reservationRepository.findById(reservationId).orElseThrow();

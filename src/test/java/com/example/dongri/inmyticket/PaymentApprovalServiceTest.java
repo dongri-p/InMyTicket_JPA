@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -70,7 +71,7 @@ public class PaymentApprovalServiceTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    paymentApprovalService.approve(member.getId(), reservation.getId(), paymentKey);
+                    paymentApprovalService.approve(member.getId(), reservation.getId(), paymentKey, PgProvider.DEMO);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failedCount.incrementAndGet();
@@ -107,7 +108,7 @@ public class PaymentApprovalServiceTest {
 
         // when & then
         Assertions.assertThrows(IllegalStateException.class,
-                () -> paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey()));
+                () -> paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey(), PgProvider.DEMO));
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.PENDING, reservation.getStatus());
@@ -125,11 +126,11 @@ public class PaymentApprovalServiceTest {
         Long reservationIdB = reservationService.reserve(member.getId(), seatB.getId());
         String duplicateKey = newPaymentKey();
 
-        paymentApprovalService.approve(member.getId(), reservationIdA, duplicateKey);
+        paymentApprovalService.approve(member.getId(), reservationIdA, duplicateKey, PgProvider.DEMO);
 
         // when & then
         Assertions.assertThrows(DataIntegrityViolationException.class,
-                () -> paymentApprovalService.approve(member.getId(), reservationIdB, duplicateKey));
+                () -> paymentApprovalService.approve(member.getId(), reservationIdB, duplicateKey, PgProvider.DEMO));
 
         Reservation reservationB = reservationRepository.findById(reservationIdB).orElseThrow();
         Assertions.assertEquals(ReservationStatus.PENDING, reservationB.getStatus());

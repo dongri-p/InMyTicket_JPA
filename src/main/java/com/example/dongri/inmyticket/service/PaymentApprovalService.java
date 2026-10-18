@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.Payment;
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.repository.PaymentRepository;
@@ -21,7 +22,7 @@ public class PaymentApprovalService {
     private final ReservationRepository reservationRepository;
 
     // DB 작업만 수행하는 핵심 트랜잭션 로직
-    public Long approve(Long memberId, Long reservationId, String paymentKey) {
+    public Long approve(Long memberId, Long reservationId, String paymentKey, PgProvider pgProvider) {
 
         // 1. 예약 조회 (취소와 동시 발생 시 경쟁을 막기 위해 비관적 락 사용)
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
@@ -43,7 +44,7 @@ public class PaymentApprovalService {
         }
 
         // 4. 결제 금액은 서버의 예약 금액 사용 (클라이언트 조작 방지)
-        Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey);
+        Payment payment = Payment.createPayment(reservation, reservation.getTotalPrice(), paymentKey, pgProvider);
         paymentRepository.save(payment);
 
         // 5. 예약의 상태도 결제 완료로 변경

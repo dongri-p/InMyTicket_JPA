@@ -77,11 +77,16 @@ public class ReservationService {
     // 긴 PG 통신을 시작하기 전에 예약을 PROCESSING으로 전환해, 그 사이 자동만료 스케줄러(PENDING만 대상)가
     // 결제 진행 중인 예약의 좌석을 회수해버리는 경쟁을 원천 차단한다.
     @Transactional
-    public void beginPaymentProcessing(Long memberId, Long reservationId) {
+    public void beginPaymentProcessing(Long memberId, Long reservationId, int amount) {
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
         reservation.assertOwner(memberId);
+
+        // 결제창 금액은 프론트가 정하므로 조작될 수 있음 -> PG 승인 전에 예약 금액과 같은지 확인
+        if (reservation.getTotalPrice() != amount) {
+            throw new IllegalArgumentException("결제 금액이 예약 금액과 다릅니다.");
+        }
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalStateException("결제를 시작할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
@@ -146,15 +151,15 @@ public class ReservationService {
     // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함.
     // 공연 시작 이후 취소는 어차피 performCancel()에서 거부되므로, 되돌릴 수 없는 PG 환불 통신을
     // 먼저 내보내지 않도록 여기서도 미리 막는다(환불은 나갔는데 취소는 거부되는 상황 방지).
-    // 환불할 결제가 있으면 그 paymentKey(PG 취소 요청에 사용)를, 없으면 빈 값을 반환
-    public Optional<String> findPaymentKeyToRefund(Long memberId, Long reservationId) {
+    // 환불할 결제가 있으면 그 결제(paymentKey·결제한 PG를 환불 요청에 사용)를, 없으면 빈 값을 반환
+    public Optional<Payment> findPaymentToRefund(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
         reservation.assertOwner(memberId);
         if (reservation.isShowStarted()) {
             throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
-        return Optional.ofNullable(reservation.getPayment()).map(Payment::getPaymentKey);
+        return Optional.ofNullable(reservation.getPayment());
     }
 
     // 예매 취소하기 (PG 환불 통신 없이 즉시 DB 상태만 취소 처리함)
@@ -167,7 +172,7 @@ public class ReservationService {
     }
 
     // PaymentService.processCancel() 전용 진입점.
-    // findPaymentKeyToRefund()로 환불 필요 여부를 확인한 시점과 여기서 실제 락을 잡는 시점 사이에
+    // findPaymentToRefund()로 환불 필요 여부를 확인한 시점과 여기서 실제 락을 잡는 시점 사이에
     // 결제가 새로 완료되는 경쟁 상황이 생길 수 있음 - 그 사이 결제가 생겼는데 PG 환불 통신을
     // 안 거쳤다면(refundHandled=false), 조용히 취소하지 않고 재시도를 요구한다.
     @Transactional
@@ -198,7 +203,7 @@ public class ReservationService {
             throw new IllegalStateException("결제 상태가 변경되었습니다. 취소를 다시 시도해주세요.");
         }
 
-        // 공연 시작 이후에는 취소 불가 (findPaymentKeyToRefund()에서도 조기 검사하지만, 그 사이 시간이
+        // 공연 시작 이후에는 취소 불가 (findPaymentToRefund()에서도 조기 검사하지만, 그 사이 시간이
         // 흘러 공연이 막 시작됐을 수 있으므로 락을 잡은 시점에 다시 확인)
         if (reservation.isShowStarted()) {
             throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");

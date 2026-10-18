@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.OwnershipViolationException;
 import com.example.dongri.inmyticket.domain.Payment;
@@ -62,7 +63,7 @@ public class PaymentServiceCancelTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey(), PgProvider.DEMO);
 
         // when
         paymentService.processCancel(member.getId(), reservationId);
@@ -99,7 +100,7 @@ public class PaymentServiceCancelTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey(), PgProvider.DEMO);
 
         Member stranger = TestFixtures.createAndSaveMember(memberRepository, "refundStranger");
 
@@ -123,7 +124,7 @@ public class PaymentServiceCancelTest {
         // given: 예매/결제 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey());
+        paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey(), PgProvider.DEMO);
 
         Schedule startedSchedule = scheduleRepository.findById(seat.getSchedule().getId()).orElseThrow();
         startedSchedule.setStartTime(LocalDateTime.now().minusMinutes(1));

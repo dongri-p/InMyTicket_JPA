@@ -42,12 +42,19 @@ public class Payment {
 
     private LocalDateTime paidAt;
 
+    // 결제를 처리한 PG. 취소할 때 같은 PG로 환불해야 하므로 저장
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Setter(AccessLevel.NONE)
+    private PgProvider pgProvider;
+
     // 결제 객체 생성 메서드
-    public static Payment createPayment(Reservation reservation, int amount, String paymentKey) {
+    public static Payment createPayment(Reservation reservation, int amount, String paymentKey, PgProvider pgProvider) {
         Payment payment = new Payment();
         payment.reservation = reservation;
         payment.amount = amount;
         payment.paymentKey = paymentKey;
+        payment.pgProvider = pgProvider;
         payment.status = PaymentStatus.COMPLETED; // 외부 API 승인이 성공했다고 가정하고 완료 상태로 생성
         payment.paidAt = LocalDateTime.now();
         return payment;

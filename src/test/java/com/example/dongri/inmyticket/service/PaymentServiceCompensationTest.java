@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import java.util.List;
+
+import com.example.dongri.inmyticket.domain.PgProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +20,8 @@ public class PaymentServiceCompensationTest {
     private static final Long MEMBER_ID = 1L;
     private static final Long RESERVATION_ID = 100L;
     private static final String PAYMENT_KEY = "key";
+    private static final String ORDER_ID = "imt-100-abc123";
+    private static final int AMOUNT = 150000;
 
     private ReservationService reservationService;
     private PaymentApprovalService paymentApprovalService;
@@ -29,8 +34,9 @@ public class PaymentServiceCompensationTest {
         reservationService = Mockito.mock(ReservationService.class);
         paymentApprovalService = Mockito.mock(PaymentApprovalService.class);
         pgClient = Mockito.mock(PgClient.class);
+        Mockito.when(pgClient.provider()).thenReturn(PgProvider.DEMO);
         paymentRepository = Mockito.mock(PaymentRepository.class);
-        paymentService = new PaymentService(paymentApprovalService, reservationService, pgClient, paymentRepository);
+        paymentService = new PaymentService(paymentApprovalService, reservationService, List.of(pgClient), paymentRepository);
     }
 
     @Test
@@ -38,17 +44,17 @@ public class PaymentServiceCompensationTest {
     void approveFailsAfterPgSuccess_cancelsPgApprovalThenRevertsToPending() {
         // given
         IllegalStateException dbFailure = new IllegalStateException("DB 반영 실패");
-        Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY);
+        Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY, PgProvider.DEMO);
 
         // when
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY));
+                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then: 원래 실패 원인이 전파되고, 보상 → PENDING 되돌리기 순서로 수행됨
         Assertions.assertSame(dbFailure, thrown);
         InOrder inOrder = Mockito.inOrder(pgClient, reservationService);
-        inOrder.verify(pgClient).approve(PAYMENT_KEY);
-        inOrder.verify(pgClient).cancel(PAYMENT_KEY);
+        inOrder.verify(pgClient).approve(PAYMENT_KEY, ORDER_ID, AMOUNT);
+        inOrder.verify(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString());
         inOrder.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
 
@@ -57,15 +63,15 @@ public class PaymentServiceCompensationTest {
     void pgApprovalFails_doesNotSendCancel() {
         // given
         Mockito.doThrow(new IllegalStateException("결제 통신 중 오류가 발생했습니다."))
-                .when(pgClient).approve(PAYMENT_KEY);
+                .when(pgClient).approve(PAYMENT_KEY, ORDER_ID, AMOUNT);
 
         // when
         Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY));
+                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then
-        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString());
-        Mockito.verify(paymentApprovalService, Mockito.never()).approve(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(paymentApprovalService, Mockito.never()).approve(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
 
@@ -74,13 +80,13 @@ public class PaymentServiceCompensationTest {
     void compensationFails_originalExceptionPropagated_andStillReverts() {
         // given
         IllegalStateException dbFailure = new IllegalStateException("DB 반영 실패");
-        Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY);
+        Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY, PgProvider.DEMO);
         Mockito.doThrow(new IllegalStateException("환불 통신 중 오류가 발생했습니다."))
-                .when(pgClient).cancel(PAYMENT_KEY);
+                .when(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString());
 
         // when
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY));
+                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then
         Assertions.assertSame(dbFailure, thrown);
@@ -92,15 +98,15 @@ public class PaymentServiceCompensationTest {
     void paymentKeyAlreadyRecorded_skipsCompensation() {
         // given: 이미 완료된 결제의 paymentKey를 재사용해 approve()가 unique 제약에 걸린 상황
         Mockito.doThrow(new IllegalStateException("중복 paymentKey"))
-                .when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY);
+                .when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY, PgProvider.DEMO);
         Mockito.when(paymentRepository.existsByPaymentKey(PAYMENT_KEY)).thenReturn(true);
 
         // when
         Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY));
+                () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then
-        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString());
+        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString());
         Mockito.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
 }

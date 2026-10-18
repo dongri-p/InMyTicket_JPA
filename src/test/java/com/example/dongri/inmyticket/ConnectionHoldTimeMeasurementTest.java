@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -148,13 +149,13 @@ public class ConnectionHoldTimeMeasurementTest {
         // 워밍업 1회(클래스 로딩/JIT 콜드스타트 영향 배제) 후 통계용 반복 측정
         {
             Long warmupReservationId = newReservation(memberAfter);
-            paymentApprovalService.approve(memberAfter.getId(), warmupReservationId, newPaymentKey());
+            paymentApprovalService.approve(memberAfter.getId(), warmupReservationId, newPaymentKey(), PgProvider.DEMO);
         }
         List<Long> afterTimes = new ArrayList<>();
         for (int i = 0; i < afterIterations; i++) {
             Long reservationId = newReservation(memberAfter);
             long ms = measureWallMillis(() ->
-                    paymentApprovalService.approve(memberAfter.getId(), reservationId, newPaymentKey()), null);
+                    paymentApprovalService.approve(memberAfter.getId(), reservationId, newPaymentKey(), PgProvider.DEMO), null);
             afterTimes.add(ms);
             System.out.printf("  [개선 후 #%d] wall=%d ms%n", i + 1, ms);
         }

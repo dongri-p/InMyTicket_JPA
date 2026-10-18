@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import java.util.List;
+
+import com.example.dongri.inmyticket.domain.PgProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,16 +24,18 @@ public class PaymentServiceRevertFailureTest {
 
         IllegalStateException originalFailure = new IllegalStateException("결제할 수 없는 예약 상태입니다.");
         Mockito.doThrow(originalFailure)
-                .when(paymentApprovalService).approve(1L, 100L, "key");
+                .when(paymentApprovalService).approve(1L, 100L, "key", PgProvider.DEMO);
         Mockito.doThrow(new RuntimeException("락 경합으로 되돌리기 실패"))
                 .when(reservationService).revertProcessingToPending(100L);
 
+        PgClient demoPgClient = Mockito.mock(PgClient.class);
+        Mockito.when(demoPgClient.provider()).thenReturn(PgProvider.DEMO);
         PaymentService paymentService = new PaymentService(paymentApprovalService, reservationService,
-                Mockito.mock(PgClient.class), Mockito.mock(PaymentRepository.class));
+                List.of(demoPgClient), Mockito.mock(PaymentRepository.class));
 
         // when
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,
-                () -> paymentService.processPayment(1L, 100L, "key"));
+                () -> paymentService.processPayment(1L, 100L, PgProvider.DEMO, "key", "imt-100-abc123", 150000));
 
         // then: 되돌리기 실패로 원래 예외가 가려지지 않고 그대로(동일 인스턴스) 전파되어야 함
         Assertions.assertSame(originalFailure, thrown);

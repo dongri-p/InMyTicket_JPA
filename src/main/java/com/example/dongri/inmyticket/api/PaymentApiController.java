@@ -29,7 +29,10 @@ public class PaymentApiController {
         Long paymentId = paymentService.processPayment(
             authenticatedMember.getMemberId(),
             request.getReservationId(),
-            request.getPaymentKey()
+            request.getProvider(),
+            request.getPaymentKey(),
+            request.getOrderId(),
+            request.getAmount()
         );
 
         return new CreateResourceResponse(paymentId, "결제가 승인 완료되었습니다. 티켓 예매가 확정되었습니다.");

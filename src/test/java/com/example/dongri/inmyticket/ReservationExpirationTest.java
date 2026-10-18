@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -89,7 +90,7 @@ public class ReservationExpirationTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId);
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         reservation.setReservedAt(LocalDateTime.now().minusMinutes(20));
@@ -117,7 +118,7 @@ public class ReservationExpirationTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key-" + UUID.randomUUID());
+        paymentApprovalService.approve(member.getId(), reservationId, "test-payment-key-" + UUID.randomUUID(), PgProvider.DEMO);
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         reservation.setReservedAt(LocalDateTime.now().minusMinutes(20));

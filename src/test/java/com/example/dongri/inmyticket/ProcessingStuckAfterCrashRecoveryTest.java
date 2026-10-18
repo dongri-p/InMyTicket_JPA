@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -38,7 +39,7 @@ public class ProcessingStuckAfterCrashRecoveryTest {
         Member member = TestFixtures.createAndSaveMember(memberRepository, "crashUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId);
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
 
         Reservation stuck = reservationRepository.findById(reservationId).orElseThrow();
         stuck.setProcessingStartedAt(LocalDateTime.now().minusMinutes(10));
@@ -53,7 +54,8 @@ public class ProcessingStuckAfterCrashRecoveryTest {
         Assertions.assertEquals(ReservationStatus.PENDING, recovered.getStatus());
         Assertions.assertNull(recovered.getProcessingStartedAt());
 
-        paymentService.processPayment(member.getId(), reservationId, "retry-key-" + UUID.randomUUID());
+        paymentService.processPayment(member.getId(), reservationId, PgProvider.DEMO, "retry-key-" + UUID.randomUUID(),
+                PaymentService.orderIdPrefix(reservationId) + "retry", reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
         Assertions.assertEquals(ReservationStatus.CONFIRMED,
                 reservationRepository.findById(reservationId).orElseThrow().getStatus());
     }
@@ -65,7 +67,7 @@ public class ProcessingStuckAfterCrashRecoveryTest {
         Member member = TestFixtures.createAndSaveMember(memberRepository, "inFlightUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId);
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
 
         // when
         int recoveredCount = reservationService.recoverStuckProcessingReservations(LocalDateTime.now().minusMinutes(5));

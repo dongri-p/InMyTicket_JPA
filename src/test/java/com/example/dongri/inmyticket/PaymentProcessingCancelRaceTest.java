@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -43,6 +44,7 @@ public class PaymentProcessingCancelRaceTest {
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
+        int totalPrice = reservationRepository.findById(reservationId).orElseThrow().getTotalPrice();
 
         AtomicReference<Exception> cancelException = new AtomicReference<>();
         AtomicReference<Long> paymentId = new AtomicReference<>();
@@ -51,7 +53,8 @@ public class PaymentProcessingCancelRaceTest {
         // when: 결제 시작(내부적으로 PENDING -> PROCESSING 전환 후 1.5초 PG 통신)
         Thread paymentThread = new Thread(() -> {
             try {
-                paymentId.set(paymentService.processPayment(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID()));
+                paymentId.set(paymentService.processPayment(member.getId(), reservationId, PgProvider.DEMO, "race-payment-key-" + UUID.randomUUID(),
+                        PaymentService.orderIdPrefix(reservationId) + "race", totalPrice));
             } catch (Exception e) {
                 paymentException.set(e);
             }

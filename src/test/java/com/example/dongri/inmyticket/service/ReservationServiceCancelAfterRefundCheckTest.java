@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -30,12 +31,12 @@ public class ReservationServiceCancelAfterRefundCheckTest {
     @Test
     @DisplayName("환불 미처리(refundHandled=false)인데 실제로는 결제가 완료돼 있으면, 조용히 취소하지 않고 재시도를 요구한다")
     void cancelAfterRefundCheck_paymentAppearedAfterCheck_throwsAndDoesNotCancel() {
-        // given: ReservationService.findPaymentKeyToRefund() 확인 시점 이후, 결제가 새로 완료된 상황을 재현
+        // given: ReservationService.findPaymentToRefund() 확인 시점 이후, 결제가 새로 완료된 상황을 재현
         Member member = TestFixtures.createAndSaveMember(memberRepository, "refundRaceUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID());
+        paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID(), PgProvider.DEMO);
 
         // when & then: refundHandled=false로 넘어왔지만 실제로는 결제가 있으므로 재시도 예외를 던짐
         IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,

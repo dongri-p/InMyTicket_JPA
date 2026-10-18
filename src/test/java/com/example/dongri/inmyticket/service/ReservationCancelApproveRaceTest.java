@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PaymentStatus;
@@ -59,7 +60,7 @@ public class ReservationCancelApproveRaceTest {
             Member warmupMember = TestFixtures.createAndSaveMember(memberRepository, "warmup");
             Seat warmupSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
             Long warmupReservationId = reservationService.reserve(warmupMember.getId(), warmupSeat.getId());
-            paymentApprovalService.approve(warmupMember.getId(), warmupReservationId, "warmup-key-" + UUID.randomUUID());
+            paymentApprovalService.approve(warmupMember.getId(), warmupReservationId, "warmup-key-" + UUID.randomUUID(), PgProvider.DEMO);
         }
 
         for (int i = 0; i < RACE_ITERATIONS; i++) {
@@ -94,7 +95,7 @@ public class ReservationCancelApproveRaceTest {
                 readyLatch.countDown();
                 await(startLatch);
                 try {
-                    paymentApprovalService.approve(member.getId(), reservationId, paymentKey);
+                    paymentApprovalService.approve(member.getId(), reservationId, paymentKey, PgProvider.DEMO);
                 } catch (Exception ignored) {
                 } finally {
                     doneLatch.countDown();

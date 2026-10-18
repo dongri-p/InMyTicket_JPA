@@ -20,6 +20,11 @@ kopis:
   api-key: ${KOPIS_API_KEY}
   base-url: http://www.kopis.or.kr/openApi/restful
 
+toss:
+  # 토스페이먼츠 개발자센터의 "API 개별 연동 키 > 시크릿 키". 프론트의 클라이언트 키와 같은 상점(MID)의 키여야 함
+  secret-key: ${TOSS_SECRET_KEY}
+  base-url: https://api.tosspayments.com
+
 admin:
   login-id: ${ADMIN_LOGIN_ID}
   password: ${ADMIN_PASSWORD}
