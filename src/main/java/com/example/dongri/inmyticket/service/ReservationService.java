@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
+import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
@@ -33,30 +35,50 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final ScheduleRepository scheduleRepository;
 
-    // 티켓 예매하기
+    // 좌석 1개 예매 - 좌석 목록 버전에 위임
     @Transactional
     public Long reserve(Long memberId, Long seatId) {
+        return reserve(memberId, List.of(seatId));
+    }
+
+    // 티켓 예매하기 (같은 회차 좌석 여러 개를 예약 1건으로 묶음)
+    @Transactional
+    public Long reserve(Long memberId, List<Long> seatIds) {
+
+        if (new HashSet<>(seatIds).size() != seatIds.size()) {
+            throw new IllegalArgumentException("같은 좌석이 중복으로 선택되었습니다.");
+        }
 
         // 1. 엔티티 조회 (회원은 일반 조회, 좌석은 비관적 락 조회)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. id=" + memberId));
 
-        Seat seat = seatRepository.findByIdWithLock(seatId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. id=" + seatId));
+        // 좌석들을 id 오름차순으로 한 번에 잠금 - 겹치는 좌석을 동시에 고른 두 요청도 같은 순서로 락을 잡아 데드락 없음
+        List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
+        if (seats.size() != seatIds.size()) {
+            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. seatIds=" + seatIds);
+        }
+
+        // 한 예약은 한 회차만 - 회차가 섞이면 결제·취소·공연 시작 판단 기준이 모호해짐
+        // (같은 영속성 컨텍스트라 같은 회차는 같은 객체로 조회됨)
+        Schedule schedule = seats.get(0).getSchedule();
+        if (!seats.stream().allMatch(seat -> seat.getSchedule() == schedule)) {
+            throw new IllegalArgumentException("같은 회차의 좌석만 함께 예매할 수 있습니다.");
+        }
 
         // 공연이 이미 시작된 회차는 예매 불가 (취소 제한과 대칭 - 그렇지 않으면 취소도 안 되는 예약이 생김)
-        if (seat.getSchedule() != null && !seat.getSchedule().getStartTime().isAfter(LocalDateTime.now())) {
+        if (schedule != null && !schedule.getStartTime().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("공연이 이미 시작되어 예매할 수 없습니다.");
         }
 
-        // 2. 예매 생성
-        Reservation reservation = Reservation.createReservation(member, seat);
+        // 2. 예매 생성 (좌석 하나라도 이미 예약됐으면 예외 -> 전체 롤백)
+        Reservation reservation = Reservation.createReservation(member, seats);
 
         // 3. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
-        if (seat.getSchedule() != null) {
-            int updated = scheduleRepository.decrementAvailableSeatCount(seat.getSchedule().getId());
+        if (schedule != null) {
+            int updated = scheduleRepository.decreaseAvailableSeatCount(schedule.getId(), seats.size());
             if (updated == 0) {
-                throw new IllegalStateException("잔여 좌석이 없습니다. scheduleId=" + seat.getSchedule().getId());
+                throw new IllegalStateException("잔여 좌석이 부족합니다. scheduleId=" + schedule.getId());
             }
         }
 

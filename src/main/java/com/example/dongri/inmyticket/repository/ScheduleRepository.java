@@ -13,13 +13,13 @@ import com.example.dongri.inmyticket.domain.Schedule;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     /**
-     * 잔여 좌석 수를 DB 레벨에서 원자적으로 1 감소시킴
+     * 잔여 좌석 수를 DB 레벨에서 원자적으로 count만큼 감소시킴 (여러 좌석 예매를 쿼리 한 번으로)
      * (좌석 락과 별개로 Schedule 로우를 잠그지 않고도 lost-update를 방지)
      */
     @Modifying
-    @Query("update Schedule s set s.availableSeatCount = s.availableSeatCount - 1 " +
-           "where s.id = :scheduleId and s.availableSeatCount > 0")
-    int decrementAvailableSeatCount(@Param("scheduleId") Long scheduleId);
+    @Query("update Schedule s set s.availableSeatCount = s.availableSeatCount - :count " +
+           "where s.id = :scheduleId and s.availableSeatCount >= :count")
+    int decreaseAvailableSeatCount(@Param("scheduleId") Long scheduleId, @Param("count") int count);
 
     /**
      * 예약 취소로 좌석이 반환될 때, 잔여 좌석 수를 DB 레벨에서 원자적으로 1 증가시킴

@@ -35,7 +35,7 @@ public class ReservationApiController {
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
             @Validated @RequestBody CreateReservationRequest request) {
 
-        Long reservationId = reservationService.reserve(authenticatedMember.getMemberId(), request.getSeatId());
+        Long reservationId = reservationService.reserve(authenticatedMember.getMemberId(), request.getSeatIds());
 
         return new CreateResourceResponse(reservationId, "티켓 예매가 완료되었습니다. 결제를 진행해주세요.");
     }

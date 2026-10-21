@@ -52,19 +52,25 @@ public class Reservation {
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Payment payment;
 
-    public static Reservation createReservation(Member member, Seat seat) {
+    // 좌석마다 티켓 1장씩, 총액은 좌석 가격의 합
+    // 좌석 하나라도 이미 예약됐으면 seat.reserve()에서 예외 -> 호출 트랜잭션 전체 롤백 (일부 좌석만 예약되지 않음)
+    public static Reservation createReservation(Member member, List<Seat> seats) {
         Reservation reservation = new Reservation();
         reservation.setMember(member);
-
-        seat.reserve();
         reservation.setStatus(ReservationStatus.PENDING);
-        reservation.setReservedAt(java.time.LocalDateTime.now());
-        reservation.setTotalPrice(seat.getPrice());
+        reservation.setReservedAt(LocalDateTime.now());
 
-        Ticket ticket = new Ticket();
-        ticket.setReservation(reservation);
-        ticket.setSeat(seat);
-        reservation.getTickets().add(ticket);
+        int totalPrice = 0;
+        for (Seat seat : seats) {
+            seat.reserve();
+            totalPrice += seat.getPrice();
+
+            Ticket ticket = new Ticket();
+            ticket.setReservation(reservation);
+            ticket.setSeat(seat);
+            reservation.getTickets().add(ticket);
+        }
+        reservation.setTotalPrice(totalPrice);
 
         return reservation;
     }
