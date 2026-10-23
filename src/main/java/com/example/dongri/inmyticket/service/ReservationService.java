@@ -141,14 +141,14 @@ public class ReservationService {
     @Transactional
     public int recoverStuckProcessingReservations(LocalDateTime cutoff) {
 
-        List<Reservation> candidates =
-                reservationRepository.findByStatusAndProcessingStartedAtBefore(ReservationStatus.PROCESSING, cutoff);
-        if (candidates.isEmpty()) {
+        List<Long> candidateIds =
+                reservationRepository.findIdsByStatusAndProcessingStartedAtBefore(ReservationStatus.PROCESSING, cutoff);
+        if (candidateIds.isEmpty()) {
             return 0;
         }
 
         // 후보 조회는 락 없이 했으므로, 락을 잡은 뒤 상태를 재확인 (그 사이 승인/되돌리기가 끝났을 수 있음)
-        List<Long> candidateIds = candidates.stream().map(Reservation::getId).collect(Collectors.toList());
+        // 후보를 id로만 받았기 때문에 여기서 엔티티가 처음 로딩되어, 재확인이 캐시된 옛 상태가 아닌 최신 상태로 이뤄짐
         List<Reservation> lockedReservations = reservationRepository.findByIdInWithLock(candidateIds);
 
         int recoveredCount = 0;
@@ -247,15 +247,15 @@ public class ReservationService {
     @Transactional
     public int expireStalePendingReservations(LocalDateTime cutoff) {
 
-        List<Reservation> candidates = reservationRepository.findByStatusAndReservedAtBefore(ReservationStatus.PENDING, cutoff);
-        if (candidates.isEmpty()) {
+        List<Long> candidateIds = reservationRepository.findIdsByStatusAndReservedAtBefore(ReservationStatus.PENDING, cutoff);
+        if (candidateIds.isEmpty()) {
             return 0;
         }
 
         // 후보 조회는 락 없이 했으므로, 실제 처리 직전에 한 번에 락을 걸고 상태를 재확인
         // (그 사이 결제/취소가 먼저 끝났을 수 있음). 후보마다 개별 조회하던 N+1을
         // IN 절 일괄 조회로 대체 (cancel 흐름의 좌석 락과 동일한 패턴)
-        List<Long> candidateIds = candidates.stream().map(Reservation::getId).collect(Collectors.toList());
+        // 후보를 id로만 받았기 때문에 여기서 엔티티가 처음 로딩되어, 재확인이 캐시된 옛 상태가 아닌 최신 상태로 이뤄짐
         List<Reservation> lockedReservations = reservationRepository.findByIdInWithLock(candidateIds);
 
         int expiredCount = 0;
