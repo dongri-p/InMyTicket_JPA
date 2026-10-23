@@ -2,6 +2,10 @@ spring:
   profiles:
     default: local
   jpa:
+    # OSIV 끔: 켜져 있으면 HTTP 요청 하나 동안 EntityManager를 공유해, 서비스에서 트랜잭션을 나눠도
+    # 앞 트랜잭션에서 캐시된 엔티티를 뒤 트랜잭션의 락 조회가 그대로 받음(취소 중 결제 완료를 못 봄).
+    # 또 요청이 끝날 때까지 DB 커넥션을 붙잡아 PG 통신 동안에도 커넥션을 점유함
+    open-in-view: false
     properties:
       hibernate:
         default_batch_fetch_size: 100
