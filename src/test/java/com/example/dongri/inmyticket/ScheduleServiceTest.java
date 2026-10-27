@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
+import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.HallRepository;
@@ -186,15 +187,15 @@ public class ScheduleServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 공연의 회차 목록을 조회하면 예외가 발생한다")
-    void findSchedulesByPerformance_withNonExistentPerformance_throwsIllegalArgument() {
-        Assertions.assertThrows(IllegalArgumentException.class,
+    void findSchedulesByPerformance_withNonExistentPerformance_throwsNotFound() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
                 () -> scheduleService.findSchedulesByPerformance(999999L));
     }
 
     @Test
     @DisplayName("존재하지 않는 회차의 좌석을 조회하면 예외가 발생한다")
-    void findSeatsBySchedule_withNonExistentSchedule_throwsIllegalArgument() {
-        Assertions.assertThrows(IllegalArgumentException.class,
+    void findSeatsBySchedule_withNonExistentSchedule_throwsNotFound() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
                 () -> scheduleService.findSeatsBySchedule(999999L, PageRequest.of(0, 20)));
     }
 

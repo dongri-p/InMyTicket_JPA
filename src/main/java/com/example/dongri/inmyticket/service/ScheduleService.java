@@ -13,6 +13,7 @@ import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.repository.HallRepository;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -84,7 +85,7 @@ public class ScheduleService {
         List<Schedule> schedules = scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);
         // 회차가 하나도 없을 때만 공연 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
         if (schedules.isEmpty() && !performanceRepository.existsById(performanceId)) {
-            throw new IllegalArgumentException("존재하지 않는 공연입니다. id=" + performanceId);
+            throw new ResourceNotFoundException("존재하지 않는 공연입니다. id=" + performanceId);
         }
         return schedules;
     }
@@ -95,7 +96,7 @@ public class ScheduleService {
         Page<Seat> seats = seatRepository.findByScheduleId(scheduleId, pageable);
         // 좌석이 하나도 없을 때만 회차 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
         if (seats.getTotalElements() == 0 && scheduleRepository.findById(scheduleId).isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 회차입니다. id=" + scheduleId);
+            throw new ResourceNotFoundException("존재하지 않는 회차입니다. id=" + scheduleId);
         }
         return seats;
     }

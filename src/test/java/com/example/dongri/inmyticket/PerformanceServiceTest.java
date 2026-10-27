@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
@@ -222,10 +223,10 @@ public class PerformanceServiceTest {
 
     @Test
     @DisplayName("findOne()은 존재하지 않는 id에 대해 예외를 던진다")
-    void findOne_withNonExistentId_throwsIllegalArgument() {
+    void findOne_withNonExistentId_throwsNotFound() {
         PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> performanceService.findOne(999999L));
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> performanceService.findOne(999999L));
     }
 
     @Test

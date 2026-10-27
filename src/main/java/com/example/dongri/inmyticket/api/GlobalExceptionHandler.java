@@ -16,6 +16,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
 import com.example.dongri.inmyticket.domain.OwnershipViolationException;
+import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,7 +46,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(409, "이미 사용 중인 값입니다.");
     }
 
-    // 존재하지 않는 리소스 조회 등
+    // 요청 내용 오류 (중복 좌석, 금액 불일치, 본문에 담긴 없는 id 등)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
@@ -71,6 +72,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OwnershipViolationException.class)
     public ErrorResponse handleOwnershipViolationException(OwnershipViolationException e) {
         return new ErrorResponse(403, e.getMessage());
+    }
+
+    // URL이 가리키는 공연/회차/예약이 없음
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException e) {
+        return new ErrorResponse(404, e.getMessage());
     }
 
     // 없는 경로 (예: /api/v1/reservations/) - 아래 Exception 핸들러에 잡혀 500이 되지 않도록 404로

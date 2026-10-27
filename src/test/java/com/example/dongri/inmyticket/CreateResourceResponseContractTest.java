@@ -89,6 +89,29 @@ public class CreateResourceResponseContractTest {
         Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, wrongMethod.getStatusCode());
     }
 
+    @Test
+    @DisplayName("URL이 가리키는 공연·회차·예약이 없으면 404, 본문에 담긴 id가 없으면 400이다")
+    void missingResource_notFound_missingBodyReference_badRequest() {
+        String token = signupAndLogin("notFoundCt");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND,
+                restTemplate.getForEntity("/api/v1/performances/999999", String.class).getStatusCode());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND,
+                restTemplate.getForEntity("/api/v1/performances/999999/schedules", String.class).getStatusCode());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND,
+                restTemplate.getForEntity("/api/v1/schedules/999999/seats", String.class).getStatusCode());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, cancel(token, 999999L).getStatusCode());
+
+        // 본문 안의 좌석 id가 없는 경우는 요청 내용 오류
+        CreateReservationRequest request = new CreateReservationRequest();
+        request.setSeatIds(List.of(999999L));
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, restTemplate.postForEntity(
+                "/api/v1/reservations", new HttpEntity<>(request, headers), String.class).getStatusCode());
+    }
+
     private ResponseEntity<String> cancel(String token, Object reservationId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);

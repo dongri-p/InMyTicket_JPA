@@ -16,6 +16,7 @@ import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -176,7 +177,7 @@ public class ReservationService {
     // 환불할 결제가 있으면 그 결제(paymentKey·결제한 PG를 환불 요청에 사용)를, 없으면 빈 값을 반환
     public Optional<Payment> findPaymentToRefund(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 예약입니다. id=" + reservationId));
         reservation.assertOwner(memberId);
         if (reservation.isShowStarted()) {
             throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
@@ -205,7 +206,7 @@ public class ReservationService {
     private void performCancel(Long memberId, Long reservationId, boolean refundHandled) {
 
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 예약입니다. id=" + reservationId));
 
         reservation.assertOwner(memberId);
 
