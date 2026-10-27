@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+// 방금 저장한 공연이 totalCount에 바로 반영되는지 보므로 건수 캐시를 끔
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "performance.list-count-cache-ttl-ms=0")
 public class PerformancePaginationTest {
 
     @Autowired private TestRestTemplate restTemplate;

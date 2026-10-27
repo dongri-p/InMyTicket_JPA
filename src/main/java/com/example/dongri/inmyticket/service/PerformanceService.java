@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,6 +48,11 @@ public class PerformanceService {
     private final ScheduleRepository scheduleRepository;
     private final KopisService kopisService;
     private final PerformanceSyncService performanceSyncService;
+
+    // 목록 전체 건수 캐시 유지 시간 (0이면 캐시 안 함)
+    @Value("${performance.list-count-cache-ttl-ms}")
+    private long countCacheTtlMs;
+    private final Map<ListFilter, CachedCount> countCache = new ConcurrentHashMap<>();
 
     // 외부 API(KOPIS) 통신 중에는 DB 커넥션을 붙잡지 않도록 트랜잭션 밖에서 실행
     // (PaymentService의 "외부 통신 -> 짧은 DB 트랜잭션" 분리 패턴과 동일)
@@ -124,10 +131,32 @@ public class PerformanceService {
     }
 
     // 같은 조건의 전체 공연 수 (목록 제목 옆 건수 표시용)
+    // 첫 페이지마다 세면 공연 10만 건 기준 9~23ms씩 걸려 부하 시 DB 시간의 약 70%를 차지했음 -> 검색어 없는 조합은 잠깐 캐시.
+    // 건수는 'N건' 표시용이라 몇십 초 늦어도 되고, 목록 자체(공연·순서)는 캐시하지 않으므로 항상 최신.
+    // 캐시를 맞히면 DB에 가지 않도록 트랜잭션(=커넥션)을 열지 않음 (쿼리는 리포지토리 자체 트랜잭션으로 실행)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public long countPerformances(GenreGroup genre, RegionGroup region, String keyword, BookingStatus status) {
         ListFilter f = ListFilter.of(genre, region, keyword, status);
+        // 검색어는 경우의 수가 끝이 없어 캐시하지 않음 (장르 6 x 지역 6 x 상태 4 = 최대 144개만 캐시)
+        if (f.keyword() != null || countCacheTtlMs <= 0) {
+            return countFromDb(f);
+        }
+        long nowMs = System.currentTimeMillis();
+        CachedCount cached = countCache.get(f);
+        if (cached != null && cached.expiresAtMs() > nowMs) {
+            return cached.count();
+        }
+        long count = countFromDb(f);
+        countCache.put(f, new CachedCount(count, nowMs + countCacheTtlMs));
+        return count;
+    }
+
+    private long countFromDb(ListFilter f) {
         return performanceRepository.countForList(f.allGenres(), f.categories(), f.allRegions(), f.areas(), f.keyword(),
                 f.status());
+    }
+
+    private record CachedCount(long count, long expiresAtMs) {
     }
 
     // 목록 필터를 쿼리 파라미터 형태로 바꾼 값 (목록 조회와 건수 조회가 같은 조건을 쓰도록)

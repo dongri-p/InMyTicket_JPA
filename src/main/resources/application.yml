@@ -45,6 +45,8 @@ reservation:
 performance:
   # 공연 목록 예매 상태 그룹(예매중/오픈예정/공연종료)을 시간 경과에 맞춰 갱신하는 주기(ms)
   booking-group-refresh-interval-ms: 60000
+  # 목록 첫 페이지의 전체 건수(totalCount) 캐시 유지 시간(ms). 검색어 없는 필터 조합만 캐시, 0이면 끔
+  list-count-cache-ttl-ms: 30000
 
 springdoc:
   # nginx는 /api/만 백엔드로 넘기므로 문서도 /api 아래에 둠 (운영에서도 nginx 수정 없이 열림)

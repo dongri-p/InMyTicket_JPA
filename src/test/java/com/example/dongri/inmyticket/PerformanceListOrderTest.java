@@ -133,7 +133,7 @@ public class PerformanceListOrderTest {
         Assertions.assertEquals(List.of(upcoming, unknownPeriod), titlesWithStatus(tag, "UPCOMING"));
         Assertions.assertEquals(List.of(ended), titlesWithStatus(tag, "ENDED"));
 
-        // 응답의 bookingStatus도 필터와 같은 값 (JPQL 판정과 Java 판정이 어긋나지 않는지)
+        // 응답의 bookingStatus도 필터와 같은 값 (필터와 응답이 같은 저장값을 쓰는지)
         for (String status : List.of("ON_SALE", "UPCOMING", "ENDED")) {
             Assertions.assertEquals(List.of(status), bookingStatusesWithStatus(tag, status).stream().distinct().toList());
         }
