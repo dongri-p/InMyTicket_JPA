@@ -6,7 +6,7 @@
 여러 명이 같은 좌석을 동시에 눌러도 한 명만 예매되도록 만드는 데 가장 공을 들였고,
 서버도 직접 구축해서 배포·운영하고 있습니다.
 
-**데모: https://inmyticket.duckdns.org**
+**데모: https://inmyticket.duckdns.org** · **API 문서(Swagger): https://inmyticket.duckdns.org/api/docs**
 
 공연 목록·상세·좌석은 로그인 없이 볼 수 있고, 예매할 때 로그인합니다. 로그인 화면의 "체험 계정으로 둘러보기" 버튼을 누르면 가입 없이 바로 써볼 수 있습니다. 결제는 인증 없이 바로 끝나는 데모 결제와 토스페이먼츠 테스트 결제위젯 중에 고를 수 있고, 둘 다 실제로 청구되지 않습니다. 토스 결제에서 퀵계좌이체를 고르면 테스트 비밀번호 `000000`으로 끝까지 결제해 볼 수 있습니다.
 
@@ -127,6 +127,8 @@ EC2(t2.micro)에 올리면서 겪은 일들입니다. 자세한 내용은 [docs/
 
 <details>
 <summary>API 목록</summary>
+
+요청·응답 형식과 에러 코드 전체 표는 [Swagger 문서](https://inmyticket.duckdns.org/api/docs)에서 보고 바로 호출해 볼 수 있습니다. 회원 API는 로그인 응답의 `accessToken`을 Authorize에 넣으면 됩니다.
 
 | Method | URL | 설명 | 권한 |
 | --- | --- | --- | --- |

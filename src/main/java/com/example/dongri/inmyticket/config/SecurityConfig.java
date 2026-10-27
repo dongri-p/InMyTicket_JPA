@@ -99,6 +99,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/performances", "/api/v1/performances/**").permitAll()
                 // 회차/좌석 현황 조회도 예매 전(로그인 전) 확인이 가능해야 하므로 인증 없이 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/schedules/**").permitAll()
+                // API 문서(Swagger UI)는 공개 - 문서만 보이고, 회원·관리자 API 호출은 여전히 토큰이 필요함
+                .requestMatchers(HttpMethod.GET, "/api/docs", "/api/docs/**", "/api/swagger-ui/**").permitAll()
                 // 관리자 전용 기능
                 .requestMatchers(HttpMethod.POST, "/api/v1/performances/sync").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/schedules").hasRole("ADMIN")
