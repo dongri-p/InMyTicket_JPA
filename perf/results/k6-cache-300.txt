@@ -1,0 +1,65 @@
+time="2026-10-27T11:59:55Z" level=warning msg="The test has generated metrics with 100014 unique time series, which is higher than the suggested limit of 100000 and could cause high memory usage. Consider not using high-cardinality values like unique IDs as metric tags or, if you need them in the URL, use the name metric tag or URL grouping. See https://grafana.com/docs/k6/latest/using-k6/tags-and-groups/ for details." component=metrics-engine-ingester
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:detail}
+    ✓ 'p(95)<100000' p(95)=475.4ms
+
+    http_req_duration{api:list_filter}
+    ✓ 'p(95)<100000' p(95)=539.07ms
+
+    http_req_duration{api:list}
+    ✓ 'p(95)<100000' p(95)=525.91ms
+
+    http_req_duration{api:my_reservations}
+    ✓ 'p(95)<100000' p(95)=392.63ms
+
+    http_req_duration{api:schedules}
+    ✓ 'p(95)<100000' p(95)=380.47ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=395.34ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 71995   957.512478/s
+    checks_succeeded...................: 100.00% 71995 out of 71995
+    checks_failed......................: 0.00%   0 out of 71995
+
+    ✓ login 200
+    ✓ list 200
+    ✓ list_filter 200
+    ✓ detail 200
+    ✓ schedules 200
+    ✓ seats 200
+    ✓ my 200
+
+    HTTP
+    http_req_duration.......................................................: avg=244.59ms p(50)=204.36ms p(90)=370.28ms p(95)=441.63ms p(99)=659.2ms  max=2.1s  
+      { api:detail }........................................................: avg=264.1ms  p(50)=222.71ms p(90)=411.57ms p(95)=475.4ms  p(99)=735.09ms max=2.1s  
+      { api:list_filter }...................................................: avg=299.2ms  p(50)=265.72ms p(90)=450.93ms p(95)=539.07ms p(99)=806.78ms max=2.01s 
+      { api:list }..........................................................: avg=294.29ms p(50)=264.98ms p(90)=441.56ms p(95)=525.91ms p(99)=767.69ms max=1.97s 
+      { api:my_reservations }...............................................: avg=221.95ms p(50)=196.41ms p(90)=316.45ms p(95)=392.63ms p(99)=585.55ms max=1.86s 
+      { api:schedules }.....................................................: avg=220.56ms p(50)=195.69ms p(90)=314.39ms p(95)=380.47ms p(99)=592.97ms max=1.88s 
+      { api:seats }.........................................................: avg=223.69ms p(50)=198.44ms p(90)=321.05ms p(95)=395.34ms p(99)=568.09ms max=2.01s 
+      { expected_response:true }............................................: avg=244.59ms p(50)=204.36ms p(90)=370.28ms p(95)=441.63ms p(99)=659.2ms  max=2.1s  
+    http_req_failed.........................................................: 0.00%  0 out of 71995
+    http_reqs...............................................................: 71995  957.512478/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=1.26s    p(50)=1.15s    p(90)=1.61s    p(95)=1.83s    p(99)=2.95s    max=21.26s
+    iterations..............................................................: 14339  190.704513/s
+    vus.....................................................................: 154    min=0          max=300
+    vus_max.................................................................: 300    min=300        max=300
+
+    NETWORK
+    data_received...........................................................: 263 MB 3.5 MB/s
+    data_sent...............................................................: 11 MB  151 kB/s
+
+
+

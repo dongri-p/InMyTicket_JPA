@@ -1,0 +1,72 @@
+time="2026-10-27T11:52:55Z" level=warning msg="The test has generated metrics with 100014 unique time series, which is higher than the suggested limit of 100000 and could cause high memory usage. Consider not using high-cardinality values like unique IDs as metric tags or, if you need them in the URL, use the name metric tag or URL grouping. See https://grafana.com/docs/k6/latest/using-k6/tags-and-groups/ for details." component=metrics-engine-ingester
+time="2026-10-27T11:53:38Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ENDED\": dial: i/o timeout"
+time="2026-10-27T11:53:38Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-27T11:53:39Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-27T11:53:39Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-27T11:53:39Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ON_SALE\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:detail}
+    ✓ 'p(95)<100000' p(95)=13.82ms
+
+    http_req_duration{api:list_filter}
+    ✓ 'p(95)<100000' p(95)=15.35ms
+
+    http_req_duration{api:list}
+    ✓ 'p(95)<100000' p(95)=15.08ms
+
+    http_req_duration{api:my_reservations}
+    ✓ 'p(95)<100000' p(95)=9.71ms
+
+    http_req_duration{api:schedules}
+    ✓ 'p(95)<100000' p(95)=7.93ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=12.85ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 62908  695.013758/s
+    checks_succeeded...................: 99.99% 62903 out of 62908
+    checks_failed......................: 0.00%  5 out of 62908
+
+    ✓ login 200
+    ✗ list_filter 200
+      ↳  99% — ✓ 6193 / ✗ 3
+    ✗ list 200
+      ↳  99% — ✓ 6382 / ✗ 2
+    ✓ detail 200
+    ✓ schedules 200
+    ✓ seats 200
+    ✓ my 200
+
+    HTTP
+    http_req_duration.......................................................: avg=9.39ms  p(50)=9.32ms  p(90)=12.65ms p(95)=13.61ms p(99)=16.4ms  max=126.59ms
+      { api:detail }........................................................: avg=11.31ms p(50)=11.02ms p(90)=12.91ms p(95)=13.82ms p(99)=16.52ms max=47.18ms 
+      { api:list_filter }...................................................: avg=12.48ms p(50)=11.99ms p(90)=14.24ms p(95)=15.35ms p(99)=18.92ms max=126.59ms
+      { api:list }..........................................................: avg=12.36ms p(50)=11.97ms p(90)=14.15ms p(95)=15.08ms p(99)=18.41ms max=98.02ms 
+      { api:my_reservations }...............................................: avg=7.46ms  p(50)=7.21ms  p(90)=8.86ms  p(95)=9.71ms  p(99)=11.8ms  max=33.59ms 
+      { api:schedules }.....................................................: avg=6.27ms  p(50)=6.07ms  p(90)=7.32ms  p(95)=7.93ms  p(99)=9.68ms  max=36.54ms 
+      { api:seats }.........................................................: avg=9.47ms  p(50)=9.08ms  p(90)=11.66ms p(95)=12.85ms p(99)=16.08ms max=43.93ms 
+      { expected_response:true }............................................: avg=9.39ms  p(50)=9.32ms  p(90)=12.65ms p(95)=13.61ms p(99)=16.4ms  max=126.59ms
+    http_req_failed.........................................................: 0.00%  5 out of 62908
+    http_reqs...............................................................: 62908  695.013758/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=54.71ms p(50)=46.57ms p(90)=52.8ms  p(95)=55.97ms p(99)=65.02ms max=30.03s  
+    iterations..............................................................: 12578  138.962978/s
+    vus.....................................................................: 3      min=3          max=10
+    vus_max.................................................................: 10     min=10         max=10
+
+    NETWORK
+    data_received...........................................................: 230 MB 2.5 MB/s
+    data_sent...............................................................: 9.9 MB 109 kB/s
+
+
+
