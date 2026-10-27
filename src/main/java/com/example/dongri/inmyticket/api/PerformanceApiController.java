@@ -76,7 +76,7 @@ public class PerformanceApiController {
                 .map(p -> new PerformanceListDto(p, scheduleCounts.getOrDefault(p.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // 다음 커서 = 이 페이지 마지막 공연의 (예매 상태, id). 예매 상태는 쿼리 정렬식과 같은 규칙(BookingStatus.of)으로 계산됨
+        // 다음 커서 = 이 페이지 마지막 공연의 (예매 상태, id). 예매 상태는 쿼리 정렬 기준과 같은 저장값(bookingGroup)
         PerformanceListDto last = collect.isEmpty() ? null : collect.get(collect.size() - 1);
         String nextCursor = hasNext ? PerformanceCursor.after(last.getBookingStatus(), last.getId()).encode() : null;
         // 전체 건수는 첫 페이지에서만 (이후 '더 보기'는 화면이 첫 응답의 값을 계속 씀)

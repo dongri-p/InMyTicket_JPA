@@ -30,6 +30,7 @@ public class PerformanceListDto {
         this.startDate = performance.getStartDate();
         this.endDate = performance.getEndDate();
         this.upcomingScheduleCount = upcomingScheduleCount;
-        this.bookingStatus = BookingStatus.of(upcomingScheduleCount, performance.getEndDate(), LocalDate.now());
+        // 목록 정렬·필터·커서와 같은 기준이어야 하므로 저장된 그룹을 씀 (실시간 계산과는 최대 스케줄러 한 주기 차이)
+        this.bookingStatus = BookingStatus.ofCode(performance.getBookingGroup());
     }
 }

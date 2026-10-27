@@ -208,5 +208,8 @@ public class PerformanceListOrderTest {
         schedule.setTotalSeatCount(1);
         schedule.setAvailableSeatCount(1);
         scheduleRepository.save(schedule);
+        // ScheduleService.saveSchedule과 같이 목록 정렬용 그룹 갱신 (지난 회차는 그룹을 올리지 않음)
+        performance.scheduleAdded(startTime, LocalDateTime.now());
+        performanceRepository.save(performance);
     }
 }

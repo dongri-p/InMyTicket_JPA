@@ -118,18 +118,16 @@ public class PerformanceService {
     public List<Performance> findPerformances(GenreGroup genre, RegionGroup region, String keyword, BookingStatus status,
                                               PerformanceCursor cursor, int limit) {
         ListFilter f = ListFilter.of(genre, region, keyword, status);
-        LocalDateTime now = LocalDateTime.now();
         return performanceRepository.findForListAfter(f.allGenres(), f.categories(), f.allRegions(), f.areas(), f.keyword(),
                 f.status(), cursor == null ? -1 : cursor.bookingGroup(), cursor == null ? 0L : cursor.id(),
-                now, now.toLocalDate(), PageRequest.of(0, limit));
+                PageRequest.of(0, limit));
     }
 
     // 같은 조건의 전체 공연 수 (목록 제목 옆 건수 표시용)
     public long countPerformances(GenreGroup genre, RegionGroup region, String keyword, BookingStatus status) {
         ListFilter f = ListFilter.of(genre, region, keyword, status);
-        LocalDateTime now = LocalDateTime.now();
         return performanceRepository.countForList(f.allGenres(), f.categories(), f.allRegions(), f.areas(), f.keyword(),
-                f.status(), now, now.toLocalDate());
+                f.status());
     }
 
     // 목록 필터를 쿼리 파라미터 형태로 바꾼 값 (목록 조회와 건수 조회가 같은 조건을 쓰도록)

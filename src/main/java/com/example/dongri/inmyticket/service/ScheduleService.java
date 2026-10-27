@@ -77,7 +77,9 @@ public class ScheduleService {
 
         // 4. 데이터베이스 저장
         scheduleRepository.save(schedule);
-        
+        // 목록 정렬용 예매 상태 그룹을 바로 예매중으로 (스케줄러를 기다리지 않음)
+        performance.scheduleAdded(startTime, LocalDateTime.now());
+
         return schedule.getId();
     }
 
