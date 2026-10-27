@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import com.example.dongri.inmyticket.domain.BusinessException;
 import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.Payment;
+import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.PgProvider;
+import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.external.PgClient;
 import com.example.dongri.inmyticket.repository.PaymentRepository;
 
@@ -43,6 +45,23 @@ public class PaymentService {
         return pgClient;
     }
 
+    // 같은 paymentKey로 기록된 결제가 있으면: 같은 예약·금액의 완료된 결제면 그 id, 다른 예약에 쓰인 키면 거절.
+    // PG 승인 전에 확인해야 함 - 늦게 확인하면 다른 예약으로 PG 승인이 먼저 나가고 DB unique 제약에서야 막힘
+    private Optional<Long> findCompletedPayment(Long memberId, Long reservationId, String paymentKey, int amount) {
+        return paymentRepository.findWithReservationByPaymentKey(paymentKey).map(payment -> {
+            Reservation reservation = payment.getReservation();
+            reservation.assertOwner(memberId);
+            if (!reservation.getId().equals(reservationId) || payment.getAmount() != amount) {
+                throw new BusinessException(ErrorCode.PAYMENT_KEY_REUSED);
+            }
+            // 환불된 결제를 같은 키로 다시 승인하려는 경우
+            if (payment.getStatus() != PaymentStatus.COMPLETED) {
+                throw new BusinessException(ErrorCode.RESERVATION_NOT_PAYABLE);
+            }
+            return payment.getId();
+        });
+    }
+
     // 결제창 주문번호 규칙. 프론트가 "imt-{예약ID}-{임의값}"으로 만들고, 서버는 이 예약의 주문번호인지 확인
     // (임의값을 붙이는 건 결제창을 닫고 다시 결제할 때도 주문번호가 겹치지 않게 하려는 것)
     public static String orderIdPrefix(Long reservationId) {
@@ -57,6 +76,14 @@ public class PaymentService {
 
         if (!orderId.startsWith(orderIdPrefix(reservationId))) {
             throw new BusinessException(ErrorCode.ORDER_ID_MISMATCH);
+        }
+
+        // 멱등성: 같은 paymentKey로 이미 끝난 결제면 PG를 다시 부르지 않고 그 결제를 그대로 돌려줌.
+        // 승인은 됐는데 응답을 못 받은 클라이언트가 재시도해도(타임아웃, 새로고침) 실패로 보이지 않게 하려는 것.
+        // 토스에서 paymentKey 하나가 결제 한 건이라 별도 Idempotency-Key 헤더 대신 이 값을 멱등성 키로 씀
+        Optional<Long> alreadyPaid = findCompletedPayment(memberId, reservationId, paymentKey, amount);
+        if (alreadyPaid.isPresent()) {
+            return alreadyPaid.get();
         }
 
         // 0. 긴 PG 통신에 들어가기 전, 예약을 PROCESSING으로 전환해 자동만료 스케줄러가

@@ -112,6 +112,11 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
+        // 같은 결제 요청이 겹쳐 들어온 경우(더블클릭, 응답 전 재시도)는 '결제 불가'가 아니라 '진행 중'으로 알려줌
+        // -> 화면은 실패 대신 잠시 뒤 결과를 확인하면 됨 (끝난 뒤 같은 요청은 PaymentService가 기존 결제를 돌려줌)
+        if (reservation.getStatus() == ReservationStatus.PROCESSING) {
+            throw new BusinessException(ErrorCode.PAYMENT_ALREADY_PROCESSING);
+        }
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_PAYABLE);
         }

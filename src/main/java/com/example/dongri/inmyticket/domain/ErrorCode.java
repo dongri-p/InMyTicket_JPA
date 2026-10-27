@@ -41,6 +41,8 @@ public enum ErrorCode {
 
     // 결제
     RESERVATION_NOT_PAYABLE(409, "결제할 수 없는 예약 상태입니다."),
+    PAYMENT_ALREADY_PROCESSING(409, "이 예약의 결제가 이미 진행 중입니다. 잠시 후 결과를 확인해주세요."),
+    PAYMENT_KEY_REUSED(409, "이미 다른 결제에 사용된 결제 키입니다."),
     PAYMENT_IN_PROGRESS(409, "결제가 진행 중이라 취소할 수 없습니다. 잠시 후 다시 시도해주세요."),
     PAYMENT_STATE_CHANGED(409, "결제 상태가 변경되었습니다. 취소를 다시 시도해주세요."),
     PAYMENT_AMOUNT_MISMATCH(400, "결제 금액이 예약 금액과 다릅니다."),
