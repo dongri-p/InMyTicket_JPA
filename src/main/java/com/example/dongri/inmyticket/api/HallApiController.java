@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket.api;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,9 +25,9 @@ public class HallApiController {
 
     // 관리자 기능. 공연장 등록 API (회차 등록 전에 공연장이 먼저 있어야 함)
     @PostMapping("/api/v1/halls")
-    public CreateResourceResponse saveHall(@Validated @RequestBody CreateHallRequest request) {
+    public ResponseEntity<CreateResourceResponse> saveHall(@Validated @RequestBody CreateHallRequest request) {
         Long id = hallService.saveHall(request.getName(), request.getAddress(), request.getTotalSeats());
-        return new CreateResourceResponse(id, "공연장 등록이 완료되었습니다.");
+        return CreateResourceResponse.created(id);
     }
 
     // 관리자 기능. 회차 등록 화면에서 공연장을 고를 수 있도록 전체 목록 조회

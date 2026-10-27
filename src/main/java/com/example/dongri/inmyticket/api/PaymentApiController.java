@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.api;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,7 @@ public class PaymentApiController {
 
     // 외부 결제 승인 완료 및 반영 API
     @PostMapping("/api/v1/payments")
-    public CreateResourceResponse pay(
+    public ResponseEntity<CreateResourceResponse> pay(
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
             @Validated @RequestBody CreatePaymentRequest request) {
 
@@ -35,6 +36,6 @@ public class PaymentApiController {
             request.getAmount()
         );
 
-        return new CreateResourceResponse(paymentId, "결제가 승인 완료되었습니다. 티켓 예매가 확정되었습니다.");
+        return CreateResourceResponse.created(paymentId);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.api;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +24,7 @@ public class MemberApiController {
     private final MemberService memberService;
     
     @PostMapping("/api/v1/members")
-    public CreateResourceResponse saveMemberV1(@Validated @RequestBody CreateMemberRequest request) {
+    public ResponseEntity<CreateResourceResponse> saveMemberV1(@Validated @RequestBody CreateMemberRequest request) {
 
         Member member = new Member();
         member.setLoginId(request.getLoginId());
@@ -33,7 +34,7 @@ public class MemberApiController {
         member.setRole(Role.USER);
 
         Long id = memberService.join(member);
-        return new CreateResourceResponse(id, "회원가입이 완료되었습니다.");
+        return CreateResourceResponse.created(id);
     }
 
     @PostMapping("/api/v1/members/login")

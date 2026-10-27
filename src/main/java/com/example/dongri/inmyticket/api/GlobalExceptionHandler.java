@@ -6,11 +6,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
 import com.example.dongri.inmyticket.domain.OwnershipViolationException;
@@ -69,6 +71,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OwnershipViolationException.class)
     public ErrorResponse handleOwnershipViolationException(OwnershipViolationException e) {
         return new ErrorResponse(403, e.getMessage());
+    }
+
+    // 없는 경로 (예: /api/v1/reservations/) - 아래 Exception 핸들러에 잡혀 500이 되지 않도록 404로
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ErrorResponse handleNoResourceFoundException(NoResourceFoundException e) {
+        return new ErrorResponse(404, "요청한 경로를 찾을 수 없습니다.");
+    }
+
+    // 경로는 있지만 메서드가 다름 (예: 예전 DELETE 취소 URL) - 500이 아닌 405
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ErrorResponse handleMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        return new ErrorResponse(405, "지원하지 않는 요청 방식입니다: " + e.getMethod());
     }
 
     // 위에서 다루지 않은 예상치 못한 예외 - 내부 정보를 노출하지 않고 표준 포맷으로 응답

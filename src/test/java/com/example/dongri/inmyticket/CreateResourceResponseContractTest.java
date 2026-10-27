@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-// CreateReservationResponse/CreatePaymentResponse/CreateScheduleResponse를 CreateResourceResponse로
-// 통합하면서 JSON 필드명이 reservationId/paymentId/scheduleId -> id로 바뀐 계약 변경을 실제 HTTP 응답으로 확인
+// 생성 API는 201 Created + Location + {id}, 본문 없는 동작(취소)은 204 No Content라는 응답 규칙을 실제 HTTP로 확인
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CreateResourceResponseContractTest {
 
@@ -33,59 +33,96 @@ public class CreateResourceResponseContractTest {
     @Autowired private ScheduleRepository scheduleRepository;
 
     @Test
-    @DisplayName("예매 생성 응답의 리소스 id 필드명은 reservationId가 아니라 id이다")
-    void reserveResponse_usesUnifiedIdField() {
-        // given: 좌석 준비
-        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+    @DisplayName("예매 생성은 201과 Location 헤더, 본문엔 id만 내려준다")
+    void reserveResponse_created() {
+        // when
+        ResponseEntity<Map> response = reserve(signupAndLogin("contractUser"));
 
-        // 회원가입 + 로그인
+        // then
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Object id = response.getBody().get("id");
+        Assertions.assertNotNull(id);
+        Assertions.assertEquals(List.of("id"), List.copyOf(response.getBody().keySet()));
+        Assertions.assertTrue(response.getHeaders().getLocation().getPath().endsWith("/api/v1/reservations/" + id));
+    }
+
+    @Test
+    @DisplayName("회원가입도 다른 생성 API와 같이 201 + Location + id다")
+    void signupResponse_created() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        CreateMemberRequest signupRequest = new CreateMemberRequest();
-        signupRequest.setLoginId("contractUser" + suffix);
-        signupRequest.setPassword("password123");
-        signupRequest.setName("계약테스터");
-        signupRequest.setEmail("contract" + suffix + "@test.com");
-        restTemplate.postForEntity("/api/v1/members", signupRequest, Void.class);
+        ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/members", signupRequest("signupCt" + suffix), Map.class);
 
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setLoginId("contractUser" + suffix);
-        loginRequest.setPassword("password123");
-        ResponseEntity<LoginResponse> loginResponse =
-                restTemplate.postForEntity("/api/v1/members/login", loginRequest, LoginResponse.class);
-        String token = loginResponse.getBody().getAccessToken();
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Object id = response.getBody().get("id");
+        Assertions.assertEquals(List.of("id"), List.copyOf(response.getBody().keySet()));
+        Assertions.assertTrue(response.getHeaders().getLocation().getPath().endsWith("/api/v1/members/" + id));
+    }
 
-        // when: 예매 생성
+    @Test
+    @DisplayName("예매 취소는 POST /cancel로 204를 받고, 이미 취소된 예약을 다시 취소하면 409다")
+    void cancel_noContent_thenConflict() {
+        String token = signupAndLogin("cancelCt");
+        Object id = reserve(token).getBody().get("id");
+
+        ResponseEntity<String> first = cancel(token, id);
+        ResponseEntity<String> second = cancel(token, id);
+
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, first.getStatusCode());
+        Assertions.assertNull(first.getBody());
+        Assertions.assertEquals(HttpStatus.CONFLICT, second.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("예전 DELETE 취소 URL은 404, 경로는 있는데 메서드가 다르면 405다 (둘 다 500이 아님)")
+    void oldDeleteCancel_notFound_wrongMethod_methodNotAllowed() {
+        String token = signupAndLogin("deleteCt");
+        Object id = reserve(token).getBody().get("id");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        ResponseEntity<String> oldDelete = restTemplate.exchange("/api/v1/reservations/{id}", HttpMethod.DELETE,
+                new HttpEntity<>(headers), String.class, id);
+        ResponseEntity<String> wrongMethod = restTemplate.exchange("/api/v1/reservations", HttpMethod.PUT,
+                new HttpEntity<>(headers), String.class);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, oldDelete.getStatusCode());
+        Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, wrongMethod.getStatusCode());
+    }
+
+    private ResponseEntity<String> cancel(String token, Object reservationId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        return restTemplate.exchange("/api/v1/reservations/{id}/cancel", HttpMethod.POST,
+                new HttpEntity<>(headers), String.class, reservationId);
+    }
+
+    private ResponseEntity<Map> reserve(String token) {
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         headers.setContentType(MediaType.APPLICATION_JSON);
         CreateReservationRequest reservationRequest = new CreateReservationRequest();
         reservationRequest.setSeatIds(List.of(seat.getId()));
-        HttpEntity<CreateReservationRequest> request = new HttpEntity<>(reservationRequest, headers);
-
-        ResponseEntity<Map> response =
-                restTemplate.postForEntity("/api/v1/reservations", request, Map.class);
-
-        // then: 응답 JSON에 id 필드가 있고, 이전 필드명(reservationId)은 더 이상 없다
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertTrue(response.getBody().containsKey("id"));
-        Assertions.assertNotNull(response.getBody().get("id"));
-        Assertions.assertFalse(response.getBody().containsKey("reservationId"));
+        return restTemplate.postForEntity("/api/v1/reservations", new HttpEntity<>(reservationRequest, headers), Map.class);
     }
 
-    @Test
-    @DisplayName("회원가입 응답도 다른 생성 API와 동일하게 id+message 필드를 가진다")
-    void signupResponse_usesUnifiedIdField() {
-        String suffix = UUID.randomUUID().toString().substring(0, 8);
-        CreateMemberRequest signupRequest = new CreateMemberRequest();
-        signupRequest.setLoginId("signupCt" + suffix);
-        signupRequest.setPassword("password123");
-        signupRequest.setName("가입계약테스터");
-        signupRequest.setEmail("signupCt" + suffix + "@test.com");
+    private String signupAndLogin(String prefix) {
+        String loginId = prefix + UUID.randomUUID().toString().substring(0, 8);
+        restTemplate.postForEntity("/api/v1/members", signupRequest(loginId), Void.class);
 
-        ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/members", signupRequest, Map.class);
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setLoginId(loginId);
+        loginRequest.setPassword("password123");
+        return restTemplate.postForEntity("/api/v1/members/login", loginRequest, LoginResponse.class)
+                .getBody().getAccessToken();
+    }
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertNotNull(response.getBody().get("id"));
-        Assertions.assertNotNull(response.getBody().get("message"));
+    private CreateMemberRequest signupRequest(String loginId) {
+        CreateMemberRequest request = new CreateMemberRequest();
+        request.setLoginId(loginId);
+        request.setPassword("password123");
+        request.setName("계약테스터");
+        request.setEmail(loginId + "@test.com");
+        return request;
     }
 }

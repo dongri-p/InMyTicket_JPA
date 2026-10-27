@@ -5,11 +5,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dongri.inmyticket.api.dto.ListResult;
@@ -33,10 +35,10 @@ public class PerformanceApiController {
 
     // KOPIS 외부 API 공연데이터를 강제로 땡겨와 DB에 동기화 하는 API
     @PostMapping("/api/v1/performances/sync")
-    public String syncPerformances() {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void syncPerformances() {
         log.info("API를 통한 공연데이터 동기화 요청 수신");
         performanceService.syncPerformances();
-        return "KOPIS 공연 데이터 동기화 완료";
     }
 
     private static final int MAX_PAGE_SIZE = 100;

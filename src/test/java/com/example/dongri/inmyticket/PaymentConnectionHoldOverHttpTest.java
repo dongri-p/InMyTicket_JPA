@@ -96,7 +96,7 @@ public class PaymentConnectionHoldOverHttpTest {
         System.out.printf("HTTP 결제 요청 %dms 중 커넥션 점유 %dms%n", requestMs, activeMs);
 
         // then: 요청은 PG 통신만큼 걸리지만, 커넥션 점유는 그보다 훨씬 짧아야 함
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), response.getBody());
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode(), response.getBody());
         Assertions.assertTrue(requestMs >= 1500, "데모 PG 지연(1.5초)이 요청에 포함돼야 함");
         Assertions.assertTrue(activeMs < 500, "PG 통신 동안 커넥션을 붙잡고 있음: " + activeMs + "ms");
     }

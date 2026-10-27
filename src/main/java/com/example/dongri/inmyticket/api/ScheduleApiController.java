@@ -3,6 +3,7 @@ package com.example.dongri.inmyticket.api;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
@@ -32,14 +33,14 @@ public class ScheduleApiController {
 
     // 관리자 기능. 공연 회차 등록 API
     @PostMapping("/api/v1/schedules")
-    public CreateResourceResponse saveSchedule(@Validated @RequestBody CreateScheduleRequest request) {
+    public ResponseEntity<CreateResourceResponse> saveSchedule(@Validated @RequestBody CreateScheduleRequest request) {
         Long id = scheduleService.saveSchedule(
                 request.getPerformanceId(),
                 request.getHallId(),
                 request.getStartTime(),
                 request.getTotalSeatCount()
         );
-        return new CreateResourceResponse(id, "공연 회차 및 좌석 생성이 완료되었습니다.");
+        return CreateResourceResponse.created(id);
     }
 
     // 특정 공연의 모든 회차 일정 조회 API

@@ -23,7 +23,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -68,10 +67,10 @@ public class CancelPaymentRaceOverHttpTest {
 
         // when
         ResponseEntity<String> response = restTemplate.exchange(
-                "/api/v1/reservations/" + reservationId, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+                "/api/v1/reservations/" + reservationId + "/cancel", HttpMethod.POST, new HttpEntity<>(headers), String.class);
 
         // then: 결제가 생겼으므로 재시도를 요구해야 하고, 예약은 결제 완료 상태 그대로여야 함
-        Assertions.assertNotEquals(HttpStatus.OK, response.getStatusCode(), "환불 없이 취소됨: " + response.getBody());
+        Assertions.assertFalse(response.getStatusCode().is2xxSuccessful(), "환불 없이 취소됨: " + response.getBody());
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.CONFIRMED, reservation.getStatus());
     }

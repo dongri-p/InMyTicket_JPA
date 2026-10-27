@@ -65,7 +65,7 @@ public class LoginLockClientIpTest {
                 "password", PASSWORD,
                 "name", "tester");
         ResponseEntity<String> response = restTemplate.postForEntity("/api/v1/members", body, String.class);
-        Assertions.assertEquals(200, response.getStatusCode().value());
+        Assertions.assertEquals(201, response.getStatusCode().value());
     }
 
     private ResponseEntity<String> login(String loginId, String password, String forwardedFor) {
