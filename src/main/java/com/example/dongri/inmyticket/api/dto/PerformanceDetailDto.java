@@ -3,6 +3,7 @@ package com.example.dongri.inmyticket.api.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.example.dongri.inmyticket.domain.BookingStatus;
 import com.example.dongri.inmyticket.domain.Performance;
 
 import lombok.Getter;
@@ -20,8 +21,10 @@ public class PerformanceDetailDto {
     private String artist;
     private String description;
     private LocalDateTime lastUpdatedAt;
+    // 예매 상태 (목록 응답·필터와 같은 값)
+    private BookingStatus bookingStatus;
 
-    public PerformanceDetailDto(Performance performance) {
+    public PerformanceDetailDto(Performance performance, long upcomingScheduleCount) {
         this.id = performance.getId();
         this.title = performance.getTitle();
         this.category = performance.getCategory();
@@ -33,5 +36,6 @@ public class PerformanceDetailDto {
         this.artist = performance.getArtist();
         this.description = performance.getDescription();
         this.lastUpdatedAt = performance.getLastUpdatedAt();
+        this.bookingStatus = BookingStatus.of(upcomingScheduleCount, performance.getEndDate(), LocalDate.now());
     }
 }

@@ -80,6 +80,8 @@ public class PerformanceApiController {
     @GetMapping("/api/v1/performances/{id}")
     public PerformanceDetailDto performanceDetailDto(@PathVariable("id") Long id) {
         Performance performance = performanceService.findOne(id);
-        return new PerformanceDetailDto(performance);
+        // 예매 상태 판정용 회차 수 (목록과 같은 조회 재사용)
+        long upcomingScheduleCount = performanceService.countUpcomingSchedules(List.of(id)).getOrDefault(id, 0L);
+        return new PerformanceDetailDto(performance, upcomingScheduleCount);
     }
 }

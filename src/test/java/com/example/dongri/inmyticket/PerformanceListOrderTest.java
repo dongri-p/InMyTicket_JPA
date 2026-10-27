@@ -91,6 +91,11 @@ public class PerformanceListOrderTest {
         Assertions.assertEquals(List.of(upcoming, unknownPeriod), titlesWithStatus(tag, "UPCOMING"));
         Assertions.assertEquals(List.of(ended), titlesWithStatus(tag, "ENDED"));
 
+        // 응답의 bookingStatus도 필터와 같은 값 (JPQL 판정과 Java 판정이 어긋나지 않는지)
+        for (String status : List.of("ON_SALE", "UPCOMING", "ENDED")) {
+            Assertions.assertEquals(List.of(status), bookingStatusesWithStatus(tag, status).stream().distinct().toList());
+        }
+
         // totalCount도 필터가 적용된 건수 (카운트 쿼리에 같은 조건이 들어갔는지)
         ResponseEntity<Map> onSale = restTemplate.getForEntity(
                 "/api/v1/performances?keyword={k}&status=ON_SALE&size=1", Map.class, tag);
@@ -103,6 +108,35 @@ public class PerformanceListOrderTest {
     private List<Object> titlesWithStatus(String keyword, String status) {
         return titles(restTemplate.getForEntity(
                 "/api/v1/performances?keyword={k}&status={s}&size=100", Map.class, keyword, status));
+    }
+
+    private List<Object> bookingStatusesWithStatus(String keyword, String status) {
+        ResponseEntity<Map> response = restTemplate.getForEntity(
+                "/api/v1/performances?keyword={k}&status={s}&size=100", Map.class, keyword, status);
+        List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+        return data.stream().map(p -> p.get("bookingStatus")).toList();
+    }
+
+    @Test
+    @DisplayName("공연 상세도 목록과 같은 기준의 bookingStatus를 내려준다")
+    void performanceDetail_bookingStatus() {
+        String tag = "detail-" + UUID.randomUUID().toString().substring(0, 8);
+        LocalDate today = LocalDate.now();
+        String bookable = save(tag + "-bookable", today, today.plusDays(10));
+        addSchedule(bookable, LocalDateTime.now().plusDays(1));
+        String ended = save(tag + "-ended", today.minusDays(10), today.minusDays(1));
+
+        Assertions.assertEquals("ON_SALE", detail(bookable).get("bookingStatus"));
+        Assertions.assertEquals("ENDED", detail(ended).get("bookingStatus"));
+    }
+
+    private Map<String, Object> detail(String title) {
+        Long id = performanceRepository.findAll().stream()
+                .filter(p -> title.equals(p.getTitle()))
+                .findFirst()
+                .orElseThrow()
+                .getId();
+        return restTemplate.getForEntity("/api/v1/performances/{id}", Map.class, id).getBody();
     }
 
     private List<Object> titles(ResponseEntity<Map> response) {
