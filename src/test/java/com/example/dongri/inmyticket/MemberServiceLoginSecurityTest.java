@@ -20,7 +20,7 @@ public class MemberServiceLoginSecurityTest {
     @Autowired private TestRestTemplate restTemplate;
 
     @Test
-    @DisplayName("존재하지 않는 아이디로 로그인해도 존재하는 아이디의 잘못된 비밀번호와 동일한 400 응답을 받는다")
+    @DisplayName("존재하지 않는 아이디로 로그인해도 존재하는 아이디의 잘못된 비밀번호와 동일한 401 응답을 받는다")
     void login_withNonExistentLoginId_returnsSameErrorAsWrongPassword() {
         // when: 존재하지 않는 아이디로 로그인 시도
         LoginRequest request = new LoginRequest();
@@ -31,7 +31,8 @@ public class MemberServiceLoginSecurityTest {
                 restTemplate.postForEntity("/api/v1/members/login", request, String.class);
 
         // then: 계정 존재 여부가 드러나지 않는 동일한 메시지의 400 응답
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Assertions.assertTrue(response.getBody().contains("\"code\":\"LOGIN_FAILED\""));
         Assertions.assertTrue(response.getBody().contains("아이디 또는 비밀번호가 일치하지 않습니다"));
     }
 
@@ -67,7 +68,8 @@ public class MemberServiceLoginSecurityTest {
         ResponseEntity<String> lockedResponse =
                 restTemplate.postForEntity("/api/v1/members/login", correctPasswordRequest, String.class);
 
-        Assertions.assertEquals(HttpStatus.CONFLICT, lockedResponse.getStatusCode());
+        Assertions.assertEquals(HttpStatus.TOO_MANY_REQUESTS, lockedResponse.getStatusCode());
+        Assertions.assertTrue(lockedResponse.getBody().contains("\"code\":\"LOGIN_LOCKED\""));
         Assertions.assertTrue(lockedResponse.getBody().contains("로그인 시도가 너무 많습니다"));
     }
 }

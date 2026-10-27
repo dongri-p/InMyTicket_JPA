@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
@@ -88,7 +90,7 @@ public class ReservationMultiSeatTest {
         reservationService.reserve(other.getId(), seats.get(2).getId());
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.reserve(member.getId(), seatIds(seats)));
 
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seats.get(0).getId()).get().getStatus());
@@ -105,7 +107,7 @@ public class ReservationMultiSeatTest {
         Seat otherScheduleSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
 
         // when & then
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.reserve(member.getId(), List.of(seats.get(0).getId(), otherScheduleSeat.getId())));
 
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seats.get(0).getId()).get().getStatus());
@@ -117,7 +119,7 @@ public class ReservationMultiSeatTest {
     void reserveDuplicateSeatIds_isRejected() {
         Long seatId = seats.get(0).getId();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.reserve(member.getId(), List.of(seatId, seatId)));
         Assertions.assertEquals(SEAT_COUNT, availableSeatCount());
     }

@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +29,7 @@ public class LoginAttemptGuard {
         if (attempt != null
                 && attempt.count >= MAX_ATTEMPTS
                 && Duration.between(attempt.lastFailureAt, LocalDateTime.now()).compareTo(LOCKOUT_DURATION) < 0) {
-            throw new IllegalStateException("로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.");
+            throw new BusinessException(ErrorCode.LOGIN_LOCKED);
         }
     }
 

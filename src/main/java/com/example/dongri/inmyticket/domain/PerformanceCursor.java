@@ -27,7 +27,7 @@ public record PerformanceCursor(int bookingGroup, long id) {
             }
             return new PerformanceCursor(bookingGroup, Long.parseLong(parts[1]));
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("커서 형식이 올바르지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_CURSOR);
         }
     }
 }

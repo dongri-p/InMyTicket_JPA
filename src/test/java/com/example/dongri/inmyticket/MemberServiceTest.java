@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Role;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -50,7 +52,7 @@ public class MemberServiceTest {
 
         Member duplicate = newMember(loginId, "second" + suffix + "@test.com");
 
-        Assertions.assertThrows(IllegalStateException.class, () -> memberService.join(duplicate));
+        Assertions.assertThrows(BusinessException.class, () -> memberService.join(duplicate));
     }
 
     @Test
@@ -62,6 +64,6 @@ public class MemberServiceTest {
 
         Member duplicate = newMember("secondUser" + suffix, email);
 
-        Assertions.assertThrows(IllegalStateException.class, () -> memberService.join(duplicate));
+        Assertions.assertThrows(BusinessException.class, () -> memberService.join(duplicate));
     }
 }

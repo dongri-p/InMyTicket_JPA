@@ -4,6 +4,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.config.JwtProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.repository.MemberRepository;
@@ -39,11 +41,11 @@ public class MemberService {
     private void validateDuplicateMember(Member member) {
         memberRepository.findByLoginId(member.getLoginId())
             .ifPresent(m -> {
-                throw new IllegalStateException("이미 사용 중인 아이디입니다.");
+                throw new BusinessException(ErrorCode.DUPLICATE_LOGIN_ID);
             });
         memberRepository.findByEmail(member.getEmail())
             .ifPresent(m -> {
-                throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+                throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
             });
     }
 
@@ -67,7 +69,7 @@ public class MemberService {
         // 3. 아이디 없음/비밀번호 불일치를 동일한 메시지로 응답 (계정 존재 여부 노출 방지)
         if (member == null || !passwordMatches) {
             loginAttemptGuard.recordFailure(loginId, clientIp);
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
 
         // 4. 로그인 성공 시 실패 기록 초기화 후 JWT 토큰 구워서 리턴

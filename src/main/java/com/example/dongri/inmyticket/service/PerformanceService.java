@@ -12,12 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.BookingStatus;
 import com.example.dongri.inmyticket.domain.GenreGroup;
 import com.example.dongri.inmyticket.domain.RegionGroup;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.PerformanceCursor;
-import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
@@ -162,7 +163,7 @@ public class PerformanceService {
     // 특정 공연 한편 상세 조회
     public Performance findOne(Long performanceId) {
         return performanceRepository.findById(performanceId)
-                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 공연입니다. id=" + performanceId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PERFORMANCE_NOT_FOUND));
     }
     
 }

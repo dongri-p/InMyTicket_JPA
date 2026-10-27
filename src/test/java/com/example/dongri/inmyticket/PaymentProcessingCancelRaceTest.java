@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -77,7 +79,7 @@ public class PaymentProcessingCancelRaceTest {
 
         // then: 취소는 "결제가 진행 중이라 취소할 수 없습니다" 예외로 거부되고
         Assertions.assertNotNull(cancelException.get(), "PROCESSING 중 취소는 거부되어야 함");
-        Assertions.assertInstanceOf(IllegalStateException.class, cancelException.get());
+        Assertions.assertInstanceOf(BusinessException.class, cancelException.get());
 
         // 결제는 방해 없이 정상 완료된다
         Assertions.assertNull(paymentException.get(), "결제는 취소 시도와 무관하게 성공해야 함");

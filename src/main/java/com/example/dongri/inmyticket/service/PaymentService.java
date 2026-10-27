@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.external.PgClient;
@@ -36,7 +38,7 @@ public class PaymentService {
     private PgClient pgClient(PgProvider provider) {
         PgClient pgClient = pgClients.get(provider);
         if (pgClient == null) {
-            throw new IllegalArgumentException("지원하지 않는 결제 수단입니다. provider=" + provider);
+            throw new BusinessException(ErrorCode.UNSUPPORTED_PAYMENT_PROVIDER);
         }
         return pgClient;
     }
@@ -54,7 +56,7 @@ public class PaymentService {
         PgClient pgClient = pgClient(provider);
 
         if (!orderId.startsWith(orderIdPrefix(reservationId))) {
-            throw new IllegalArgumentException("이 예약의 주문번호가 아닙니다.");
+            throw new BusinessException(ErrorCode.ORDER_ID_MISMATCH);
         }
 
         // 0. 긴 PG 통신에 들어가기 전, 예약을 PROCESSING으로 전환해 자동만료 스케줄러가

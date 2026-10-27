@@ -1,8 +1,9 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
-import com.example.dongri.inmyticket.domain.OwnershipViolationException;
 import com.example.dongri.inmyticket.domain.Payment;
 import com.example.dongri.inmyticket.domain.PaymentStatus;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -106,7 +107,7 @@ public class PaymentServiceCancelTest {
 
         // when & then
         long start = System.currentTimeMillis();
-        Assertions.assertThrows(OwnershipViolationException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> paymentService.processCancel(stranger.getId(), reservationId));
         long elapsedMs = System.currentTimeMillis() - start;
 
@@ -132,7 +133,7 @@ public class PaymentServiceCancelTest {
 
         // when & then
         long start = System.currentTimeMillis();
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> paymentService.processCancel(member.getId(), reservationId));
         long elapsedMs = System.currentTimeMillis() - start;
 

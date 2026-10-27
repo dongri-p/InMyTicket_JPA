@@ -1,7 +1,8 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.Member;
-import com.example.dongri.inmyticket.domain.OwnershipViolationException;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
@@ -68,7 +69,7 @@ public class ReservationCancelServiceTest {
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
 
         // when & then
-        Assertions.assertThrows(OwnershipViolationException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.cancelWithoutRefundCheck(stranger.getId(), reservationId));
     }
 
@@ -80,7 +81,7 @@ public class ReservationCancelServiceTest {
         reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId);
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
     }
 
@@ -92,7 +93,7 @@ public class ReservationCancelServiceTest {
         reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
 
         // and: 취소가 거부됐으므로 좌석/잔여석은 그대로 유지된다
@@ -107,7 +108,7 @@ public class ReservationCancelServiceTest {
         Seat startedSeat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository, LocalDateTime.now().minusMinutes(1));
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.reserve(owner.getId(), startedSeat.getId()));
     }
 
@@ -125,7 +126,7 @@ public class ReservationCancelServiceTest {
         scheduleRepository.save(startedSchedule);
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId));
     }
 
@@ -141,7 +142,7 @@ public class ReservationCancelServiceTest {
         scheduleRepository.save(startedSchedule);
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice()));
 
         // and: 결제 시작이 거부됐으므로 예약 상태는 PENDING 그대로 유지된다

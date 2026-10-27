@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.config;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -62,14 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // SecurityConfig의 AuthenticationEntryPoint와 동일한 {status, message} JSON 포맷으로 응답.
+    // SecurityConfig의 AuthenticationEntryPoint와 동일한 {status, code, message} JSON 포맷으로 응답.
     // response.sendError()를 쓰면 서블릿 컨테이너 기본 에러 페이지로 빠져 다른 401 응답과 포맷이 달라짐
     private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         try (PrintWriter writer = response.getWriter()) {
-            writer.write(objectMapper.writeValueAsString(new ErrorResponse(401, message)));
+            writer.write(objectMapper.writeValueAsString(new ErrorResponse(ErrorCode.UNAUTHORIZED, message)));
         }
     }
 }

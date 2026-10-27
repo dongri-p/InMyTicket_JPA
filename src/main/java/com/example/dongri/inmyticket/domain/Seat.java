@@ -41,7 +41,7 @@ public class Seat {
     public void reserve() {
 
         if (this.status != SeatStatus.AVAILABLE) {
-            throw new IllegalStateException("이미 예매 완료된 좌석입니다.");
+            throw new BusinessException(ErrorCode.SEAT_ALREADY_RESERVED);
         }
 
         this.status = SeatStatus.RESERVED;
@@ -51,7 +51,7 @@ public class Seat {
     public void release() {
 
         if (this.status != SeatStatus.RESERVED) {
-            throw new IllegalStateException("예매되지 않은 좌석은 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SEAT_NOT_RESERVED);
         }
 
         this.status = SeatStatus.AVAILABLE;

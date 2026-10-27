@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.api.dto.ReservationListDto;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
@@ -16,7 +18,6 @@ import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
-import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -47,29 +48,29 @@ public class ReservationService {
     public Long reserve(Long memberId, List<Long> seatIds) {
 
         if (new HashSet<>(seatIds).size() != seatIds.size()) {
-            throw new IllegalArgumentException("같은 좌석이 중복으로 선택되었습니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_SEAT_SELECTION);
         }
 
         // 1. 엔티티 조회 (회원은 일반 조회, 좌석은 비관적 락 조회)
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. id=" + memberId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 좌석들을 id 오름차순으로 한 번에 잠금 - 겹치는 좌석을 동시에 고른 두 요청도 같은 순서로 락을 잡아 데드락 없음
         List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
         if (seats.size() != seatIds.size()) {
-            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. seatIds=" + seatIds);
+            throw new BusinessException(ErrorCode.SEAT_NOT_FOUND);
         }
 
         // 한 예약은 한 회차만 - 회차가 섞이면 결제·취소·공연 시작 판단 기준이 모호해짐
         // (같은 영속성 컨텍스트라 같은 회차는 같은 객체로 조회됨)
         Schedule schedule = seats.get(0).getSchedule();
         if (!seats.stream().allMatch(seat -> seat.getSchedule() == schedule)) {
-            throw new IllegalArgumentException("같은 회차의 좌석만 함께 예매할 수 있습니다.");
+            throw new BusinessException(ErrorCode.MIXED_SCHEDULE_SEATS);
         }
 
         // 공연이 이미 시작된 회차는 예매 불가 (취소 제한과 대칭 - 그렇지 않으면 취소도 안 되는 예약이 생김)
         if (schedule != null && !schedule.getStartTime().isAfter(LocalDateTime.now())) {
-            throw new IllegalStateException("공연이 이미 시작되어 예매할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SHOW_ALREADY_STARTED, "공연이 이미 시작되어 예매할 수 없습니다.");
         }
 
         // 2. 예매 생성 (좌석 하나라도 이미 예약됐으면 예외 -> 전체 롤백)
@@ -79,7 +80,7 @@ public class ReservationService {
         if (schedule != null) {
             int updated = scheduleRepository.decreaseAvailableSeatCount(schedule.getId(), seats.size());
             if (updated == 0) {
-                throw new IllegalStateException("잔여 좌석이 부족합니다. scheduleId=" + schedule.getId());
+                throw new BusinessException(ErrorCode.NOT_ENOUGH_SEATS);
             }
         }
 
@@ -102,23 +103,23 @@ public class ReservationService {
     @Transactional
     public void beginPaymentProcessing(Long memberId, Long reservationId, int amount) {
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
 
         reservation.assertOwner(memberId);
 
         // 결제창 금액은 프론트가 정하므로 조작될 수 있음 -> PG 승인 전에 예약 금액과 같은지 확인
         if (reservation.getTotalPrice() != amount) {
-            throw new IllegalArgumentException("결제 금액이 예약 금액과 다릅니다.");
+            throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("결제를 시작할 수 없는 예약 상태입니다. status=" + reservation.getStatus());
+            throw new BusinessException(ErrorCode.RESERVATION_NOT_PAYABLE);
         }
 
         // reserve()/performCancel()과 대칭 - 공연 시작 이후에는 결제도 확정할 수 없어야
         // "시작 이후 확정된, 취소도 안 되는 예약"이 생기지 않는다
         if (reservation.isShowStarted()) {
-            throw new IllegalStateException("공연이 이미 시작되어 결제를 진행할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SHOW_ALREADY_STARTED, "공연이 이미 시작되어 결제를 진행할 수 없습니다.");
         }
 
         reservation.setStatus(ReservationStatus.PROCESSING);
@@ -177,10 +178,10 @@ public class ReservationService {
     // 환불할 결제가 있으면 그 결제(paymentKey·결제한 PG를 환불 요청에 사용)를, 없으면 빈 값을 반환
     public Optional<Payment> findPaymentToRefund(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 예약입니다. id=" + reservationId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         reservation.assertOwner(memberId);
         if (reservation.isShowStarted()) {
-            throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SHOW_ALREADY_STARTED, "공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
         return Optional.ofNullable(reservation.getPayment());
     }
@@ -206,30 +207,30 @@ public class ReservationService {
     private void performCancel(Long memberId, Long reservationId, boolean refundHandled) {
 
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
-                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 예약입니다. id=" + reservationId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
 
         reservation.assertOwner(memberId);
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
-            throw new IllegalStateException("이미 취소된 예약입니다.");
+            throw new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
         }
 
         // 결제 승인 통신이 진행 중(PROCESSING)인 예약을 취소해버리면, 이후 PG 통신이 성공해도
         // approve()가 상태 불일치로 거부해 "PG는 성공했는데 결제 기록이 없는" 상황이 생길 수 있음.
         // 이 락을 잡은 시점에 PROCESSING이면 취소를 거부해 결제 결과가 확정될 때까지 기다리게 함.
         if (reservation.getStatus() == ReservationStatus.PROCESSING) {
-            throw new IllegalStateException("결제가 진행 중이라 취소할 수 없습니다. 잠시 후 다시 시도해주세요.");
+            throw new BusinessException(ErrorCode.PAYMENT_IN_PROGRESS);
         }
 
         Payment payment = reservation.getPayment();
         if (payment != null && !refundHandled) {
-            throw new IllegalStateException("결제 상태가 변경되었습니다. 취소를 다시 시도해주세요.");
+            throw new BusinessException(ErrorCode.PAYMENT_STATE_CHANGED);
         }
 
         // 공연 시작 이후에는 취소 불가 (findPaymentToRefund()에서도 조기 검사하지만, 그 사이 시간이
         // 흘러 공연이 막 시작됐을 수 있으므로 락을 잡은 시점에 다시 확인)
         if (reservation.isShowStarted()) {
-            throw new IllegalStateException("공연이 이미 시작되어 예약을 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SHOW_ALREADY_STARTED, "공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
 
         List<Seat> seats = lockReservedSeats(reservation);
@@ -280,7 +281,7 @@ public class ReservationService {
                 .collect(Collectors.toList());
         List<Seat> seats = seatRepository.findByIdInWithLock(seatIds);
         if (seats.size() != seatIds.size()) {
-            throw new IllegalArgumentException("존재하지 않는 좌석이 포함되어 있습니다. reservationId=" + reservation.getId());
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "예약의 좌석 정보가 올바르지 않습니다. reservationId=" + reservation.getId());
         }
         return seats;
     }
@@ -293,7 +294,7 @@ public class ReservationService {
             if (seat.getSchedule() != null) {
                 int updated = scheduleRepository.incrementAvailableSeatCount(seat.getSchedule().getId());
                 if (updated == 0) {
-                    throw new IllegalStateException("잔여 좌석 수 복구에 실패했습니다. scheduleId=" + seat.getSchedule().getId());
+                    throw new BusinessException(ErrorCode.INTERNAL_ERROR, "잔여 좌석 수 복구에 실패했습니다. scheduleId=" + seat.getSchedule().getId());
                 }
             }
         }

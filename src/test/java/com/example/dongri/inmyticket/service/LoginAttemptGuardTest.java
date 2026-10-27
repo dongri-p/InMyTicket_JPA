@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +57,7 @@ public class LoginAttemptGuardTest {
         }
 
         // when & then: 공격자의 IP에서는 잠기지만
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> guard.checkNotLocked("victim-user", "attacker-ip"));
 
         // 피해자 본인의 IP에서는 영향받지 않는다

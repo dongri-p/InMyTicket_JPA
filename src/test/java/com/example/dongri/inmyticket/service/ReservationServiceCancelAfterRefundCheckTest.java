@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -39,7 +41,7 @@ public class ReservationServiceCancelAfterRefundCheckTest {
         paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID(), PgProvider.DEMO);
 
         // when & then: refundHandled=false로 넘어왔지만 실제로는 결제가 있으므로 재시도 예외를 던짐
-        IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> reservationService.cancelAfterRefundCheck(member.getId(), reservationId, false));
         Assertions.assertTrue(exception.getMessage().contains("다시 시도"));
 

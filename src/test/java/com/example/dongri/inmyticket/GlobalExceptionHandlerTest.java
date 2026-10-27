@@ -27,9 +27,10 @@ public class GlobalExceptionHandlerTest {
     void unexpectedException_returnsStandardErrorFormat() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
-        ErrorResponse response = handler.handleException(new RuntimeException("내부 상세 오류"));
+        ErrorResponse response = handler.handleException(new RuntimeException("내부 상세 오류")).getBody();
 
         Assertions.assertEquals(500, response.getStatus());
+        Assertions.assertEquals("INTERNAL_ERROR", response.getCode());
         Assertions.assertEquals("서버 내부 오류가 발생했습니다.", response.getMessage());
     }
 

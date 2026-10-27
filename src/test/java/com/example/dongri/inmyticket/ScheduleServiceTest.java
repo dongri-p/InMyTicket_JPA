@@ -1,8 +1,9 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
-import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.repository.HallRepository;
@@ -69,14 +70,14 @@ public class ScheduleServiceTest {
     @Test
     @DisplayName("존재하지 않는 공연 id로 회차를 등록하면 예외가 발생한다")
     void saveSchedule_withNonExistentPerformance_throwsIllegalArgument() {
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(999999L, hall.getId(), LocalDateTime.now().plusDays(1), 5));
     }
 
     @Test
     @DisplayName("존재하지 않는 공연장 id로 회차를 등록하면 예외가 발생한다")
     void saveSchedule_withNonExistentHall_throwsIllegalArgument() {
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), 999999L, LocalDateTime.now().plusDays(1), 5));
     }
 
@@ -84,7 +85,7 @@ public class ScheduleServiceTest {
     @DisplayName("공연장 정원을 초과하는 좌석 수로 회차를 등록하면 예외가 발생한다")
     void saveSchedule_exceedingHallCapacity_throwsIllegalArgument() {
         // given: setUp()에서 hall.totalSeats=100으로 생성됨
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 101));
     }
 
@@ -97,9 +98,9 @@ public class ScheduleServiceTest {
         performance.setEndDate(to);
         performanceRepository.save(performance);
 
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), from.minusDays(1).atTime(19, 0), 5));
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), to.plusDays(1).atTime(19, 0), 5));
     }
 
@@ -121,7 +122,7 @@ public class ScheduleServiceTest {
     @Test
     @DisplayName("이미 지난 시각으로 회차를 등록하면 예외가 발생한다")
     void saveSchedule_inThePast_throwsIllegalArgument() {
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().minusMinutes(1), 5));
     }
 
@@ -131,11 +132,11 @@ public class ScheduleServiceTest {
         LocalDateTime base = LocalDateTime.now().plusDays(3).withHour(19).withMinute(0).withSecond(0).withNano(0);
         scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 5);
 
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base, 5));
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base.plusHours(2).plusMinutes(59), 5));
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), base.minusMinutes(30), 5));
     }
 
@@ -188,14 +189,14 @@ public class ScheduleServiceTest {
     @Test
     @DisplayName("존재하지 않는 공연의 회차 목록을 조회하면 예외가 발생한다")
     void findSchedulesByPerformance_withNonExistentPerformance_throwsNotFound() {
-        Assertions.assertThrows(ResourceNotFoundException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.findSchedulesByPerformance(999999L));
     }
 
     @Test
     @DisplayName("존재하지 않는 회차의 좌석을 조회하면 예외가 발생한다")
     void findSeatsBySchedule_withNonExistentSchedule_throwsNotFound() {
-        Assertions.assertThrows(ResourceNotFoundException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> scheduleService.findSeatsBySchedule(999999L, PageRequest.of(0, 20)));
     }
 

@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.dongri.inmyticket.api.dto.ErrorResponse;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class SecurityConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
             try (PrintWriter writer = response.getWriter()) {
-                writer.write(objectMapper.writeValueAsString(new ErrorResponse(401, "인증이 필요합니다.")));
+                writer.write(objectMapper.writeValueAsString(new ErrorResponse(ErrorCode.UNAUTHORIZED)));
             }
         };
     }
@@ -63,7 +64,7 @@ public class SecurityConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
             try (PrintWriter writer = response.getWriter()) {
-                writer.write(objectMapper.writeValueAsString(new ErrorResponse(403, "접근 권한이 없습니다.")));
+                writer.write(objectMapper.writeValueAsString(new ErrorResponse(ErrorCode.FORBIDDEN)));
             }
         };
     }

@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.external.TossPgClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,7 +61,7 @@ public class TossPgClientTest {
         TossPgClient client = clientRespondingWith(400,
                 "{\"code\":\"REJECT_CARD_PAYMENT\",\"message\":\"한도초과 혹은 잔액부족으로 결제에 실패했습니다.\"}");
 
-        IllegalStateException thrown = Assertions.assertThrows(IllegalStateException.class,
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class,
                 () -> client.approve("pay_key_1", "imt-7-abc123", 150000));
 
         Assertions.assertTrue(thrown.getMessage().contains("한도초과 혹은 잔액부족"), thrown.getMessage());

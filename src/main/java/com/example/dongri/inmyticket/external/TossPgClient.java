@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,11 +79,11 @@ public class TossPgClient implements PgClient {
             // 토스는 실패 시 {"code": "...", "message": "..."}로 이유를 내려줌 -> 사용자에게 그 문구를 보여줌
             String message = readTossMessage(e.getResponseBodyAsString());
             log.warn("토스페이먼츠 {} 실패. status={}, body={}", action, e.getStatusCode(), e.getResponseBodyAsString());
-            throw new IllegalStateException(action + "에 실패했습니다. " + message, e);
+            throw new BusinessException(ErrorCode.PAYMENT_REJECTED, action + "에 실패했습니다. " + message, e);
         } catch (RuntimeException e) {
             // 타임아웃·연결 실패: 승인 여부를 알 수 없지만 결제 기록이 없으므로 미승인으로 봄 (README 한계에 적어 둠)
             log.warn("토스페이먼츠 {} 통신 오류. 원인={}", action, e.getMessage());
-            throw new IllegalStateException(action + " 통신 중 오류가 발생했습니다.", e);
+            throw new BusinessException(ErrorCode.PG_UNAVAILABLE, action + " 통신 중 오류가 발생했습니다.", e);
         }
     }
 

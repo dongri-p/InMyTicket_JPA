@@ -2,6 +2,8 @@ package com.example.dongri.inmyticket.external;
 
 import org.springframework.stereotype.Component;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.PgProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +38,7 @@ public class DemoPgClient implements PgClient {
             log.info(successLogMessage);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException(failureMessage, e);
+            throw new BusinessException(ErrorCode.PG_UNAVAILABLE, failureMessage, e);
         }
     }
 }

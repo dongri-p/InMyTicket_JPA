@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
@@ -40,7 +42,7 @@ public class PaymentRequestValidationTest {
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
         int totalPrice = reservationRepository.findById(reservationId).orElseThrow().getTotalPrice();
 
-        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class,
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class,
                 () -> paymentService.processPayment(member.getId(), reservationId, PgProvider.DEMO, "key-" + UUID.randomUUID(),
                         PaymentService.orderIdPrefix(reservationId) + "abc", totalPrice - 1000));
 
@@ -59,7 +61,7 @@ public class PaymentRequestValidationTest {
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
         int totalPrice = reservationRepository.findById(reservationId).orElseThrow().getTotalPrice();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> paymentService.processPayment(member.getId(), reservationId, PgProvider.DEMO, "key-" + UUID.randomUUID(),
                         PaymentService.orderIdPrefix(reservationId + 1) + "abc", totalPrice));
 

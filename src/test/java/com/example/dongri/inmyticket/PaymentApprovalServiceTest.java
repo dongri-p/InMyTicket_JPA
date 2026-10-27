@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket;
 
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Reservation;
@@ -107,7 +109,7 @@ public class PaymentApprovalServiceTest {
         scheduleRepository.save(startedSchedule);
 
         // when & then
-        Assertions.assertThrows(IllegalStateException.class,
+        Assertions.assertThrows(BusinessException.class,
                 () -> paymentApprovalService.approve(member.getId(), reservationId, newPaymentKey(), PgProvider.DEMO));
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();

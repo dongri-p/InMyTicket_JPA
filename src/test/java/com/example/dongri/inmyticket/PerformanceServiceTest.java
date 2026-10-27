@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket;
 
-import com.example.dongri.inmyticket.domain.ResourceNotFoundException;
+import com.example.dongri.inmyticket.domain.BusinessException;
+
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.external.KopisService;
 import com.example.dongri.inmyticket.external.dto.KopisPerformanceResponse;
@@ -224,7 +225,7 @@ public class PerformanceServiceTest {
     void findOne_withNonExistentId_throwsNotFound() {
         PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
-        Assertions.assertThrows(ResourceNotFoundException.class, () -> performanceService.findOne(999999L));
+        Assertions.assertThrows(BusinessException.class, () -> performanceService.findOne(999999L));
     }
 
     @Test
