@@ -13,7 +13,6 @@ public class PerformanceListDto {
     private Long id;
     private String title;
     private String category;
-    private String status;
     private String posterUrl;
     // 공연 기간 (KOPIS에 기간이 없으면 null). 관리자 회차 등록 폼이 날짜 선택 범위를 제한하는 데 사용
     private LocalDate startDate;
@@ -27,7 +26,6 @@ public class PerformanceListDto {
         this.id = performance.getId();
         this.title = performance.getTitle();
         this.category = performance.getCategory();
-        this.status = performance.getStatus();
         this.posterUrl = performance.getPosterUrl();
         this.startDate = performance.getStartDate();
         this.endDate = performance.getEndDate();

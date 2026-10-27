@@ -13,7 +13,6 @@ public class PerformanceDetailDto {
     private Long id;
     private String title;
     private String category;
-    private String status;
     private String posterUrl;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -28,7 +27,6 @@ public class PerformanceDetailDto {
         this.id = performance.getId();
         this.title = performance.getTitle();
         this.category = performance.getCategory();
-        this.status = performance.getStatus();
         this.posterUrl = performance.getPosterUrl();
         this.startDate = performance.getStartDate();
         this.endDate = performance.getEndDate();
