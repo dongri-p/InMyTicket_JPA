@@ -55,8 +55,8 @@ public class PerformanceListOrderTest {
     }
 
     @Test
-    @DisplayName("정렬이 바뀌어도 페이지를 이어 붙이면 중복·누락이 없다")
-    void performanceList_pagesDoNotOverlap() {
+    @DisplayName("nextCursor로 이어 받으면 정렬 순서대로 중복·누락 없이 끝까지 오고, 마지막 페이지엔 nextCursor가 없다")
+    void performanceList_cursorPagesDoNotOverlap() {
         String tag = "order-page-" + UUID.randomUUID().toString().substring(0, 8);
         LocalDate today = LocalDate.now();
         for (int i = 0; i < 5; i++) {
@@ -66,14 +66,56 @@ public class PerformanceListOrderTest {
             }
         }
 
-        List<Object> page0 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=0", Map.class, tag));
-        List<Object> page1 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=1", Map.class, tag));
-        List<Object> page2 = titles(restTemplate.getForEntity("/api/v1/performances?keyword={k}&size=2&page=2", Map.class, tag));
+        Map<String, Object> page0 = page(tag, null);
+        Map<String, Object> page1 = page(tag, (String) page0.get("nextCursor"));
+        Map<String, Object> page2 = page(tag, (String) page1.get("nextCursor"));
 
         // 4(예매중) -> 1, 3(진행 예정) -> 0, 2(종료)
-        Assertions.assertEquals(List.of(tag + "-4", tag + "-1"), page0);
-        Assertions.assertEquals(List.of(tag + "-3", tag + "-0"), page1);
-        Assertions.assertEquals(List.of(tag + "-2"), page2);
+        Assertions.assertEquals(List.of(tag + "-4", tag + "-1"), titlesOf(page0));
+        Assertions.assertEquals(List.of(tag + "-3", tag + "-0"), titlesOf(page1));
+        Assertions.assertEquals(List.of(tag + "-2"), titlesOf(page2));
+        Assertions.assertNull(page2.get("nextCursor"));
+        // 전체 건수는 첫 페이지에서만
+        Assertions.assertEquals(5, ((Number) page0.get("totalCount")).intValue());
+        Assertions.assertNull(page1.get("totalCount"));
+    }
+
+    @Test
+    @DisplayName("첫 페이지를 받은 뒤 앞쪽에 공연이 추가돼도 다음 페이지에 이미 본 공연이 다시 나오지 않는다 (OFFSET이면 중복)")
+    void performanceList_insertBeforeCursor_noDuplicate() {
+        String tag = "order-insert-" + UUID.randomUUID().toString().substring(0, 8);
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 4; i++) {
+            save(tag + "-" + i, today.plusDays(5), today.plusDays(10));
+        }
+        Map<String, Object> page0 = page(tag, null);
+
+        // 첫 페이지를 본 사이에 맨 앞(예매중) 그룹에 공연이 생김
+        String newBookable = save(tag + "-new", today, today.plusDays(10));
+        addSchedule(newBookable, LocalDateTime.now().plusDays(1));
+        Map<String, Object> page1 = page(tag, (String) page0.get("nextCursor"));
+
+        Assertions.assertEquals(List.of(tag + "-0", tag + "-1"), titlesOf(page0));
+        Assertions.assertEquals(List.of(tag + "-2", tag + "-3"), titlesOf(page1));
+    }
+
+    @Test
+    @DisplayName("형식이 틀린 커서는 400이다")
+    void performanceList_invalidCursor_badRequest() {
+        for (String cursor : List.of("not-base64!!", "OTo5", "YWJj")) {  // 9:9(없는 그룹), abc
+            ResponseEntity<Map> response = restTemplate.getForEntity("/api/v1/performances?cursor={c}", Map.class, cursor);
+            Assertions.assertEquals(400, response.getStatusCode().value(), cursor);
+        }
+    }
+
+    private Map<String, Object> page(String keyword, String cursor) {
+        String url = "/api/v1/performances?keyword={k}&size=2" + (cursor == null ? "" : "&cursor=" + cursor);
+        return restTemplate.getForEntity(url, Map.class, keyword).getBody();
+    }
+
+    private List<Object> titlesOf(Map<String, Object> body) {
+        List<Map<String, Object>> data = (List<Map<String, Object>>) body.get("data");
+        return data.stream().map(p -> p.get("title")).toList();
     }
 
     @Test

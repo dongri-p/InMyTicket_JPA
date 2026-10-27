@@ -35,7 +35,7 @@ public class PerformancePaginationTest {
 
         // when: size=2로 조회
         ResponseEntity<Map> sizeLimitedResponse =
-                restTemplate.getForEntity("/api/v1/performances?page=0&size=2", Map.class);
+                restTemplate.getForEntity("/api/v1/performances?size=2", Map.class);
 
         // then: 요청한 size만큼만 반환됨 (count는 페이지 항목 수)
         Assertions.assertEquals(2, sizeLimitedResponse.getBody().get("count"));

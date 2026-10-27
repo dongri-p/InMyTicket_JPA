@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +19,7 @@ import com.example.dongri.inmyticket.domain.BookingStatus;
 import com.example.dongri.inmyticket.domain.GenreGroup;
 import com.example.dongri.inmyticket.domain.RegionGroup;
 import com.example.dongri.inmyticket.domain.Performance;
+import com.example.dongri.inmyticket.domain.PerformanceCursor;
 import com.example.dongri.inmyticket.service.PerformanceService;
 
 import lombok.RequiredArgsConstructor;
@@ -43,11 +42,12 @@ public class PerformanceApiController {
 
     private static final int MAX_PAGE_SIZE = 100;
 
-    // 회원용 API: 공연 목록 페이지 조회(v2 - dto 감싸기 구조로 확장성 확보)
-    // 비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면 대량조회로 인한 부하 위험이 있어 size를 제한
+    // 회원용 API: 공연 목록 조회 ('더 보기' 커서 페이지네이션)
+    // 비인증 공개 API이므로 한 번에 가져가는 양(size)을 제한
     @GetMapping("/api/v1/performances")
     public ListResult<List<PerformanceListDto>> performancesV2(
-            @RequestParam(defaultValue = "0") int page,
+            // 직전 응답의 nextCursor. 없으면 첫 페이지, 형식이 틀리면 400
+            @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int size,
             // 장르 메뉴 필터 (예: ?genre=CONCERT). 없으면 전체, 잘못된 값이면 400
             @RequestParam(required = false) GenreGroup genre,
@@ -58,24 +58,31 @@ public class PerformanceApiController {
             // 예매 상태 필터 (ON_SALE 예매중 / UPCOMING 오픈예정 / ENDED 공연종료). 없으면 전체, 잘못된 값이면 400
             @RequestParam(required = false) BookingStatus status) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        // 정렬은 서비스 쿼리에 고정: 예매중 공연이 첫 화면에 오도록 예매중 -> 오픈예정 -> 공연종료 순,
-        // 같은 그룹 안에서는 id 순 (정렬 없이 페이징하면 '더 보기' 시 중복·누락이 생길 수 있음)
-        Page<Performance> findPerformances = performanceService.findPerformances(
-                genre, region, keyword, status, PageRequest.of(Math.max(page, 0), pageSize));
+        PerformanceCursor after = cursor == null ? null : PerformanceCursor.decode(cursor);
+
+        // 한 건 더 읽어서 다음 페이지가 있는지 판단 (전체 건수를 매번 세지 않음)
+        List<Performance> found = performanceService.findPerformances(genre, region, keyword, status, after, pageSize + 1);
+        boolean hasNext = found.size() > pageSize;
+        List<Performance> content = hasNext ? found.subList(0, pageSize) : found;
 
         // 이 페이지 공연들의 회차 수를 한 번에 조회 (공연별 개별 조회 시 N+1)
-        List<Long> performanceIds = findPerformances.getContent().stream()
+        List<Long> performanceIds = content.stream()
                 .map(Performance::getId)
                 .collect(Collectors.toList());
         Map<Long, Long> scheduleCounts = performanceService.countUpcomingSchedules(performanceIds);
 
         // 엔티티 리스트를 안전하게 ListDto 리스트로 변환
-        List<PerformanceListDto> collect = findPerformances.getContent().stream()
+        List<PerformanceListDto> collect = content.stream()
                 .map(p -> new PerformanceListDto(p, scheduleCounts.getOrDefault(p.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // count는 이 페이지에 포함된 항목 수, totalCount는 페이지네이션 이전(size 제한과 무관한) 전체 건수
-        return new ListResult<>(collect.size(), findPerformances.getTotalElements(), collect);
+        // 다음 커서 = 이 페이지 마지막 공연의 (예매 상태, id). 예매 상태는 쿼리 정렬식과 같은 규칙(BookingStatus.of)으로 계산됨
+        PerformanceListDto last = collect.isEmpty() ? null : collect.get(collect.size() - 1);
+        String nextCursor = hasNext ? PerformanceCursor.after(last.getBookingStatus(), last.getId()).encode() : null;
+        // 전체 건수는 첫 페이지에서만 (이후 '더 보기'는 화면이 첫 응답의 값을 계속 씀)
+        Long totalCount = after == null ? performanceService.countPerformances(genre, region, keyword, status) : null;
+
+        return ListResult.withCursor(collect.size(), totalCount, nextCursor, collect);
     }
 
     // 회원용 API: 특정 공연 상세 조회

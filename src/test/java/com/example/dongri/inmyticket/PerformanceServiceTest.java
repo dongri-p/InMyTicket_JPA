@@ -15,8 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -230,8 +228,8 @@ public class PerformanceServiceTest {
     }
 
     @Test
-    @DisplayName("findPerformances()는 요청한 페이지 크기대로 결과를 반환한다")
-    void findPerformances_returnsRequestedPage() {
+    @DisplayName("findPerformances()는 요청한 개수까지만 반환하고, countPerformances()는 전체 건수를 센다")
+    void findPerformances_returnsRequestedLimit() {
         String prefix = "page-svc-test-" + UUID.randomUUID().toString().substring(0, 8) + "-";
         for (int i = 0; i < 3; i++) {
             Performance performance = new Performance();
@@ -242,10 +240,10 @@ public class PerformanceServiceTest {
 
         PerformanceService performanceService = newPerformanceService(Mockito.mock(KopisService.class));
 
-        Page<Performance> page = performanceService.findPerformances(null, null, null, null, PageRequest.of(0, 2));
+        List<Performance> found = performanceService.findPerformances(null, null, null, null, null, 2);
 
-        Assertions.assertEquals(2, page.getContent().size());
-        Assertions.assertTrue(page.getTotalElements() >= 3);
+        Assertions.assertEquals(2, found.size());
+        Assertions.assertTrue(performanceService.countPerformances(null, null, null, null) >= 3);
     }
 
     private Performance findByApiId(String apiId) {
