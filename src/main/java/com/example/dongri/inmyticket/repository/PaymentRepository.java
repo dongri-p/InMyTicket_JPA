@@ -16,4 +16,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // 결제 재요청(멱등성) 확인용: paymentKey로 이미 기록된 결제와 그 예약·회원을 한 번에 조회
     @Query("select p from Payment p join fetch p.reservation r join fetch r.member where p.paymentKey = :paymentKey")
     Optional<Payment> findWithReservationByPaymentKey(@Param("paymentKey") String paymentKey);
+
+    // 결제 단건 조회 - 본인 확인에 예약이 필요해서 함께 조회
+    @Query("select p from Payment p join fetch p.reservation where p.id = :id")
+    Optional<Payment> findWithReservationById(@Param("id") Long id);
 }

@@ -52,6 +52,15 @@ public class ReservationApiController {
         return new ListResult<>(reservations.size(), reservations.size(), reservations);
     }
 
+    // 예매 단건 조회 API - 본인 예약만 조회 가능
+    @GetMapping("/api/v1/reservations/{reservationId}")
+    public ReservationListDto reservation(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @PathVariable Long reservationId) {
+
+        return reservationService.findMyReservation(authenticatedMember.getMemberId(), reservationId);
+    }
+
     // 예매 취소 API - 본인 예약만 취소 가능 (JWT로 신원 확인)
     // 예약 행을 지우지 않고 CANCELLED로 바꾸며 환불까지 하는 상태 전이라 DELETE 대신 취소 동작 URL로 둠
     @PostMapping("/api/v1/reservations/{reservationId}/cancel")

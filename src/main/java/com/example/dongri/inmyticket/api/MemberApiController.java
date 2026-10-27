@@ -1,5 +1,10 @@
 package com.example.dongri.inmyticket.api;
 
+import com.example.dongri.inmyticket.config.AuthenticatedMember;
+import com.example.dongri.inmyticket.api.dto.MemberDto;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +40,15 @@ public class MemberApiController {
 
         Long id = memberService.join(member);
         return CreateResourceResponse.created(id);
+    }
+
+    // 회원 단건 조회 - 본인 정보만 조회 가능
+    @GetMapping("/api/v1/members/{memberId}")
+    public MemberDto member(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @PathVariable Long memberId) {
+
+        return new MemberDto(memberService.findMyself(authenticatedMember.getMemberId(), memberId));
     }
 
     @PostMapping("/api/v1/members/login")

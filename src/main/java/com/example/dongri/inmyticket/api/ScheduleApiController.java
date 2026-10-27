@@ -43,6 +43,12 @@ public class ScheduleApiController {
         return CreateResourceResponse.created(id);
     }
 
+    // 회차 단건 조회 API (회차 등록 응답의 Location이 가리키는 곳)
+    @GetMapping("/api/v1/schedules/{scheduleId}")
+    public ScheduleListDto schedule(@PathVariable("scheduleId") Long scheduleId) {
+        return new ScheduleListDto(scheduleService.findSchedule(scheduleId));
+    }
+
     // 특정 공연의 모든 회차 일정 조회 API
     @GetMapping("/api/v1/performances/{performanceId}/schedules")
     public ListResult<List<ScheduleListDto>> schedulesV2(@PathVariable("performanceId") Long performanceId) {

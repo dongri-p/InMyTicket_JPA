@@ -81,6 +81,11 @@ public class ScheduleService {
         return schedule.getId();
     }
 
+    public Schedule findSchedule(Long scheduleId) {
+        return scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCHEDULE_NOT_FOUND));
+    }
+
     // 특정 공연의 전체 회차 목록 조회
     public List<Schedule> findSchedulesByPerformance(Long performanceId) {
         List<Schedule> schedules = scheduleRepository.findSchedulesWithPerformanceAndHall(performanceId);

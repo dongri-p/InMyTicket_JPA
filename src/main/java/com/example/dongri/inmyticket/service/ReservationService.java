@@ -97,6 +97,14 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    // 예매 단건 조회 - 예매 생성 응답의 Location이 가리키는 곳. 본인 예약만 조회 가능
+    public ReservationListDto findMyReservation(Long memberId, Long reservationId) {
+        Reservation reservation = reservationRepository.findWithDetailsById(reservationId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+        reservation.assertOwner(memberId);
+        return new ReservationListDto(reservation);
+    }
+
     // PaymentService.processPayment() 전용 진입점.
     // 긴 PG 통신을 시작하기 전에 예약을 PROCESSING으로 전환해, 그 사이 자동만료 스케줄러(PENDING만 대상)가
     // 결제 진행 중인 예약의 좌석을 회수해버리는 경쟁을 원천 차단한다.

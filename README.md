@@ -132,20 +132,25 @@ EC2(t2.micro)에 올리면서 겪은 일들입니다. 자세한 내용은 [docs/
 | --- | --- | --- | --- |
 | POST | `/api/v1/members` | 회원가입 | 전체 |
 | POST | `/api/v1/members/login` | 로그인 (JWT 발급) | 전체 |
+| GET | `/api/v1/members/{memberId}` | 회원 정보 (본인만) | 회원 |
 | GET | `/api/v1/performances` | 공연 목록 (커서 페이지네이션 `cursor`·`size`, `genre` 장르·`keyword` 제목 검색·`status` 예매 상태·`region` 지역, 예매중 공연 먼저) | 전체 |
 | GET | `/api/v1/performances/{id}` | 공연 상세 | 전체 |
 | GET | `/api/v1/performances/{performanceId}/schedules` | 공연별 회차 목록 | 전체 |
+| GET | `/api/v1/schedules/{scheduleId}` | 회차 단건 | 전체 |
 | GET | `/api/v1/schedules/{scheduleId}/seats` | 회차별 좌석 현황 | 전체 |
 | POST | `/api/v1/reservations` | 좌석 예매 | 회원 |
 | GET | `/api/v1/reservations/me` | 내 예매 목록 | 회원 |
+| GET | `/api/v1/reservations/{reservationId}` | 예매 단건 (본인만) | 회원 |
 | POST | `/api/v1/reservations/{reservationId}/cancel` | 예매 취소 (결제 건은 환불) | 회원 |
 | POST | `/api/v1/payments` | 결제 승인 (`provider`: TOSS·DEMO, 결제창의 `paymentKey`·`orderId`·`amount`) | 회원 |
+| GET | `/api/v1/payments/{paymentId}` | 결제 단건 (본인 예약의 결제만) | 회원 |
 | POST | `/api/v1/performances/sync` | KOPIS 공연 정보 동기화 | 관리자 |
 | GET | `/api/v1/halls` | 공연장 목록 | 관리자 |
+| GET | `/api/v1/halls/{hallId}` | 공연장 단건 | 관리자 |
 | POST | `/api/v1/halls` | 공연장 등록 | 관리자 |
 | POST | `/api/v1/schedules` | 회차 등록 (공연 기간 안의 날짜만) | 관리자 |
 
-생성은 201 + `Location` + `{id}`, 취소·동기화는 204(본문 없음), 목록은 `{count, totalCount, data}`(공연 목록은 다음 페이지가 있으면 `nextCursor`), 에러는 `{status, code, message}`입니다(`code` 예: `SEAT_ALREADY_RESERVED`, `PAYMENT_ALREADY_PROCESSING`, `LOGIN_LOCKED`). 같은 `paymentKey`로 결제를 다시 요청하면 처음과 같은 201과 결제 id를 돌려줍니다.
+생성은 201 + `Location` + `{id}`(`Location`은 위 단건 조회 주소), 취소·동기화는 204(본문 없음), 목록은 `{count, totalCount, data}`(공연 목록은 다음 페이지가 있으면 `nextCursor`), 에러는 `{status, code, message}`입니다(`code` 예: `SEAT_ALREADY_RESERVED`, `PAYMENT_ALREADY_PROCESSING`, `LOGIN_LOCKED`). 같은 `paymentKey`로 결제를 다시 요청하면 처음과 같은 201과 결제 id를 돌려줍니다.
 
 </details>
 

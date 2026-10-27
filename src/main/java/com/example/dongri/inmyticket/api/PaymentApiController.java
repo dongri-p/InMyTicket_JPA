@@ -1,5 +1,8 @@
 package com.example.dongri.inmyticket.api;
 
+import com.example.dongri.inmyticket.api.dto.PaymentDto;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -37,5 +40,14 @@ public class PaymentApiController {
         );
 
         return CreateResourceResponse.created(paymentId);
+    }
+
+    // 결제 단건 조회 API - 본인 예약의 결제만 조회 가능
+    @GetMapping("/api/v1/payments/{paymentId}")
+    public PaymentDto payment(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @PathVariable Long paymentId) {
+
+        return paymentService.findMyPayment(authenticatedMember.getMemberId(), paymentId);
     }
 }

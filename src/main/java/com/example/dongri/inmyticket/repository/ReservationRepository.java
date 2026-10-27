@@ -54,4 +54,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "where r.member.id = :memberId " +
            "order by r.reservedAt desc")
     List<Reservation> findWithDetailsByMemberId(@Param("memberId") Long memberId);
+
+    // 예매 단건 조회 - 목록 조회와 같은 페치 조인 (응답 DTO도 목록과 같음)
+    @Query("select distinct r from Reservation r " +
+           "join fetch r.tickets t " +
+           "join fetch t.seat s " +
+           "join fetch s.schedule sch " +
+           "join fetch sch.performance p " +
+           "left join fetch r.payment pay " +
+           "where r.id = :id")
+    Optional<Reservation> findWithDetailsById(@Param("id") Long id);
 }

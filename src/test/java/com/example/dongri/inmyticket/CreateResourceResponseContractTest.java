@@ -73,8 +73,8 @@ public class CreateResourceResponseContractTest {
     }
 
     @Test
-    @DisplayName("예전 DELETE 취소 URL은 404, 경로는 있는데 메서드가 다르면 405다 (둘 다 500이 아님)")
-    void oldDeleteCancel_notFound_wrongMethod_methodNotAllowed() {
+    @DisplayName("예전 DELETE 취소 URL은 단건 조회 경로라 405, 목록 경로에 PUT도 405다 (둘 다 500이 아님)")
+    void oldDeleteCancel_wrongMethod_methodNotAllowed() {
         String token = signupAndLogin("deleteCt");
         Object id = reserve(token).getBody().get("id");
         HttpHeaders headers = new HttpHeaders();
@@ -85,7 +85,7 @@ public class CreateResourceResponseContractTest {
         ResponseEntity<String> wrongMethod = restTemplate.exchange("/api/v1/reservations", HttpMethod.PUT,
                 new HttpEntity<>(headers), String.class);
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, oldDelete.getStatusCode());
+        Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, oldDelete.getStatusCode());
         Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, wrongMethod.getStatusCode());
     }
 

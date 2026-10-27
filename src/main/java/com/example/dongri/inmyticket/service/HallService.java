@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.ErrorCode;
+import com.example.dongri.inmyticket.domain.BusinessException;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
@@ -25,6 +27,11 @@ public class HallService {
         hall.setAddress(address);
         hall.setTotalSeats(totalSeats);
         return hallRepository.save(hall).getId();
+    }
+
+    public Hall findHall(Long hallId) {
+        return hallRepository.findById(hallId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.HALL_NOT_FOUND));
     }
 
     public List<Hall> findHalls() {

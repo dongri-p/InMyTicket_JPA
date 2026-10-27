@@ -1,5 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.api.dto.PaymentDto;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,15 @@ public class PaymentService {
             }
             return payment.getId();
         });
+    }
+
+    // 결제 단건 조회 - 결제 생성 응답의 Location이 가리키는 곳. 본인 예약의 결제만 조회 가능
+    @Transactional(readOnly = true)
+    public PaymentDto findMyPayment(Long memberId, Long paymentId) {
+        Payment payment = paymentRepository.findWithReservationById(paymentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+        payment.getReservation().assertOwner(memberId);
+        return new PaymentDto(payment);
     }
 
     // 결제창 주문번호 규칙. 프론트가 "imt-{예약ID}-{임의값}"으로 만들고, 서버는 이 예약의 주문번호인지 확인

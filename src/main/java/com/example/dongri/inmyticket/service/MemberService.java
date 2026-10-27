@@ -49,6 +49,15 @@ public class MemberService {
             });
     }
 
+    // 회원 단건 조회 - 회원가입 응답의 Location이 가리키는 곳. 본인 정보만 조회 가능
+    public Member findMyself(Long loginMemberId, Long memberId) {
+        if (!memberId.equals(loginMemberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
     /**
      * 로그인 처리 및 JWT 토큰 발급
      */

@@ -25,6 +25,7 @@ public enum ErrorCode {
     // 공연·회차 (URL이 가리키는 대상이 없으면 404)
     PERFORMANCE_NOT_FOUND(404, "존재하지 않는 공연입니다."),
     SCHEDULE_NOT_FOUND(404, "존재하지 않는 회차입니다."),
+    HALL_NOT_FOUND(404, "존재하지 않는 공연장입니다."),
     INVALID_SCHEDULE(400, "회차를 등록할 수 없습니다."),
 
     // 예매
@@ -40,6 +41,7 @@ public enum ErrorCode {
     RESERVATION_ALREADY_CANCELLED(409, "이미 취소된 예약입니다."),
 
     // 결제
+    PAYMENT_NOT_FOUND(404, "존재하지 않는 결제입니다."),
     RESERVATION_NOT_PAYABLE(409, "결제할 수 없는 예약 상태입니다."),
     PAYMENT_ALREADY_PROCESSING(409, "이 예약의 결제가 이미 진행 중입니다. 잠시 후 결과를 확인해주세요."),
     PAYMENT_KEY_REUSED(409, "이미 다른 결제에 사용된 결제 키입니다."),
