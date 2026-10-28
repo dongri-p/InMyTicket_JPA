@@ -76,9 +76,15 @@ export function setup() {
 
   if (MODE === 'hot') {
     if (!HOT_SCHEDULE || !isFuture(HOT_SCHEDULE)) throw new Error('HOT_SCHEDULE에 시작 전 회차 id를 넣어 주세요');
-    const seats = http.get(`${BASE_URL}/api/v1/schedules/${HOT_SCHEDULE}/seats?page=0&size=100`).json('data');
-    const targets = seats.filter((s) => s.status === 'AVAILABLE').slice(0, SEATS).map((s) => s.seatId);
-    return { tokens, targets };
+    // 앞쪽이 이미 다 팔린 회차도 있어서 빈 좌석이 SEATS개 모일 때까지 다음 페이지도 봄
+    const targets = [];
+    for (let page = 0; targets.length < SEATS; page++) {
+      const seats = http.get(`${BASE_URL}/api/v1/schedules/${HOT_SCHEDULE}/seats?page=${page}&size=100`).json('data');
+      if (seats.length === 0) break;
+      seats.filter((s) => s.status === 'AVAILABLE').forEach((s) => targets.push(s.seatId));
+    }
+    if (targets.length === 0) throw new Error(`회차 ${HOT_SCHEDULE}에 빈 좌석이 없습니다`);
+    return { tokens, targets: targets.slice(0, SEATS) };
   }
 
   const schedules = [];

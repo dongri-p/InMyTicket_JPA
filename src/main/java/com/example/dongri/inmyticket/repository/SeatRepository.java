@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatStatus;
 
 import jakarta.persistence.LockModeType;
 
@@ -34,4 +35,10 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Seat s where s.id in :ids order by s.id")
     List<Seat> findByIdInWithLock(@Param("ids") List<Long> ids);
+
+    // 락 없이 고른 좌석 중 이미 팔린 좌석 수만 셈 (예매 전 빠른 거절용).
+    // 엔티티가 아니라 숫자로 받는 이유: 좌석 엔티티를 여기서 읽으면 영속성 컨텍스트에 남아,
+    // 뒤의 findByIdInWithLock이 락을 잡고도 이 시점의 옛 상태를 그대로 돌려받게 됨
+    @Query("select count(s) from Seat s where s.id in :ids and s.status <> :available")
+    long countNotAvailable(@Param("ids") List<Long> ids, @Param("available") SeatStatus available);
 }

@@ -18,6 +18,7 @@ import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -49,6 +50,13 @@ public class ReservationService {
 
         if (new HashSet<>(seatIds).size() != seatIds.size()) {
             throw new BusinessException(ErrorCode.DUPLICATE_SEAT_SELECTION);
+        }
+
+        // 0. 이미 팔린 좌석이 섞여 있으면 락을 기다리지 않고 바로 거절.
+        // 예매 오픈 때 한 좌석에 몰린 요청이 전부 락 앞에 줄을 서서, 어차피 실패할 요청도 앞 요청이 끝나길 하나씩 기다렸음.
+        // 락 없는 읽기라 여기를 통과해도 아래 락 조회에서 다시 확인하므로 정확성은 락이 지킴 (여기선 확실히 실패할 요청만 걸러냄)
+        if (seatRepository.countNotAvailable(seatIds, SeatStatus.AVAILABLE) > 0) {
+            throw new BusinessException(ErrorCode.SEAT_ALREADY_RESERVED);
         }
 
         // 1. 엔티티 조회 (회원은 일반 조회, 좌석은 비관적 락 조회)
