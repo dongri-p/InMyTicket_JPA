@@ -1,0 +1,56 @@
+time="2026-10-28T06:38:56Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8081/api/v1/reservations\": dial: i/o timeout"
+time="2026-10-28T06:38:56Z" level=warning msg="reserve 0 dial: i/o timeout" source=console
+time="2026-10-28T06:38:56Z" level=warning msg="Request Failed" error="Post \"http://host.docker.internal:8081/api/v1/reservations\": dial: i/o timeout"
+time="2026-10-28T06:38:56Z" level=warning msg="reserve 0 dial: i/o timeout" source=console
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:pay}
+    ✓ 'p(95)<100000' p(95)=1.66s
+
+    http_req_duration{api:reserve}
+    ✓ 'p(95)<100000' p(95)=94.03ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=56.88ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 7767   87.59604/s
+    checks_succeeded...................: 99.97% 7765 out of 7767
+    checks_failed......................: 0.02%  2 out of 7767
+
+    ✓ login 200
+    ✓ seats 200
+    ✓ pay 201
+    ✗ reserve 201 or 409
+      ↳  0% — ✓ 0 / ✗ 2
+
+    CUSTOM
+    pay_success.............................................................: 3830   43.194648/s
+    reserve_conflict........................................................: 3      0.033834/s
+    reserve_success.........................................................: 3830   43.194648/s
+
+    HTTP
+    http_req_duration.......................................................: avg=505.6ms p(50)=13.13ms p(90)=1.53s   p(95)=1.54s   p(99)=1.73s    max=1.97s   
+      { api:pay }...........................................................: avg=1.54s   p(50)=1.53s   p(90)=1.56s   p(95)=1.66s   p(99)=1.78s    max=1.97s   
+      { api:reserve }.......................................................: avg=21.52ms p(50)=12.52ms p(90)=33.18ms p(95)=94.03ms p(99)=157.9ms  max=250.5ms 
+      { api:seats }.........................................................: avg=12.44ms p(50)=6.17ms  p(90)=20.46ms p(95)=56.88ms p(99)=122.82ms max=219.16ms
+      { expected_response:true }............................................: avg=505.8ms p(50)=13.14ms p(90)=1.53s   p(95)=1.54s   p(99)=1.73s    max=1.97s   
+    http_req_failed.........................................................: 0.04%  5 out of 11990
+    http_reqs...............................................................: 11990  135.222933/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=1.59s   p(50)=1.55s   p(90)=1.63s   p(95)=1.85s   p(99)=2.02s    max=30s     
+    iterations..............................................................: 3835   43.251038/s
+    vus.....................................................................: 2      min=0          max=100
+    vus_max.................................................................: 100    min=100        max=100
+
+    NETWORK
+    data_received...........................................................: 37 MB  421 kB/s
+    data_sent...............................................................: 4.0 MB 45 kB/s
+
+
+
