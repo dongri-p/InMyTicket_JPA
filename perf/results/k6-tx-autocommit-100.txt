@@ -1,0 +1,100 @@
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ENDED\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=ENDED\": dial: i/o timeout"
+time="2026-10-28T08:16:33Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:16:34Z" level=warning msg="The test has generated metrics with 100014 unique time series, which is higher than the suggested limit of 100000 and could cause high memory usage. Consider not using high-cardinality values like unique IDs as metric tags or, if you need them in the URL, use the name metric tag or URL grouping. See https://grafana.com/docs/k6/latest/using-k6/tags-and-groups/ for details." component=metrics-engine-ingester
+time="2026-10-28T08:17:13Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:17:13Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:17:13Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:17:13Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:17:14Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-28T08:17:14Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:17:14Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:17:14Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:17:14Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:detail}
+    ✓ 'p(95)<100000' p(95)=123.01ms
+
+    http_req_duration{api:list_filter}
+    ✓ 'p(95)<100000' p(95)=140.39ms
+
+    http_req_duration{api:list}
+    ✓ 'p(95)<100000' p(95)=136.75ms
+
+    http_req_duration{api:my_reservations}
+    ✓ 'p(95)<100000' p(95)=82.53ms
+
+    http_req_duration{api:schedules}
+    ✓ 'p(95)<100000' p(95)=81.16ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=83.88ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.01%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 95420  1257.143463/s
+    checks_succeeded...................: 99.98% 95401 out of 95420
+    checks_failed......................: 0.01%  19 out of 95420
+
+    ✓ login 200
+    ✗ list_filter 200
+      ↳  99% — ✓ 9499 / ✗ 10
+    ✗ list 200
+      ↳  99% — ✓ 9546 / ✗ 9
+    ✓ detail 200
+    ✓ schedules 200
+    ✓ seats 200
+    ✓ my 200
+
+    HTTP
+    http_req_duration.......................................................: avg=57.63ms  p(50)=44.75ms  p(90)=91.11ms  p(95)=113.15ms p(99)=149.32ms max=386.28ms
+      { api:detail }........................................................: avg=68.19ms  p(50)=70.11ms  p(90)=110.99ms p(95)=123.01ms p(99)=161.86ms max=283.53ms
+      { api:list_filter }...................................................: avg=78.05ms  p(50)=77.34ms  p(90)=117.96ms p(95)=140.39ms p(99)=184.82ms max=386.28ms
+      { api:list }..........................................................: avg=77.06ms  p(50)=77.08ms  p(90)=117.07ms p(95)=136.75ms p(99)=178.12ms max=296.98ms
+      { api:my_reservations }...............................................: avg=47.42ms  p(50)=41.75ms  p(90)=74.56ms  p(95)=82.53ms  p(99)=115.18ms max=225.16ms
+      { api:schedules }.....................................................: avg=45.97ms  p(50)=40.58ms  p(90)=73.57ms  p(95)=81.16ms  p(99)=115.7ms  max=256.25ms
+      { api:seats }.........................................................: avg=49.08ms  p(50)=43.62ms  p(90)=76.34ms  p(95)=83.88ms  p(99)=117.19ms max=245.52ms
+      { expected_response:true }............................................: avg=57.64ms  p(50)=44.75ms  p(90)=91.12ms  p(95)=113.16ms p(99)=149.32ms max=386.28ms
+    http_req_failed.........................................................: 0.01%  19 out of 95420
+    http_reqs...............................................................: 95420  1257.143463/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=320.32ms p(50)=281.08ms p(90)=366.51ms p(95)=394.95ms p(99)=461.91ms max=30.29s  
+    iterations..............................................................: 19064  251.165196/s
+    vus.....................................................................: 8      min=0           max=100
+    vus_max.................................................................: 100    min=100         max=100
+
+    NETWORK
+    data_received...........................................................: 356 MB 4.7 MB/s
+    data_sent...............................................................: 15 MB  197 kB/s
+
+
+
+
+-- performance_schema 쿼리별 실행 횟수 / 누적 ms (60초)
+133218	8978	COMMIT
+133206	9397	SET SESSION TRANSACTION READ ONLY
+133175	9070	SET SESSION TRANSACTION READ WRITE
+38084	9695	SELECT `s1_0` . `performance_id` , COUNT ( `s1_0` . `schedule_id` ) FR
+19063	25894	SELECT `s1_0` . `seat_id` , `s1_0` . `grade` , `s1_0` . `price` , `s1_
+19059	2809	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+19058	4320	SELECT COUNT ( `s1_0` . `seat_id` ) FROM `seat` `s1_0` LEFT JOIN SCHED
+19052	13972	SELECT DISTINCTROW `r1_0` . `reservation_id` , `r1_0` . `member_id` , 
+19050	4830	SELECT `s1_0` . `schedule_id` , `s1_0` . `available_seat_count` , `h1_
+9542	2310	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+9495	3193	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+100	36	SELECT `m1_0` . `member_id` , `m1_0` . `email` , `m1_0` . `login_id` ,

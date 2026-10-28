@@ -4,6 +4,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      data-source-properties:
+        # 읽기 전용 트랜잭션마다 SET SESSION TRANSACTION READ ONLY / READ WRITE 왕복을 보내지 않음.
+        # 읽기 전용 표시는 JDBC·Hibernate 쪽(flush 생략 등)에서만 쓰고 DB 서버에는 알리지 않는 것 (서버에서 쓰기를 막아 주는 효과는 없어짐)
+        readOnlyPropagatesToServer: false
   jpa:
     hibernate:
       ddl-auto: validate

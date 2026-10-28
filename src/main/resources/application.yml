@@ -7,6 +7,12 @@ spring:
   threads:
     virtual:
       enabled: true
+  # 커넥션을 처음부터 autocommit=false로 두고, Hibernate에게 그 사실을 알려 트랜잭션마다 켰다 끄지 않게 함.
+  # 안 그러면 트랜잭션 하나에 SET autocommit=0 / =1 왕복이 두 번 붙음 (대량 데이터 부하에서 실제 쿼리보다 많았음).
+  # 트랜잭션 밖에서 DB를 읽은 커넥션은 풀에 돌아갈 때 롤백됨 (JPA는 트랜잭션 밖 쓰기를 예외로 막으므로 쓰기가 사라지지는 않음)
+  datasource:
+    hikari:
+      auto-commit: false
   jpa:
     # OSIV 끔: 켜져 있으면 HTTP 요청 하나 동안 EntityManager를 공유해, 서비스에서 트랜잭션을 나눠도
     # 앞 트랜잭션에서 캐시된 엔티티를 뒤 트랜잭션의 락 조회가 그대로 받음(취소 중 결제 완료를 못 봄).
@@ -15,6 +21,8 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
+        connection:
+          provider_disables_autocommit: true
 
 server:
   # nginx 뒤에서 실행되므로 X-Forwarded-For로 실제 클라이언트 IP를 복원 (로그인 잠금 키에 사용).

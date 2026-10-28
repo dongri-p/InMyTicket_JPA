@@ -1,0 +1,128 @@
+time="2026-10-28T08:18:52Z" level=warning msg="The test has generated metrics with 100005 unique time series, which is higher than the suggested limit of 100000 and could cause high memory usage. Consider not using high-cardinality values like unique IDs as metric tags or, if you need them in the URL, use the name metric tag or URL grouping. See https://grafana.com/docs/k6/latest/using-k6/tags-and-groups/ for details." component=metrics-engine-ingester
+time="2026-10-28T08:19:42Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:42Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-28T08:19:42Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:44Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:45Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ENDED\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:46Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ENDED\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ENDED\": dial: i/o timeout"
+time="2026-10-28T08:19:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:49Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:50Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:50Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-28T08:19:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:detail}
+    ✓ 'p(95)<100000' p(95)=84.73ms
+
+    http_req_duration{api:list_filter}
+    ✓ 'p(95)<100000' p(95)=91.23ms
+
+    http_req_duration{api:list}
+    ✓ 'p(95)<100000' p(95)=91.52ms
+
+    http_req_duration{api:my_reservations}
+    ✓ 'p(95)<100000' p(95)=59.58ms
+
+    http_req_duration{api:schedules}
+    ✓ 'p(95)<100000' p(95)=58.39ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=61.92ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.03%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 137360 1449.914568/s
+    checks_succeeded...................: 99.96% 137313 out of 137360
+    checks_failed......................: 0.03%  47 out of 137360
+
+    ✓ login 200
+    ✗ list_filter 200
+      ↳  99% — ✓ 13691 / ✗ 16
+    ✗ list 200
+      ↳  99% — ✓ 13722 / ✗ 31
+    ✓ detail 200
+    ✓ schedules 200
+    ✓ seats 200
+    ✓ my 200
+
+    HTTP
+    http_req_duration.......................................................: avg=35.15ms  p(50)=29.82ms  p(90)=60.07ms  p(95)=76.66ms  p(99)=110.71ms max=414.2ms 
+      { api:detail }........................................................: avg=39.46ms  p(50)=32.12ms  p(90)=67.55ms  p(95)=84.73ms  p(99)=123.23ms max=295.3ms 
+      { api:list_filter }...................................................: avg=45.37ms  p(50)=39.08ms  p(90)=78.82ms  p(95)=91.23ms  p(99)=136.73ms max=414.2ms 
+      { api:list }..........................................................: avg=44.72ms  p(50)=38.35ms  p(90)=78.15ms  p(95)=91.52ms  p(99)=130.89ms max=405.57ms
+      { api:my_reservations }...............................................: avg=30.07ms  p(50)=27.29ms  p(90)=51.33ms  p(95)=59.58ms  p(99)=89.01ms  max=220.24ms
+      { api:schedules }.....................................................: avg=28.83ms  p(50)=26.12ms  p(90)=50.8ms   p(95)=58.39ms  p(99)=86.19ms  max=310.69ms
+      { api:seats }.........................................................: avg=32.3ms   p(50)=29.53ms  p(90)=54.07ms  p(95)=61.92ms  p(99)=89.14ms  max=225.67ms
+      { expected_response:true }............................................: avg=35.16ms  p(50)=29.82ms  p(90)=60.08ms  p(95)=76.67ms  p(99)=110.71ms max=414.2ms 
+    http_req_failed.........................................................: 0.03%  47 out of 137360
+    http_reqs...............................................................: 137360 1449.914568/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=237.56ms p(50)=167.15ms p(90)=253.67ms p(95)=287.74ms p(99)=385.86ms max=31.03s  
+    iterations..............................................................: 27450  289.750691/s
+    vus.....................................................................: 10     min=0            max=100
+    vus_max.................................................................: 100    min=100          max=100
+
+    NETWORK
+    data_received...........................................................: 512 MB 5.4 MB/s
+    data_sent...............................................................: 22 MB  228 kB/s
+
+
+
+
+-- performance_schema 쿼리별 실행 횟수 / 누적 ms (60초)
+191830	15564	COMMIT
+54832	16182	SELECT `s1_0` . `performance_id` , COUNT ( `s1_0` . `schedule_id` ) FR
+27446	44836	SELECT `s1_0` . `seat_id` , `s1_0` . `grade` , `s1_0` . `price` , `s1_
+27438	7035	SELECT COUNT ( `s1_0` . `seat_id` ) FROM `seat` `s1_0` LEFT JOIN SCHED
+27435	4836	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+27431	22963	SELECT DISTINCTROW `r1_0` . `reservation_id` , `r1_0` . `member_id` , 
+27429	7994	SELECT `s1_0` . `schedule_id` , `s1_0` . `available_seat_count` , `h1_
+13714	3823	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+13684	5309	SELECT `p1_0` . `performance_id` , `p1_0` . `api_id` , `p1_0` . `area`
+100	44	SELECT `m1_0` . `member_id` , `m1_0` . `email` , `m1_0` . `login_id` ,
+91	9	ROLLBACK
+67	2298	SELECT COUNT ( `p1_0` . `performance_id` ) FROM `performance` `p1_0` W
