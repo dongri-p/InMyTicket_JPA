@@ -31,7 +31,7 @@
 
 ## 기술 스택
 
-- **Backend**: Java 17, Spring Boot 3.5, Spring Data JPA, Spring Security + JWT, Flyway
+- **Backend**: Java 21, Spring Boot 3.5, Spring Data JPA, Spring Security + JWT, Flyway
 - **DB**: MySQL 8.0 (운영), H2 (로컬·테스트)
 - **Frontend**: React 19, Vite
 - **Infra**: AWS EC2, Docker Compose, Nginx, Let's Encrypt, GitHub Actions, GHCR
