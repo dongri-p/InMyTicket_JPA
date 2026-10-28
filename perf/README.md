@@ -1,6 +1,6 @@
 # 성능 측정
 
-대량 데이터를 넣고 k6로 응답 시간을 잰 스크립트와 결과입니다. 조회 흐름은 [docs/problem-solving.md 13장](../docs/problem-solving.md#13-데이터를-늘리자-공연-목록이-다른-api까지-느리게-만든-문제), 예매·결제는 [14장](../docs/problem-solving.md#14-결제가-몰리자-좌석-조회까지-느려진-문제-쓰기-부하)에 과정과 해석이 있습니다.
+대량 데이터를 넣고 k6로 응답 시간을 잰 스크립트와 결과입니다. 조회 흐름은 [docs/problem-solving.md 13장](../docs/problem-solving.md#13-데이터를-늘리자-공연-목록이-다른-api까지-느리게-만든-문제), 예매·결제는 [14장](../docs/problem-solving.md#14-결제가-몰리자-좌석-조회까지-느려진-문제-쓰기-부하), 트랜잭션 부가 명령과 풀 크기는 [15장](../docs/problem-solving.md#15-쿼리보다-트랜잭션-부가-명령이-더-많던-문제)에 과정과 해석이 있습니다.
 
 로컬 전용입니다. 시드 SQL은 운영 DB에 절대 실행하지 마세요.
 
@@ -63,3 +63,5 @@
 | `k6-flow-100.txt`, `k6-flow-300.txt` | 평소 예매·결제 (Java 17, 플랫폼 스레드) |
 | `k6-flow-300-platform.txt` | 평소 예매·결제 (Java 21, 플랫폼 스레드) |
 | `k6-flow-300-virtual.txt`, `k6-hot-1000-virtual.txt` | Java 21, 가상 스레드 |
+| `k6-tx-before-100.txt`, `k6-tx-autocommit-100.txt`, `k6-tx-readonly-100.txt`, `k6-tx-final-100.txt` | 조회 100명: 트랜잭션 부가 명령 줄이기 전·후 (끝에 명령별 실행 횟수) |
+| `k6-flow-300-pool10.txt`, `k6-flow-300-pool20.txt`, `k6-flow-300-pool40.txt` | 예매·결제 300명: 커넥션 풀 크기별 |
