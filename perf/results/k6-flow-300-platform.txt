@@ -1,0 +1,57 @@
+time="2026-10-28T07:39:54Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/schedules/2542/seats?page=0&size=100\": dial: i/o timeout"
+time="2026-10-28T07:39:54Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat flow (file:///-:120:32(45))\n" executor=constant-vus scenario=flow source=stacktrace
+time="2026-10-28T07:39:54Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/schedules/2000/seats?page=0&size=100\": dial: i/o timeout"
+time="2026-10-28T07:39:54Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat flow (file:///-:120:32(45))\n" executor=constant-vus scenario=flow source=stacktrace
+time="2026-10-28T07:39:54Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/schedules/4163/seats?page=0&size=100\": dial: i/o timeout"
+time="2026-10-28T07:39:54Z" level=error msg="GoError: the body is null so we can't transform it to JSON - this likely was because of a request error getting the response\n\tat reflect.methodValueCall (native)\n\tat flow (file:///-:120:32(45))\n" executor=constant-vus scenario=flow source=stacktrace
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:pay}
+    ✓ 'p(95)<100000' p(95)=2.21s
+
+    http_req_duration{api:reserve}
+    ✓ 'p(95)<100000' p(95)=679.56ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=589.71ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 15516  196.854661/s
+    checks_succeeded...................: 99.98% 15513 out of 15516
+    checks_failed......................: 0.01%  3 out of 15516
+
+    ✓ login 200
+    ✗ seats 200
+      ↳  99% — ✓ 7616 / ✗ 3
+    ✓ pay 201
+
+    CUSTOM
+    pay_success.............................................................: 7597   96.38469/s
+    reserve_conflict........................................................: 16     0.202995/s
+    reserve_success.........................................................: 7597   96.38469/s
+
+    HTTP
+    http_req_duration.......................................................: avg=775.72ms p(50)=337.91ms p(90)=1.83s   p(95)=1.93s    p(99)=2.34s    max=3.3s    
+      { api:pay }...........................................................: avg=1.82s    p(50)=1.75s    p(90)=2.01s   p(95)=2.21s    p(99)=3.11s    max=3.3s    
+      { api:reserve }.......................................................: avg=300.86ms p(50)=239.52ms p(90)=497.3ms p(95)=679.56ms p(99)=808.23ms max=916.36ms
+      { api:seats }.........................................................: avg=269.1ms  p(50)=212.09ms p(90)=450.9ms p(95)=589.71ms p(99)=780.58ms max=946.45ms
+      { expected_response:true }............................................: avg=776.17ms p(50)=338ms    p(90)=1.83s   p(95)=1.93s    p(99)=2.34s    max=3.3s    
+    http_req_failed.........................................................: 0.08%  19 out of 23527
+    http_reqs...............................................................: 23527  298.491854/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=2.4s     p(50)=2.36s    p(90)=2.66s   p(95)=2.79s    p(99)=3.92s    max=30s     
+    iterations..............................................................: 7619   96.663809/s
+    vus.....................................................................: 104    min=0           max=300
+    vus_max.................................................................: 300    min=300         max=300
+
+    NETWORK
+    data_received...........................................................: 74 MB  937 kB/s
+    data_sent...............................................................: 7.9 MB 101 kB/s
+
+
+
