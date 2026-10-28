@@ -84,16 +84,19 @@ public class ReservationService {
         // 2. 예매 생성 (좌석 하나라도 이미 예약됐으면 예외 -> 전체 롤백)
         Reservation reservation = Reservation.createReservation(member, seats);
 
-        // 3. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
+        // 3. 저장 - 좌석 상태 변경·예약·티켓을 여기서 DB에 먼저 반영(flush)
+        reservationRepository.saveAndFlush(reservation);
+
+        // 4. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
+        // 회차 행은 그 회차의 모든 예매가 함께 잠그는 자리라 트랜잭션 맨 끝에 둠: 이 UPDATE부터 커밋까지만 락을 쥠.
+        // (예전엔 중간에 있어서 뒤의 예약·티켓 INSERT가 끝날 때까지 쥐고 있었고, 1000명이 한 회차 20석을 노리면
+        //  서로 다른 좌석을 산 20명이 이 행 하나를 평균 145ms씩 기다렸음)
         if (schedule != null) {
             int updated = scheduleRepository.decreaseAvailableSeatCount(schedule.getId(), seats.size());
             if (updated == 0) {
                 throw new BusinessException(ErrorCode.NOT_ENOUGH_SEATS);
             }
         }
-
-        // 4. 저장
-        reservationRepository.save(reservation);
 
         return reservation.getId();
     }
