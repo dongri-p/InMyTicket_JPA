@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -89,7 +90,8 @@ public class ScheduleGradeApiTest {
         return Map.of(
                 "performanceId", performanceId,
                 "hallId", hallId,
-                "startTime", LocalDateTime.now().plusDays(30).withNano(0).toString().replace('T', ' '),
+                // toString()은 초가 0이면 초를 빼서("...T09:31") 서버 형식과 어긋나므로 형식을 직접 지정
+                "startTime", LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 "totalSeatCount", totalSeatCount,
                 "grades", grades);
     }
