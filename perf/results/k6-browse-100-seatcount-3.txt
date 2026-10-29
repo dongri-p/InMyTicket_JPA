@@ -1,0 +1,422 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: -
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 1m30s max duration (incl. graceful stop):
+              * browse: 100 looping VUs for 1m0s (gracefulStop: 30s)
+
+
+Run      [ 100% ] setup()
+browse   [   0% ]
+
+Run      [ 100% ] setup()
+browse   [   0% ]
+
+Run      [ 100% ] setup()
+browse   [   0% ]
+
+Run      [ 100% ] setup()
+browse   [   0% ]
+
+Run      [ 100% ] setup()
+browse   [   0% ]
+
+running (0m06.0s), 100/100 VUs, 22 complete and 0 interrupted iterations
+browse   [   1% ] 100 VUs  0m00.8s/1m0s
+
+running (0m07.0s), 100/100 VUs, 198 complete and 0 interrupted iterations
+browse   [   3% ] 100 VUs  0m01.8s/1m0s
+
+running (0m08.0s), 100/100 VUs, 323 complete and 0 interrupted iterations
+browse   [   5% ] 100 VUs  0m02.8s/1m0s
+
+running (0m09.0s), 100/100 VUs, 493 complete and 0 interrupted iterations
+browse   [   6% ] 100 VUs  0m03.8s/1m0s
+
+running (0m10.0s), 100/100 VUs, 654 complete and 0 interrupted iterations
+browse   [   8% ] 100 VUs  0m04.8s/1m0s
+
+running (0m11.0s), 100/100 VUs, 812 complete and 0 interrupted iterations
+browse   [  10% ] 100 VUs  0m05.8s/1m0s
+
+running (0m12.0s), 100/100 VUs, 972 complete and 0 interrupted iterations
+browse   [  11% ] 100 VUs  0m06.8s/1m0s
+
+running (0m13.0s), 100/100 VUs, 1151 complete and 0 interrupted iterations
+browse   [  13% ] 100 VUs  0m07.8s/1m0s
+
+running (0m14.0s), 100/100 VUs, 1337 complete and 0 interrupted iterations
+browse   [  15% ] 100 VUs  0m08.8s/1m0s
+
+running (0m15.0s), 100/100 VUs, 1512 complete and 0 interrupted iterations
+browse   [  16% ] 100 VUs  0m09.8s/1m0s
+
+running (0m16.0s), 100/100 VUs, 1748 complete and 0 interrupted iterations
+browse   [  18% ] 100 VUs  0m10.8s/1m0s
+
+running (0m17.0s), 100/100 VUs, 2008 complete and 0 interrupted iterations
+browse   [  20% ] 100 VUs  0m11.8s/1m0s
+
+running (0m18.0s), 100/100 VUs, 2241 complete and 0 interrupted iterations
+browse   [  21% ] 100 VUs  0m12.8s/1m0s
+
+running (0m19.0s), 100/100 VUs, 2529 complete and 0 interrupted iterations
+browse   [  23% ] 100 VUs  0m13.8s/1m0s
+
+running (0m20.0s), 100/100 VUs, 2849 complete and 0 interrupted iterations
+browse   [  25% ] 100 VUs  0m14.8s/1m0s
+
+running (0m21.0s), 100/100 VUs, 3146 complete and 0 interrupted iterations
+browse   [  26% ] 100 VUs  0m15.8s/1m0s
+
+running (0m22.0s), 100/100 VUs, 3442 complete and 0 interrupted iterations
+browse   [  28% ] 100 VUs  0m16.8s/1m0s
+
+running (0m23.0s), 100/100 VUs, 3728 complete and 0 interrupted iterations
+browse   [  30% ] 100 VUs  0m17.8s/1m0s
+
+running (0m24.0s), 100/100 VUs, 4019 complete and 0 interrupted iterations
+browse   [  31% ] 100 VUs  0m18.8s/1m0s
+
+running (0m25.0s), 100/100 VUs, 4309 complete and 0 interrupted iterations
+browse   [  33% ] 100 VUs  0m19.8s/1m0s
+
+running (0m26.0s), 100/100 VUs, 4604 complete and 0 interrupted iterations
+browse   [  35% ] 100 VUs  0m20.8s/1m0s
+
+running (0m27.0s), 100/100 VUs, 4918 complete and 0 interrupted iterations
+browse   [  36% ] 100 VUs  0m21.8s/1m0s
+
+running (0m28.0s), 100/100 VUs, 5211 complete and 0 interrupted iterations
+browse   [  38% ] 100 VUs  0m22.8s/1m0s
+
+running (0m29.0s), 100/100 VUs, 5499 complete and 0 interrupted iterations
+browse   [  40% ] 100 VUs  0m23.8s/1m0s
+
+running (0m30.0s), 100/100 VUs, 5803 complete and 0 interrupted iterations
+browse   [  41% ] 100 VUs  0m24.8s/1m0s
+
+running (0m31.0s), 100/100 VUs, 6113 complete and 0 interrupted iterations
+browse   [  43% ] 100 VUs  0m25.8s/1m0s
+
+running (0m32.0s), 100/100 VUs, 6388 complete and 0 interrupted iterations
+browse   [  45% ] 100 VUs  0m26.8s/1m0s
+
+running (0m33.0s), 100/100 VUs, 6656 complete and 0 interrupted iterations
+browse   [  46% ] 100 VUs  0m27.8s/1m0s
+
+running (0m34.0s), 100/100 VUs, 6938 complete and 0 interrupted iterations
+browse   [  48% ] 100 VUs  0m28.8s/1m0s
+
+running (0m35.0s), 100/100 VUs, 7207 complete and 0 interrupted iterations
+browse   [  50% ] 100 VUs  0m29.8s/1m0s
+
+running (0m36.0s), 100/100 VUs, 7510 complete and 0 interrupted iterations
+browse   [  51% ] 100 VUs  0m30.8s/1m0s
+
+running (0m37.0s), 100/100 VUs, 7844 complete and 0 interrupted iterations
+browse   [  53% ] 100 VUs  0m31.8s/1m0s
+
+running (0m38.0s), 100/100 VUs, 8154 complete and 0 interrupted iterations
+browse   [  55% ] 100 VUs  0m32.8s/1m0s
+
+running (0m39.0s), 100/100 VUs, 8452 complete and 0 interrupted iterations
+browse   [  56% ] 100 VUs  0m33.8s/1m0s
+
+running (0m40.0s), 100/100 VUs, 8792 complete and 0 interrupted iterations
+browse   [  58% ] 100 VUs  0m34.8s/1m0s
+
+running (0m41.0s), 100/100 VUs, 9116 complete and 0 interrupted iterations
+browse   [  60% ] 100 VUs  0m35.8s/1m0s
+
+running (0m42.0s), 100/100 VUs, 9432 complete and 0 interrupted iterations
+browse   [  61% ] 100 VUs  0m36.8s/1m0s
+time="2026-10-29T07:35:11Z" level=warning msg="The test has generated metrics with 100023 unique time series, which is higher than the suggested limit of 100000 and could cause high memory usage. Consider not using high-cardinality values like unique IDs as metric tags or, if you need them in the URL, use the name metric tag or URL grouping. See https://grafana.com/docs/k6/latest/using-k6/tags-and-groups/ for details." component=metrics-engine-ingester
+
+running (0m43.0s), 100/100 VUs, 9758 complete and 0 interrupted iterations
+browse   [  63% ] 100 VUs  0m37.8s/1m0s
+
+running (0m44.0s), 100/100 VUs, 10093 complete and 0 interrupted iterations
+browse   [  65% ] 100 VUs  0m38.8s/1m0s
+
+running (0m45.0s), 100/100 VUs, 10424 complete and 0 interrupted iterations
+browse   [  66% ] 100 VUs  0m39.8s/1m0s
+
+running (0m46.0s), 100/100 VUs, 10749 complete and 0 interrupted iterations
+browse   [  68% ] 100 VUs  0m40.8s/1m0s
+
+running (0m47.0s), 100/100 VUs, 11087 complete and 0 interrupted iterations
+browse   [  70% ] 100 VUs  0m41.8s/1m0s
+
+running (0m48.0s), 100/100 VUs, 11392 complete and 0 interrupted iterations
+browse   [  71% ] 100 VUs  0m42.8s/1m0s
+
+running (0m49.0s), 100/100 VUs, 11723 complete and 0 interrupted iterations
+browse   [  73% ] 100 VUs  0m43.8s/1m0s
+
+running (0m50.0s), 100/100 VUs, 12055 complete and 0 interrupted iterations
+browse   [  75% ] 100 VUs  0m44.8s/1m0s
+
+running (0m51.0s), 100/100 VUs, 12385 complete and 0 interrupted iterations
+browse   [  76% ] 100 VUs  0m45.8s/1m0s
+
+running (0m52.0s), 100/100 VUs, 12720 complete and 0 interrupted iterations
+browse   [  78% ] 100 VUs  0m46.8s/1m0s
+
+running (0m53.0s), 100/100 VUs, 13044 complete and 0 interrupted iterations
+browse   [  80% ] 100 VUs  0m47.8s/1m0s
+
+running (0m54.0s), 100/100 VUs, 13383 complete and 0 interrupted iterations
+browse   [  81% ] 100 VUs  0m48.8s/1m0s
+
+running (0m55.0s), 100/100 VUs, 13674 complete and 0 interrupted iterations
+browse   [  83% ] 100 VUs  0m49.8s/1m0s
+
+running (0m56.0s), 100/100 VUs, 13937 complete and 0 interrupted iterations
+browse   [  85% ] 100 VUs  0m50.8s/1m0s
+
+running (0m57.0s), 100/100 VUs, 14262 complete and 0 interrupted iterations
+browse   [  86% ] 100 VUs  0m51.8s/1m0s
+
+running (0m58.0s), 100/100 VUs, 14573 complete and 0 interrupted iterations
+browse   [  88% ] 100 VUs  0m52.8s/1m0s
+
+running (0m59.0s), 100/100 VUs, 14842 complete and 0 interrupted iterations
+browse   [  90% ] 100 VUs  0m53.8s/1m0s
+time="2026-10-29T07:35:28Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+
+running (1m00.0s), 100/100 VUs, 15018 complete and 0 interrupted iterations
+browse   [  91% ] 100 VUs  0m54.8s/1m0s
+time="2026-10-29T07:35:29Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:29Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:29Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:29Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+
+running (1m01.0s), 100/100 VUs, 15196 complete and 0 interrupted iterations
+browse   [  93% ] 100 VUs  0m55.8s/1m0s
+
+running (1m02.0s), 100/100 VUs, 15431 complete and 0 interrupted iterations
+browse   [  95% ] 100 VUs  0m56.8s/1m0s
+
+running (1m03.0s), 100/100 VUs, 15774 complete and 0 interrupted iterations
+browse   [  96% ] 100 VUs  0m57.8s/1m0s
+
+running (1m04.0s), 100/100 VUs, 16103 complete and 0 interrupted iterations
+browse   [  98% ] 100 VUs  0m58.8s/1m0s
+
+running (1m05.0s), 100/100 VUs, 16435 complete and 0 interrupted iterations
+browse   [ 100% ] 100 VUs  0m59.8s/1m0s
+
+running (1m06.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m07.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m08.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m09.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m10.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m11.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m12.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m13.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m14.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m15.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m16.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m17.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m18.0s), 048/100 VUs, 16551 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+
+running (1m19.0s), 030/100 VUs, 16569 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:47Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-29T07:35:48Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+
+running (1m20.0s), 024/100 VUs, 16575 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m21.0s), 024/100 VUs, 16575 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m22.0s), 024/100 VUs, 16575 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ENDED\": dial: i/o timeout"
+
+running (1m23.0s), 024/100 VUs, 16575 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:51Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+
+running (1m24.0s), 017/100 VUs, 16582 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:52Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ON_SALE\": dial: i/o timeout"
+
+running (1m25.0s), 016/100 VUs, 16583 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m26.0s), 016/100 VUs, 16583 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:54Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=UPCOMING\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=ETC&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CONCERT&status=ON_SALE\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=MUSICAL_PLAY&status=ENDED\": dial: i/o timeout"
+
+running (1m27.0s), 012/100 VUs, 16587 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:55Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20\": dial: i/o timeout"
+time="2026-10-29T07:35:56Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=DANCE&status=ENDED\": dial: i/o timeout"
+time="2026-10-29T07:35:56Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/performances?size=20&genre=CLASSIC&status=ENDED\": dial: i/o timeout"
+
+running (1m28.0s), 009/100 VUs, 16590 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m29.0s), 009/100 VUs, 16590 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m30.0s), 009/100 VUs, 16590 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m31.0s), 006/100 VUs, 16593 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m32.0s), 006/100 VUs, 16593 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m33.0s), 006/100 VUs, 16593 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m34.0s), 006/100 VUs, 16593 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+running (1m35.0s), 006/100 VUs, 16593 complete and 0 interrupted iterations
+browse ↓ [ 100% ] 100 VUs  1m0s
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:detail}
+    ✓ 'p(95)<100000' p(95)=168.05ms
+
+    http_req_duration{api:list_filter}
+    ✓ 'p(95)<100000' p(95)=178.8ms
+
+    http_req_duration{api:list}
+    ✓ 'p(95)<100000' p(95)=179.19ms
+
+    http_req_duration{api:my_reservations}
+    ✓ 'p(95)<100000' p(95)=120.46ms
+
+    http_req_duration{api:schedules}
+    ✓ 'p(95)<100000' p(95)=117ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=118.26ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.06%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 83071  872.691379/s
+    checks_succeeded...................: 99.93% 83018 out of 83071
+    checks_failed......................: 0.06%  53 out of 83071
+
+    ✓ login 200
+    ✗ list_filter 200
+      ↳  99% — ✓ 8283 / ✗ 25
+    ✗ list 200
+      ↳  99% — ✓ 8263 / ✗ 28
+    ✓ detail 200
+    ✓ schedules 200
+    ✓ seats 200
+    ✓ my 200
+
+    HTTP
+    http_req_duration.......................................................: avg=62.62ms  p(50)=48.83ms  p(90)=113.24ms p(95)=147.53ms p(99)=223.65ms max=611.28ms
+      { api:detail }........................................................: avg=70.73ms  p(50)=53.61ms  p(90)=133.65ms p(95)=168.05ms p(99)=249.04ms max=561.8ms 
+      { api:list_filter }...................................................: avg=78.8ms   p(50)=63.62ms  p(90)=147.79ms p(95)=178.8ms  p(99)=280.75ms max=611.28ms
+      { api:list }..........................................................: avg=78.61ms  p(50)=64.66ms  p(90)=148.12ms p(95)=179.19ms p(99)=263.54ms max=522.36ms
+      { api:my_reservations }...............................................: avg=54.39ms  p(50)=45.31ms  p(90)=95.11ms  p(95)=120.46ms p(99)=175.59ms max=347.61ms
+      { api:schedules }.....................................................: avg=54.15ms  p(50)=45.64ms  p(90)=94.28ms  p(95)=117ms    p(99)=185.68ms max=401.94ms
+      { api:seats }.........................................................: avg=55.2ms   p(50)=46.39ms  p(90)=95.76ms  p(95)=118.26ms p(99)=178.3ms  max=425.45ms
+      { expected_response:true }............................................: avg=62.66ms  p(50)=48.84ms  p(90)=113.28ms p(95)=147.57ms p(99)=223.69ms max=611.28ms
+    http_req_failed.........................................................: 0.06%  53 out of 83071
+    http_reqs...............................................................: 83071  872.691379/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=400.08ms p(50)=287.89ms p(90)=500.96ms p(95)=613.54ms p(99)=858.04ms max=37.14s  
+    iterations..............................................................: 16593  174.315562/s
+    vus.....................................................................: 6      min=0           max=100
+    vus_max.................................................................: 100    min=100         max=100
+
+    NETWORK
+    data_received...........................................................: 346 MB 3.6 MB/s
+    data_sent...............................................................: 13 MB  137 kB/s
+
+
+
+
+running (1m35.2s), 000/100 VUs, 16593 complete and 6 interrupted iterations
+browse ✓ [ 100% ] 100 VUs  1m0s

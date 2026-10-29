@@ -1,6 +1,6 @@
 # 성능 측정
 
-대량 데이터를 넣고 k6로 응답 시간을 잰 스크립트와 결과입니다. 조회 흐름은 [docs/problem-solving.md 13장](../docs/problem-solving.md#13-데이터를-늘리자-공연-목록이-다른-api까지-느리게-만든-문제), 예매·결제는 [14장](../docs/problem-solving.md#14-결제가-몰리자-좌석-조회까지-느려진-문제-쓰기-부하), 트랜잭션 부가 명령과 풀 크기는 [15장](../docs/problem-solving.md#15-쿼리보다-트랜잭션-부가-명령이-더-많던-문제), 한 좌석 경합은 [16장](../docs/problem-solving.md#16-한-좌석에-몰린-요청이-락-앞에-한-줄로-서던-문제)에 과정과 해석이 있습니다.
+대량 데이터를 넣고 k6로 응답 시간을 잰 스크립트와 결과입니다. 조회 흐름은 [docs/problem-solving.md 13장](../docs/problem-solving.md#13-데이터를-늘리자-공연-목록이-다른-api까지-느리게-만든-문제), 예매·결제는 [14장](../docs/problem-solving.md#14-결제가-몰리자-좌석-조회까지-느려진-문제-쓰기-부하), 트랜잭션 부가 명령과 풀 크기는 [15장](../docs/problem-solving.md#15-쿼리보다-트랜잭션-부가-명령이-더-많던-문제), 한 좌석 경합은 [16장](../docs/problem-solving.md#16-한-좌석에-몰린-요청이-락-앞에-한-줄로-서던-문제), 회차 잔여석 카운터는 [17장](../docs/problem-solving.md#17-서로-다른-좌석을-산-예매끼리도-회차-행-앞에-줄을-서던-문제)에 과정과 해석이 있습니다.
 
 로컬 전용입니다. 시드 SQL은 운영 DB에 절대 실행하지 마세요.
 
@@ -45,6 +45,9 @@
    ```bash
    # 예매 오픈: 1000명이 회차 14의 빈 좌석 앞쪽 20개를 동시에 예매, 20명은 좌석 현황 새로고침
    docker run --rm -i -e BASE_URL=http://host.docker.internal:8081 -e MODE=hot -e VUS=1000 -e SEATS=20      -e HOT_SCHEDULE=14 -e READERS=20 -e READ_DURATION=15s grafana/k6:1.0.0 run - < perf/k6/book.js
+   # 회차 단위 경합만: 200명이 회차 14의 빈 좌석 200개를 한 명에 하나씩 (좌석은 안 겹침, 모두 성공)
+   docker run --rm -i -e BASE_URL=http://host.docker.internal:8081 -e MODE=hot -e VUS=200 -e SEATS=200 -e SPREAD=1 \
+     -e HOT_SCHEDULE=14 -e READERS=20 -e READ_DURATION=15s grafana/k6:1.0.0 run - < perf/k6/book.js
    # 평소 예매: 300명이 빈 좌석 예매 -> 데모 결제(1.5초)
    docker run --rm -i -e BASE_URL=http://host.docker.internal:8081 -e MODE=flow -e VUS=300 -e DURATION=60s      grafana/k6:1.0.0 run - < perf/k6/book.js
    ```
@@ -67,3 +70,6 @@
 | `k6-flow-300-pool10.txt`, `k6-flow-300-pool20.txt`, `k6-flow-300-pool40.txt` | 예매·결제 300명: 커넥션 풀 크기별 |
 | `k6-hotseat-300-before-*.txt`, `k6-hotseat-300-precheck-*.txt` | 300명 → 좌석 1개: 팔린 좌석 먼저 거절 전·후 (`SEATS=1`) |
 | `k6-hot-1000-precheck.txt`, `k6-hot-1000-reorder.txt` | 1000명 → 20석: 먼저 거절 후 / 회차 잔여석 감소를 맨 끝으로 옮긴 후 |
+| `k6-spread-200-counter-*.txt`, `k6-spread-200-seatcount-*.txt` | 200명 → 같은 회차 다른 좌석 200개 (`SPREAD=1`): 회차 잔여석 카운터 / 좌석 상태에서 세기 (끝에 DB 문장별 시간·중복 판매 확인) |
+| `k6-hot-1000-counter-*.txt`, `k6-hot-1000-seatcount-*.txt` | 1000명 → 20석: 같은 비교 |
+| `k6-browse-100-counter*.txt`, `k6-browse-100-seatcount*.txt` | 조회 100명: 같은 비교 (`seatcount`, `-2`는 회차 조회·count가 트랜잭션 두 번이던 때, `-3`, `-4`는 합친 뒤) |

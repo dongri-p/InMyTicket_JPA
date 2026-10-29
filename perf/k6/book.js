@@ -14,6 +14,8 @@ const VUS = Number(__ENV.VUS || 100);
 const READERS = Number(__ENV.READERS || 0);
 const PASSWORD = __ENV.PASSWORD || 'PerfAdmin1234!';
 const HOT_SCHEDULE = Number(__ENV.HOT_SCHEDULE || 0);
+// SPREAD=1이면 hot에서 사람마다 서로 다른 좌석을 고름 (좌석은 안 겹치고 같은 회차만 공유 - 회차 단위 경합만 보려고)
+const SPREAD = __ENV.SPREAD === '1';
 const SEATS = Number(__ENV.SEATS || 20);
 // 다른 테스트에서 쓴 회원과 겹치지 않게 시작 번호를 바꿀 수 있게 함 (perfN)
 const MEMBER_OFFSET = Number(__ENV.MEMBER_OFFSET || 0);
@@ -113,8 +115,9 @@ function reserve(token, seatIds) {
 
 // __VU는 시나리오를 가리지 않고 매기는 번호라 READERS가 있으면 VUS를 넘어감 -> 시나리오 안에서의 반복 번호(0..VUS-1)로 회원을 고름
 export function hot(data) {
-  const token = data.tokens[exec.scenario.iterationInTest];
-  reserve(token, [pick(data.targets)]);
+  const i = exec.scenario.iterationInTest;
+  const token = data.tokens[i];
+  reserve(token, [SPREAD ? data.targets[i % data.targets.length] : pick(data.targets)]);
 }
 
 export function flow(data) {

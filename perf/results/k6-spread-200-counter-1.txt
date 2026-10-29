@@ -1,0 +1,181 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: -
+        output: -
+
+     scenarios: (100.00%) 2 scenarios, 220 max VUs, 2m30s max duration (incl. graceful stop):
+              * hot: 1 iterations for each of 200 VUs (maxDuration: 2m0s, exec: hot, gracefulStop: 30s)
+              * readers: 20 looping VUs for 15s (exec: read, gracefulStop: 30s)
+
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+Run       [ 100% ] setup()
+hot       [   0% ]
+readers   [   0% ]
+
+running (0m11.0s), 120/220 VUs, 117 complete and 0 interrupted iterations
+hot       [  50% ] 200 VUs  0m00.7s/2m0s  100/200 iters, 1 per VU
+readers   [   5% ] 20 VUs   00.7s/15s    
+
+running (0m12.0s), 020/220 VUs, 642 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  11% ] 20 VUs   01.7s/15s    
+
+running (0m13.0s), 020/220 VUs, 1579 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  18% ] 20 VUs   02.7s/15s    
+
+running (0m14.0s), 020/220 VUs, 2542 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  25% ] 20 VUs   03.7s/15s    
+
+running (0m15.0s), 020/220 VUs, 3518 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  31% ] 20 VUs   04.7s/15s    
+
+running (0m16.0s), 020/220 VUs, 4471 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  38% ] 20 VUs   05.7s/15s    
+
+running (0m17.0s), 020/220 VUs, 5385 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  45% ] 20 VUs   06.7s/15s    
+
+running (0m18.0s), 020/220 VUs, 6225 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  51% ] 20 VUs   07.7s/15s    
+
+running (0m19.0s), 020/220 VUs, 7142 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  58% ] 20 VUs   08.7s/15s    
+
+running (0m20.0s), 020/220 VUs, 8231 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  65% ] 20 VUs   09.7s/15s    
+
+running (0m21.0s), 020/220 VUs, 9468 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  71% ] 20 VUs   10.7s/15s    
+
+running (0m22.0s), 020/220 VUs, 10841 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  78% ] 20 VUs   11.7s/15s    
+
+running (0m23.0s), 020/220 VUs, 12022 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  85% ] 20 VUs   12.7s/15s    
+
+running (0m24.0s), 020/220 VUs, 13454 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  91% ] 20 VUs   13.7s/15s    
+
+running (0m25.0s), 020/220 VUs, 15000 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers   [  98% ] 20 VUs   14.7s/15s    
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:pay}
+    ✓ 'p(95)<100000' p(95)=0s
+
+    http_req_duration{api:reserve}
+    ✓ 'p(95)<100000' p(95)=1.11s
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=31.7ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......................: 15446   611.027498/s
+    checks_succeeded...................: 100.00% 15446 out of 15446
+    checks_failed......................: 0.00%   0 out of 15446
+
+    ✓ login 200
+    ✓ seats 200
+
+    CUSTOM
+    reserve_success.........................................................: 200    7.911789/s
+
+    HTTP
+    http_req_duration.......................................................: avg=28.4ms   p(50)=16.74ms  p(90)=28.98ms p(95)=37.1ms  p(99)=519.25ms max=1.2s 
+      { api:pay }...........................................................: avg=0s       p(50)=0s       p(90)=0s      p(95)=0s      p(99)=0s       max=0s   
+      { api:reserve }.......................................................: avg=689.03ms p(50)=658.91ms p(90)=1.06s   p(95)=1.11s   p(99)=1.18s    max=1.2s 
+      { api:seats }.........................................................: avg=19.45ms  p(50)=16.52ms  p(90)=27.15ms p(95)=31.7ms  p(99)=45.54ms  max=1.03s
+      { expected_response:true }............................................: avg=28.4ms   p(50)=16.74ms  p(90)=28.98ms p(95)=37.1ms  p(99)=519.25ms max=1.2s 
+    http_req_failed.........................................................: 0.00%  0 out of 15651
+    http_reqs...............................................................: 15651  619.137082/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=28.56ms  p(50)=16.81ms  p(90)=28.22ms p(95)=34.26ms p(99)=544.54ms max=1.22s
+    iterations..............................................................: 15446  611.027498/s
+    vus.....................................................................: 20     min=0          max=120
+    vus_max.................................................................: 220    min=220        max=220
+
+    NETWORK
+    data_received...........................................................: 130 MB 5.1 MB/s
+    data_sent...............................................................: 2.0 MB 79 kB/s
+
+
+
+
+running (0m25.3s), 000/220 VUs, 15446 complete and 0 interrupted iterations
+hot     ✓ [ 100% ] 200 VUs  0m01.2s/2m0s  200/200 iters, 1 per VU
+readers ✓ [ 100% ] 20 VUs   15s          
+
+== DB 문장별 (횟수, 평균 ms, 최대 ms, 락 대기 합 ms)
+cnt	avg_ms	max_ms	lock_ms	q
+15201	0.49	15.2	35.3	SELECT `s1_0` . `seat_id` , `s1_0` . `grade` , `s1_0` . `price` , `s1_0` . `schedule_id` ,
+15198	0.41	16.2	24.7	SELECT COUNT ( `s1_0` . `seat_id` ) FROM `seat` `s1_0` LEFT JOIN SCHEDULE `s2_0` ON `s2_0`
+200	30.27	64.2	6005.3	UPDATE SCHEDULE `s1_0` SET `available_seat_count` = ( `s1_0` . `available_seat_count` - ? 
+15619	0.18	15.1	0	COMMIT
+200	0.29	0.5	0.6	SELECT `m1_0` . `member_id` , `m1_0` . `email` , `m1_0` . `login_id` , `m1_0` . `name` , `
+200	0.2	3.6	0.2	UPDATE `seat` SET `grade` = ? , `price` = ? , `schedule_id` = ? , `seat_number` = ? , STAT
+200	0.19	0.6	0.2	INSERT INTO `reservation` ( `member_id` , `processing_started_at` , `reserved_at` , STATUS
+200	0.17	3.6	0.2	INSERT INTO `ticket` ( `reservation_id` , `seat_id` ) VALUES (...)
+
+== 정합성: 회차 150 좌석 중복 판매(티켓 2장 이상 좌석, 활성 예약 기준)
+dup
+0
