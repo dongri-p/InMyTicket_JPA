@@ -97,6 +97,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/members", "/api/v1/members/login").permitAll()
                 // 공연 목록/상세 조회는 인증 없이 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/performances", "/api/v1/performances/**").permitAll()
+                // 대기열 순번은 회원 기준이라 로그인 필요 (아래 회차 조회 공개 규칙보다 먼저 둠)
+                .requestMatchers(HttpMethod.GET, "/api/v1/schedules/*/queue/me").authenticated()
                 // 회차/좌석 현황 조회도 예매 전(로그인 전) 확인이 가능해야 하므로 인증 없이 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/schedules/**").permitAll()
                 // API 문서(Swagger UI)는 공개 - 문서만 보이고, 회원·관리자 API 호출은 여전히 토큰이 필요함

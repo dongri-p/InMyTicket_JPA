@@ -31,6 +31,7 @@ public enum ErrorCode {
     // 예매
     RESERVATION_NOT_FOUND(404, "존재하지 않는 예약입니다."),
     NOT_RESERVATION_OWNER(403, "본인의 예약만 처리할 수 있습니다."),
+    QUEUE_ENTRY_REQUIRED(403, "대기열에서 입장 순서가 되어야 예매할 수 있습니다."),
     DUPLICATE_SEAT_SELECTION(400, "같은 좌석이 중복으로 선택되었습니다."),
     SEAT_NOT_FOUND(400, "존재하지 않는 좌석이 포함되어 있습니다."),
     MIXED_SCHEDULE_SEATS(400, "같은 회차의 좌석만 함께 예매할 수 있습니다."),
@@ -51,6 +52,7 @@ public enum ErrorCode {
     ORDER_ID_MISMATCH(400, "이 예약의 주문번호가 아닙니다."),
     UNSUPPORTED_PAYMENT_PROVIDER(400, "지원하지 않는 결제 수단입니다."),
     PAYMENT_REJECTED(400, "결제에 실패했습니다."),
+    QUEUE_UNAVAILABLE(503, "대기열을 확인할 수 없습니다. 잠시 뒤 다시 시도해 주세요."),
     PG_UNAVAILABLE(502, "결제 서버와 통신 중 오류가 발생했습니다.");
 
     private final int status;

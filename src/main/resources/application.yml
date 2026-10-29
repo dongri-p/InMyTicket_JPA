@@ -56,6 +56,15 @@ reservation:
   # 자동 회수 스케줄러 실행 주기(ms)
   expiration-check-interval-ms: 60000
 
+booking-queue:
+  # 예매 오픈 시각부터 이 시간(분) 동안 대기열을 운영 (오픈 직후 몰리는 요청만 흘려보내고, 그 뒤엔 바로 예매)
+  window-minutes: 30
+  # 입장 주기(ms)와 한 번에 입장시키는 인원 - 예매 API에 동시에 들어오는 인원을 이 정도로 제한
+  admit-interval-ms: 1000
+  admit-per-second: 20
+  # 입장한 뒤 이 시간(분) 안에 예매해야 함 (지나면 다시 줄 서기)
+  admission-ttl-minutes: 10
+
 performance:
   # 공연 목록 예매 상태 그룹(예매중/오픈예정/공연종료)을 시간 경과에 맞춰 갱신하는 주기(ms)
   booking-group-refresh-interval-ms: 60000

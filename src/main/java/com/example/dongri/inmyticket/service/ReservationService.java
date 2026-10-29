@@ -37,6 +37,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
     private final SeatRepository seatRepository;
+    private final BookingQueueService bookingQueueService;
 
     // 좌석 1개 예매 - 좌석 목록 버전에 위임
     @Transactional
@@ -52,11 +53,17 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.DUPLICATE_SEAT_SELECTION);
         }
 
-        // 0. 예매 오픈 전 회차면 락을 잡기 전에 거절 (여러 회차가 섞였으면 아래에서 MIXED_SCHEDULE_SEATS로 거절)
+        // 0. 회차 단위 관문을 락을 잡기 전에 확인 (여러 회차가 섞였으면 아래에서 MIXED_SCHEDULE_SEATS로 거절)
+        //    - 예매 오픈 전이면 거절
+        //    - 오픈 직후 대기열 운영 중이면, 대기열에서 입장한 회원만 통과
         List<Schedule> schedules = seatRepository.findSchedulesOfSeats(seatIds);
-        if (schedules.size() == 1 && schedules.get(0).isBeforeBookingOpen(LocalDateTime.now())) {
-            throw new BusinessException(ErrorCode.BOOKING_NOT_OPEN,
-                    "예매는 " + schedules.get(0).getBookingOpenAt() + "에 열립니다.");
+        if (schedules.size() == 1) {
+            Schedule target = schedules.get(0);
+            LocalDateTime now = LocalDateTime.now();
+            if (target.isBeforeBookingOpen(now)) {
+                throw new BusinessException(ErrorCode.BOOKING_NOT_OPEN, "예매는 " + target.getBookingOpenAt() + "에 열립니다.");
+            }
+            bookingQueueService.assertAdmitted(target, memberId, now);
         }
 
         // 0-1. 이미 팔린 좌석이 섞여 있으면 락을 기다리지 않고 바로 거절.
