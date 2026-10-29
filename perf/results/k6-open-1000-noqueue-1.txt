@@ -1,0 +1,286 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: -
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 10m30s max duration (incl. graceful stop):
+              * open: 1 iterations for each of 1000 VUs (maxDuration: 10m0s, gracefulStop: 30s)
+
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+Run    [ 100% ] setup()
+open   [   0% ]
+
+running (00m45.9s), 1000/1000 VUs, 0 complete and 0 interrupted iterations
+open   [   0% ] 1000 VUs  00m00.6s/10m0s  0000/1000 iters, 1 per VU
+
+running (00m46.9s), 1000/1000 VUs, 0 complete and 0 interrupted iterations
+open   [   0% ] 1000 VUs  00m01.6s/10m0s  0000/1000 iters, 1 per VU
+
+running (00m47.9s), 1000/1000 VUs, 0 complete and 0 interrupted iterations
+open   [   0% ] 1000 VUs  00m02.6s/10m0s  0000/1000 iters, 1 per VU
+
+running (00m48.9s), 0980/1000 VUs, 20 complete and 0 interrupted iterations
+open   [   2% ] 1000 VUs  00m03.6s/10m0s  0020/1000 iters, 1 per VU
+
+running (00m49.9s), 0782/1000 VUs, 218 complete and 0 interrupted iterations
+open   [  22% ] 1000 VUs  00m04.6s/10m0s  0218/1000 iters, 1 per VU
+
+running (00m50.9s), 0654/1000 VUs, 346 complete and 0 interrupted iterations
+open   [  35% ] 1000 VUs  00m05.6s/10m0s  0346/1000 iters, 1 per VU
+
+running (00m51.9s), 0650/1000 VUs, 350 complete and 0 interrupted iterations
+open   [  35% ] 1000 VUs  00m06.6s/10m0s  0350/1000 iters, 1 per VU
+
+running (00m52.9s), 0049/1000 VUs, 951 complete and 0 interrupted iterations
+open   [  95% ] 1000 VUs  00m07.6s/10m0s  0951/1000 iters, 1 per VU
+
+running (00m53.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m08.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m54.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m09.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m55.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m10.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m56.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m11.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m57.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m12.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m58.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m13.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (00m59.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m14.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m00.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m15.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m01.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m16.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m02.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m17.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m03.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m18.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m04.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m19.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m05.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m20.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m06.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m21.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m07.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m22.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m08.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m23.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m09.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m24.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m10.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m25.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m11.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m26.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m12.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m27.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m13.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m28.6s/10m0s  0998/1000 iters, 1 per VU
+
+running (01m14.9s), 0002/1000 VUs, 998 complete and 0 interrupted iterations
+open   [ 100% ] 1000 VUs  00m29.6s/10m0s  0998/1000 iters, 1 per VU
+time="2026-10-29T10:13:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/schedules/174/seats?page=0&size=100\": dial: i/o timeout"
+time="2026-10-29T10:13:04Z" level=warning msg="Request Failed" error="Get \"http://host.docker.internal:8081/api/v1/schedules/174/seats?page=0&size=100\": dial: i/o timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{api:queue}
+    ✓ 'p(95)<100000' p(95)=0s
+
+    http_req_duration{api:reserve}
+    ✓ 'p(95)<100000' p(95)=655.2ms
+
+    http_req_duration{api:seats}
+    ✓ 'p(95)<100000' p(95)=775.44ms
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    reserve_success.........................................................: 367    4.852831/s
+    sold_out................................................................: 2      0.026446/s
+    time_to_result..........................................................: avg=6.25s    p(50)=7.16s    p(90)=7.45s    p(95)=7.51s    p(99)=7.6s  max=30s  
+
+    HTTP
+    http_req_duration.......................................................: avg=495.82ms p(50)=575.33ms p(90)=712.8ms  p(95)=768.13ms p(99)=1.31s max=2.03s
+      { api:queue }.........................................................: avg=0s       p(50)=0s       p(90)=0s       p(95)=0s       p(99)=0s    max=0s   
+      { api:reserve }.......................................................: avg=433.16ms p(50)=453.08ms p(90)=640.74ms p(95)=655.2ms  p(99)=1.02s max=1.74s
+      { api:seats }.........................................................: avg=551.8ms  p(50)=615.57ms p(90)=728.51ms p(95)=775.44ms p(99)=1.33s max=2.03s
+      { expected_response:true }............................................: avg=506.94ms p(50)=604.51ms p(90)=719.08ms p(95)=771.22ms p(99)=1.32s max=2.03s
+    http_req_failed.........................................................: 10.23% 1284 out of 12545
+    http_reqs...............................................................: 12545  165.882202/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=6.25s    p(50)=7.16s    p(90)=7.45s    p(95)=7.5s     p(99)=7.6s  max=30s  
+    iterations..............................................................: 1000   13.222973/s
+    vus.....................................................................: 2      min=0             max=1000
+    vus_max.................................................................: 1000   min=1000          max=1000
+
+    NETWORK
+    data_received...........................................................: 72 MB  958 kB/s
+    data_sent...............................................................: 4.5 MB 60 kB/s
+
+
+
+
+running (01m15.6s), 0000/1000 VUs, 1000 complete and 0 interrupted iterations
+open ✓ [ 100% ] 1000 VUs  00m30.3s/10m0s  1000/1000 iters, 1 per VU
