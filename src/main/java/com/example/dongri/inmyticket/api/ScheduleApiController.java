@@ -1,7 +1,6 @@
 package com.example.dongri.inmyticket.api;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,6 @@ import com.example.dongri.inmyticket.api.dto.CreateScheduleRequest;
 import com.example.dongri.inmyticket.api.dto.ListResult;
 import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
 import com.example.dongri.inmyticket.api.dto.SeatListDto;
-import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.service.ScheduleService;
 
@@ -47,22 +45,13 @@ public class ScheduleApiController {
     // 회차 단건 조회 API (회차 등록 응답의 Location이 가리키는 곳)
     @GetMapping("/api/v1/schedules/{scheduleId}")
     public ScheduleListDto schedule(@PathVariable("scheduleId") Long scheduleId) {
-        Schedule schedule = scheduleService.findSchedule(scheduleId);
-        int available = scheduleService.countAvailableSeats(List.of(scheduleId)).get(scheduleId);
-        return new ScheduleListDto(schedule, available);
+        return scheduleService.findScheduleWithAvailableSeats(scheduleId);
     }
 
     // 특정 공연의 모든 회차 일정 조회 API
     @GetMapping("/api/v1/performances/{performanceId}/schedules")
     public ListResult<List<ScheduleListDto>> schedulesV2(@PathVariable("performanceId") Long performanceId) {
-        List<Schedule> findSchedules = scheduleService.findSchedulesByPerformance(performanceId);
-        Map<Long, Integer> available = scheduleService.countAvailableSeats(
-                findSchedules.stream().map(Schedule::getId).collect(Collectors.toList()));
-
-        List<ScheduleListDto> collect = findSchedules.stream()
-                .map(s -> new ScheduleListDto(s, available.get(s.getId())))
-                .collect(Collectors.toList());
-
+        List<ScheduleListDto> collect = scheduleService.findSchedulesWithAvailableSeats(performanceId);
         return new ListResult<>(collect.size(), collect.size(), collect);
     }
 

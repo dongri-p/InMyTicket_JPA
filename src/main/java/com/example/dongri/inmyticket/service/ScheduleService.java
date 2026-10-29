@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
 import com.example.dongri.inmyticket.domain.BusinessException;
 import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.Hall;
@@ -99,6 +101,22 @@ public class ScheduleService {
             throw new BusinessException(ErrorCode.PERFORMANCE_NOT_FOUND);
         }
         return schedules;
+    }
+
+    // 회차 단건 + 잔여석 (회차 조회와 잔여석 count를 한 트랜잭션에서 - 커넥션을 한 번만 빌림)
+    public ScheduleListDto findScheduleWithAvailableSeats(Long scheduleId) {
+        Schedule schedule = findSchedule(scheduleId);
+        return new ScheduleListDto(schedule, countAvailableSeats(List.of(scheduleId)).get(scheduleId));
+    }
+
+    // 공연의 회차 목록 + 회차별 잔여석 (회차 페치 조인 1번 + 잔여석 group by 1번, 같은 트랜잭션)
+    public List<ScheduleListDto> findSchedulesWithAvailableSeats(Long performanceId) {
+        List<Schedule> schedules = findSchedulesByPerformance(performanceId);
+        Map<Long, Integer> available = countAvailableSeats(
+                schedules.stream().map(Schedule::getId).collect(Collectors.toList()));
+        return schedules.stream()
+                .map(s -> new ScheduleListDto(s, available.get(s.getId())))
+                .collect(Collectors.toList());
     }
 
     // 회차별 잔여석 수 (scheduleId -> 수). 다 팔린 회차는 count 결과에 없으므로 0으로 채움
