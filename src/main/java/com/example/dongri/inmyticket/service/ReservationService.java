@@ -52,7 +52,14 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.DUPLICATE_SEAT_SELECTION);
         }
 
-        // 0. 이미 팔린 좌석이 섞여 있으면 락을 기다리지 않고 바로 거절.
+        // 0. 예매 오픈 전 회차면 락을 잡기 전에 거절 (여러 회차가 섞였으면 아래에서 MIXED_SCHEDULE_SEATS로 거절)
+        List<Schedule> schedules = seatRepository.findSchedulesOfSeats(seatIds);
+        if (schedules.size() == 1 && schedules.get(0).isBeforeBookingOpen(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.BOOKING_NOT_OPEN,
+                    "예매는 " + schedules.get(0).getBookingOpenAt() + "에 열립니다.");
+        }
+
+        // 0-1. 이미 팔린 좌석이 섞여 있으면 락을 기다리지 않고 바로 거절.
         // 예매 오픈 때 한 좌석에 몰린 요청이 전부 락 앞에 줄을 서서, 어차피 실패할 요청도 앞 요청이 끝나길 하나씩 기다렸음.
         // 락 없는 읽기라 여기를 통과해도 아래 락 조회에서 다시 확인하므로 정확성은 락이 지킴 (여기선 확실히 실패할 요청만 걸러냄)
         if (seatRepository.countNotAvailable(seatIds, SeatStatus.AVAILABLE) > 0) {

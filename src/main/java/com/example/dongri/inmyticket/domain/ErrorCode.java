@@ -37,6 +37,7 @@ public enum ErrorCode {
     SEAT_ALREADY_RESERVED(409, "이미 예매 완료된 좌석입니다."),
     SEAT_NOT_RESERVED(409, "예매되지 않은 좌석은 취소할 수 없습니다."),
     SHOW_ALREADY_STARTED(409, "공연이 이미 시작되었습니다."),
+    BOOKING_NOT_OPEN(409, "아직 예매 오픈 전입니다."),
     RESERVATION_ALREADY_CANCELLED(409, "이미 취소된 예약입니다."),
 
     // 결제

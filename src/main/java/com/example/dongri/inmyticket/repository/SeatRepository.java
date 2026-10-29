@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 
@@ -41,6 +42,10 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     // 뒤의 findByIdInWithLock이 락을 잡고도 이 시점의 옛 상태를 그대로 돌려받게 됨
     @Query("select count(s) from Seat s where s.id in :ids and s.status <> :available")
     long countNotAvailable(@Param("ids") List<Long> ids, @Param("available") SeatStatus available);
+
+    // 고른 좌석들이 속한 회차 (락 없이) - 좌석 락을 잡기 전에 예매 오픈 여부 등 회차 단위 조건을 먼저 보려고
+    @Query("select distinct s.schedule from Seat s where s.id in :ids")
+    List<Schedule> findSchedulesOfSeats(@Param("ids") List<Long> ids);
 
     // 회차별 잔여석 수 (회차가 여러 개여도 쿼리 한 번). 회차 행에 카운터를 두면 예매마다 그 행을 같이 잠가야 해서,
     // 좌석 상태를 그대로 셈 - (schedule_id, status) 인덱스(V12)만 읽고 끝남

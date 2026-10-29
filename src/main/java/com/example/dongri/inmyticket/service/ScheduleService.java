@@ -49,9 +49,20 @@ public class ScheduleService {
         return saveSchedule(performanceId, hallId, startTime, totalSeatCount, null);
     }
 
-    // sections가 null이면 기본 배치. 주면 구역 좌석 수 합이 totalSeatCount와 같아야 하고 등급은 한 번씩만
     @Transactional
     public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount, List<GradeSection> sections) {
+        return saveSchedule(performanceId, hallId, startTime, totalSeatCount, sections, null);
+    }
+
+    // sections가 null이면 기본 배치. 주면 구역 좌석 수 합이 totalSeatCount와 같아야 하고 등급은 한 번씩만
+    // bookingOpenAt이 null이면 바로 예매 가능, 주면 공연 시작 전이어야 함
+    @Transactional
+    public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount,
+                             List<GradeSection> sections, LocalDateTime bookingOpenAt) {
+        if (bookingOpenAt != null && !bookingOpenAt.isBefore(startTime)) {
+            throw new BusinessException(ErrorCode.INVALID_SCHEDULE,
+                    "예매 오픈 시각은 공연 시작 전이어야 합니다. bookingOpenAt=" + bookingOpenAt + ", startTime=" + startTime);
+        }
         if (sections == null) {
             sections = GradeSection.defaults(totalSeatCount);
         }
@@ -95,6 +106,7 @@ public class ScheduleService {
 
         // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)
         Schedule schedule = Schedule.createSchedule(performance, hall, startTime, sections);
+        schedule.setBookingOpenAt(bookingOpenAt);
 
         // 4. 데이터베이스 저장
         scheduleRepository.save(schedule);

@@ -39,6 +39,14 @@ public class Schedule {
     private LocalDateTime startTime;
     private int totalSeatCount;
 
+    // 예매 오픈 시각 (null이면 등록하자마자 예매 가능)
+    private LocalDateTime bookingOpenAt;
+
+    // 아직 예매 오픈 전인지
+    public boolean isBeforeBookingOpen(LocalDateTime now) {
+        return bookingOpenAt != null && now.isBefore(bookingOpenAt);
+    }
+
     // 연관관계 편의 메서드
     public void addSeat(Seat seat) {
         this.seats.add(seat);
