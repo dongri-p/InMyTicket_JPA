@@ -69,7 +69,7 @@ public class ReservationExpirationTest {
         Reservation result = reservationRepository.findById(reservationId).orElseThrow();
         Assertions.assertEquals(ReservationStatus.CANCELLED, result.getStatus());
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seat.getId()).get().getStatus());
-        Assertions.assertEquals(1, scheduleRepository.findById(seat.getSchedule().getId()).get().getAvailableSeatCount());
+        Assertions.assertEquals(1, TestFixtures.availableSeatCount(seatRepository, seat.getSchedule().getId()));
     }
 
     @Test

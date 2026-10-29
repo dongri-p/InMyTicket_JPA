@@ -4,31 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.dongri.inmyticket.domain.Schedule;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
-
-    /**
-     * 잔여 좌석 수를 DB 레벨에서 원자적으로 count만큼 감소시킴 (여러 좌석 예매를 쿼리 한 번으로)
-     * (좌석 락과 별개로 Schedule 로우를 잠그지 않고도 lost-update를 방지)
-     */
-    @Modifying
-    @Query("update Schedule s set s.availableSeatCount = s.availableSeatCount - :count " +
-           "where s.id = :scheduleId and s.availableSeatCount >= :count")
-    int decreaseAvailableSeatCount(@Param("scheduleId") Long scheduleId, @Param("count") int count);
-
-    /**
-     * 예약 취소로 좌석이 반환될 때, 잔여 좌석 수를 DB 레벨에서 원자적으로 1 증가시킴
-     * totalSeatCount를 넘지 않도록 가드
-     */
-    @Modifying
-    @Query("update Schedule s set s.availableSeatCount = s.availableSeatCount + 1 " +
-           "where s.id = :scheduleId and s.availableSeatCount < s.totalSeatCount")
-    int incrementAvailableSeatCount(@Param("scheduleId") Long scheduleId);
 
     /**
      * N+1 문제를 원천 차단하는 페치 조인 조회

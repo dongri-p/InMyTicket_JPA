@@ -36,7 +36,6 @@ public enum ErrorCode {
     MIXED_SCHEDULE_SEATS(400, "같은 회차의 좌석만 함께 예매할 수 있습니다."),
     SEAT_ALREADY_RESERVED(409, "이미 예매 완료된 좌석입니다."),
     SEAT_NOT_RESERVED(409, "예매되지 않은 좌석은 취소할 수 없습니다."),
-    NOT_ENOUGH_SEATS(409, "잔여 좌석이 부족합니다."),
     SHOW_ALREADY_STARTED(409, "공연이 이미 시작되었습니다."),
     RESERVATION_ALREADY_CANCELLED(409, "이미 취소된 예약입니다."),
 

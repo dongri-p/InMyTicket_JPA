@@ -21,7 +21,6 @@ import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ReservationRepository;
-import com.example.dongri.inmyticket.repository.ScheduleRepository;
 import com.example.dongri.inmyticket.repository.SeatRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,6 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
     private final SeatRepository seatRepository;
-    private final ScheduleRepository scheduleRepository;
 
     // 좌석 1개 예매 - 좌석 목록 버전에 위임
     @Transactional
@@ -84,19 +82,10 @@ public class ReservationService {
         // 2. 예매 생성 (좌석 하나라도 이미 예약됐으면 예외 -> 전체 롤백)
         Reservation reservation = Reservation.createReservation(member, seats);
 
-        // 3. 저장 - 좌석 상태 변경·예약·티켓을 여기서 DB에 먼저 반영(flush)
+        // 3. 저장 - 좌석 상태 변경·예약·티켓
+        // 회차 잔여석은 따로 줄이지 않음: 좌석 상태에서 바로 세므로(SeatRepository.countBySchedulesAndStatus) 잠그는 건 고른 좌석 행뿐.
+        // (예전엔 회차 행의 잔여석 카운터를 같이 줄여서, 서로 다른 좌석을 산 예매끼리도 그 행 하나 앞에 줄을 섰음)
         reservationRepository.saveAndFlush(reservation);
-
-        // 4. 회차의 잔여 좌석 수를 원자적으로 감소 (동시 예매 시 lost-update 방지)
-        // 회차 행은 그 회차의 모든 예매가 함께 잠그는 자리라 트랜잭션 맨 끝에 둠: 이 UPDATE부터 커밋까지만 락을 쥠.
-        // (예전엔 중간에 있어서 뒤의 예약·티켓 INSERT가 끝날 때까지 쥐고 있었고, 1000명이 한 회차 20석을 노리면
-        //  서로 다른 좌석을 산 20명이 이 행 하나를 평균 145ms씩 기다렸음)
-        if (schedule != null) {
-            int updated = scheduleRepository.decreaseAvailableSeatCount(schedule.getId(), seats.size());
-            if (updated == 0) {
-                throw new BusinessException(ErrorCode.NOT_ENOUGH_SEATS);
-            }
-        }
 
         return reservation.getId();
     }
@@ -259,7 +248,7 @@ public class ReservationService {
 
         List<Seat> seats = lockReservedSeats(reservation);
 
-        releaseSeatsAndRestoreCounts(seats);
+        releaseSeats(seats);
 
         // 결제가 완료된 예약이면 결제도 취소 처리
         if (payment != null) {
@@ -269,7 +258,7 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
     }
 
-    // 결제 없이 일정 시간 이상 방치된 PENDING 예약들을 찾아 좌석/잔여석을 회수 (스케줄러 전용, 소유자 검증/공연 시작 제한 없음)
+    // 결제 없이 일정 시간 이상 방치된 PENDING 예약들을 찾아 좌석을 회수 (스케줄러 전용, 소유자 검증/공연 시작 제한 없음)
     @Transactional
     public int expireStalePendingReservations(LocalDateTime cutoff) {
 
@@ -290,7 +279,7 @@ public class ReservationService {
                 continue;
             }
 
-            releaseSeatsAndRestoreCounts(lockReservedSeats(reservation));
+            releaseSeats(lockReservedSeats(reservation));
             reservation.setStatus(ReservationStatus.CANCELLED);
             expiredCount++;
         }
@@ -310,17 +299,10 @@ public class ReservationService {
         return seats;
     }
 
-    // 좌석을 다시 예매 가능 상태로 되돌리고, 잔여 좌석 수 복구
-    private void releaseSeatsAndRestoreCounts(List<Seat> seats) {
+    // 좌석을 다시 예매 가능 상태로 되돌림 (잔여석은 좌석 상태에서 세므로 따로 복구할 카운터 없음)
+    private void releaseSeats(List<Seat> seats) {
         for (Seat seat : seats) {
             seat.release();
-
-            if (seat.getSchedule() != null) {
-                int updated = scheduleRepository.incrementAvailableSeatCount(seat.getSchedule().getId());
-                if (updated == 0) {
-                    throw new BusinessException(ErrorCode.INTERNAL_ERROR, "잔여 좌석 수 복구에 실패했습니다. scheduleId=" + seat.getSchedule().getId());
-                }
-            }
         }
     }
 }

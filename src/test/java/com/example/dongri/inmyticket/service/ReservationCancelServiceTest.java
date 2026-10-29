@@ -52,14 +52,14 @@ public class ReservationCancelServiceTest {
     void cancel_releasesSeatAndRestoresCount() {
         // given
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
-        Assertions.assertEquals(0, scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount());
+        Assertions.assertEquals(0, TestFixtures.availableSeatCount(seatRepository, schedule.getId()));
 
         // when
         reservationService.cancelWithoutRefundCheck(owner.getId(), reservationId);
 
         // then
         Assertions.assertEquals(SeatStatus.AVAILABLE, seatRepository.findById(seat.getId()).get().getStatus());
-        Assertions.assertEquals(1, scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount());
+        Assertions.assertEquals(1, TestFixtures.availableSeatCount(seatRepository, schedule.getId()));
     }
 
     @Test
@@ -98,7 +98,7 @@ public class ReservationCancelServiceTest {
 
         // and: 취소가 거부됐으므로 좌석/잔여석은 그대로 유지된다
         Assertions.assertEquals(SeatStatus.RESERVED, seatRepository.findById(seat.getId()).get().getStatus());
-        Assertions.assertEquals(0, scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount());
+        Assertions.assertEquals(0, TestFixtures.availableSeatCount(seatRepository, schedule.getId()));
     }
 
     @Test

@@ -50,12 +50,11 @@ SELECT n,
 FROM perf_seq WHERE n <= 100000;
 
 -- 회차 1만: 공연 2,500개에 4회차씩, 시작 시각은 지금 기준 -30일 ~ +90일
-INSERT INTO schedule (schedule_id, performance_id, hall_id, start_time, total_seat_count, available_seat_count)
+INSERT INTO schedule (schedule_id, performance_id, hall_id, start_time, total_seat_count)
 SELECT s.n,
        ((s.n - 1) DIV 4) * 7919 % 100000 + 1,
        h.hall_id,
        DATE_ADD(DATE_SUB(DATE_FORMAT(NOW(), '%Y-%m-%d %H:00:00'), INTERVAL 30 DAY), INTERVAL (s.n * 131) % 2880 HOUR),
-       h.total_seats,
        h.total_seats
 FROM perf_seq s JOIN hall h ON h.hall_id = 1 + s.n % 40
 WHERE s.n <= 10000;
@@ -96,16 +95,11 @@ SELECT reservation_id, total_price, 'COMPLETED', CONCAT('perf-', reservation_id)
        DATE_ADD(reserved_at, INTERVAL 1 MINUTE), 'DEMO'
 FROM reservation WHERE status = 'CONFIRMED' AND member_id > 1;
 
--- 결제 완료된 예매의 좌석은 RESERVED, 회차 잔여석도 맞춰 줌
+-- 결제 완료된 예매의 좌석은 RESERVED (회차 잔여석은 좌석 상태에서 세므로 따로 맞출 값 없음)
 UPDATE seat s JOIN ticket t ON t.seat_id = s.seat_id
               JOIN reservation r ON r.reservation_id = t.reservation_id
 SET s.status = 'RESERVED'
 WHERE r.status = 'CONFIRMED';
-
-UPDATE schedule sch
-JOIN (SELECT schedule_id, COUNT(*) reserved FROM seat WHERE status = 'RESERVED' GROUP BY schedule_id) x
-  ON x.schedule_id = sch.schedule_id
-SET sch.available_seat_count = sch.total_seat_count - x.reserved;
 
 DROP TABLE perf_seq;
 SET foreign_key_checks = 1;

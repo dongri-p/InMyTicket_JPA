@@ -38,7 +38,6 @@ public class Schedule {
 
     private LocalDateTime startTime;
     private int totalSeatCount;
-    private int availableSeatCount;
 
     // 연관관계 편의 메서드
     public void addSeat(Seat seat) {
@@ -53,7 +52,6 @@ public class Schedule {
         schedule.setHall(hall);
         schedule.setStartTime(starTime);
         schedule.setTotalSeatCount(totalSeatCount);
-        schedule.setAvailableSeatCount(totalSeatCount);
 
         // 지정된 자석 수 만큼 가상 좌석 자동 생성
         for(int i = 1; i <= totalSeatCount; i++) {

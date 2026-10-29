@@ -114,20 +114,19 @@ public class ReservationCancelApproveRaceTest {
             // then: 취소가 이겼든 결제가 이겼든, 예약/좌석/결제 상태는 항상 서로 일치해야 한다
             Reservation finalReservation = reservationRepository.findById(reservationId).orElseThrow();
             Seat finalSeat = seatRepository.findById(seat.getId()).orElseThrow();
-            Schedule finalSchedule = scheduleRepository.findById(schedule.getId()).orElseThrow();
             Payment finalPayment = finalReservation.getPayment();
 
             if (finalReservation.getStatus() == ReservationStatus.CANCELLED) {
                 cancelWins++;
                 Assertions.assertEquals(SeatStatus.AVAILABLE, finalSeat.getStatus());
-                Assertions.assertEquals(1, finalSchedule.getAvailableSeatCount());
+                Assertions.assertEquals(1, TestFixtures.availableSeatCount(seatRepository, schedule.getId()));
                 if (finalPayment != null) {
                     Assertions.assertEquals(PaymentStatus.CANCELED, finalPayment.getStatus());
                 }
             } else if (finalReservation.getStatus() == ReservationStatus.CONFIRMED) {
                 approveWins++;
                 Assertions.assertEquals(SeatStatus.RESERVED, finalSeat.getStatus());
-                Assertions.assertEquals(0, finalSchedule.getAvailableSeatCount());
+                Assertions.assertEquals(0, TestFixtures.availableSeatCount(seatRepository, schedule.getId()));
                 Assertions.assertNotNull(finalPayment);
                 Assertions.assertEquals(PaymentStatus.COMPLETED, finalPayment.getStatus());
             } else {

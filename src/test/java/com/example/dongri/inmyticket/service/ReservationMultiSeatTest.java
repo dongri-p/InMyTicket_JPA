@@ -50,7 +50,6 @@ public class ReservationMultiSeatTest {
         schedule = new Schedule();
         schedule.setStartTime(LocalDateTime.now().plusDays(1));
         schedule.setTotalSeatCount(SEAT_COUNT);
-        schedule.setAvailableSeatCount(SEAT_COUNT);
 
         seats = new ArrayList<>();
         for (int i = 1; i <= SEAT_COUNT; i++) {
@@ -145,6 +144,6 @@ public class ReservationMultiSeatTest {
     }
 
     private int availableSeatCount() {
-        return scheduleRepository.findById(schedule.getId()).get().getAvailableSeatCount();
+        return TestFixtures.availableSeatCount(seatRepository, schedule.getId());
     }
 }

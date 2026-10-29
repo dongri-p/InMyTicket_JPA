@@ -61,7 +61,7 @@ public class ScheduleServiceTest {
         // then
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
         Assertions.assertEquals(5, schedule.getTotalSeatCount());
-        Assertions.assertEquals(5, schedule.getAvailableSeatCount());
+        Assertions.assertEquals(5, scheduleService.countAvailableSeats(List.of(scheduleId)).get(scheduleId));
 
         Page<Seat> seats = scheduleService.findSeatsBySchedule(scheduleId, PageRequest.of(0, 20));
         Assertions.assertEquals(5, seats.getTotalElements());

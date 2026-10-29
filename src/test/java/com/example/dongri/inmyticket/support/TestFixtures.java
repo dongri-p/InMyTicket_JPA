@@ -6,8 +6,10 @@ import com.example.dongri.inmyticket.domain.Seat;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.MemberRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
+import com.example.dongri.inmyticket.repository.SeatRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 // 여러 테스트 파일에 반복되던 회원/좌석 생성 보일러플레이트를 공통화
@@ -38,7 +40,6 @@ public class TestFixtures {
         Schedule schedule = new Schedule();
         schedule.setStartTime(startTime);
         schedule.setTotalSeatCount(1);
-        schedule.setAvailableSeatCount(1);
 
         Seat seat = new Seat();
         seat.setStatus(SeatStatus.AVAILABLE);
@@ -47,5 +48,12 @@ public class TestFixtures {
 
         scheduleRepository.save(schedule);
         return seat;
+    }
+
+    // 회차 잔여석 - 회차 목록 API와 같은 쿼리로 좌석 상태에서 셈
+    public static int availableSeatCount(SeatRepository seatRepository, Long scheduleId) {
+        return (int) seatRepository.countBySchedulesAndStatus(List.of(scheduleId), SeatStatus.AVAILABLE).stream()
+                .mapToLong(SeatRepository.ScheduleSeatCount::getSeatCount)
+                .sum();
     }
 }

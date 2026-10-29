@@ -2,7 +2,9 @@ package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.HallRepository;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -96,6 +99,18 @@ public class ScheduleService {
             throw new BusinessException(ErrorCode.PERFORMANCE_NOT_FOUND);
         }
         return schedules;
+    }
+
+    // 회차별 잔여석 수 (scheduleId -> 수). 다 팔린 회차는 count 결과에 없으므로 0으로 채움
+    public Map<Long, Integer> countAvailableSeats(List<Long> scheduleIds) {
+        Map<Long, Integer> counts = new HashMap<>();
+        if (scheduleIds.isEmpty()) {
+            return counts;
+        }
+        scheduleIds.forEach(id -> counts.put(id, 0));
+        seatRepository.countBySchedulesAndStatus(scheduleIds, SeatStatus.AVAILABLE)
+                .forEach(c -> counts.put(c.getScheduleId(), (int) c.getSeatCount()));
+        return counts;
     }
 
     // 특정 회차의 좌석 목록 조회 (비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면
