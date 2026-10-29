@@ -37,7 +37,8 @@ public class ScheduleApiController {
                 request.getPerformanceId(),
                 request.getHallId(),
                 request.getStartTime(),
-                request.getTotalSeatCount()
+                request.getTotalSeatCount(),
+                request.toSections()
         );
         return CreateResourceResponse.created(id);
     }

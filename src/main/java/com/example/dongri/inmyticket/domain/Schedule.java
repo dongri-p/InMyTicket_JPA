@@ -45,23 +45,31 @@ public class Schedule {
         seat.setSchedule(this);
     }
 
-    // 공연 회차 생성 시, 공연장 정보까지 포함하여 좌석을 자동 빌드하는 메서드
+    // 등급을 따로 정하지 않은 회차 - 기본 배치(GradeSection.defaults)로 좌석 생성
     public static Schedule createSchedule(Performance performance, Hall hall, LocalDateTime starTime, int totalSeatCount) {
+        return createSchedule(performance, hall, starTime, GradeSection.defaults(totalSeatCount));
+    }
+
+    // 공연 회차 생성 시 좌석까지 만듦. 구역 목록 순서대로 1번 좌석부터 이어서 등급·가격을 붙임
+    // (예: VIP 4석, R 6석이면 1~4번 VIP, 5~10번 R)
+    public static Schedule createSchedule(Performance performance, Hall hall, LocalDateTime starTime, List<GradeSection> sections) {
         Schedule schedule = new Schedule();
         schedule.setPerformance(performance);
         schedule.setHall(hall);
         schedule.setStartTime(starTime);
-        schedule.setTotalSeatCount(totalSeatCount);
+        schedule.setTotalSeatCount(sections.stream().mapToInt(GradeSection::seatCount).sum());
 
-        // 지정된 자석 수 만큼 가상 좌석 자동 생성
-        for(int i = 1; i <= totalSeatCount; i++) {
-            Seat seat = new Seat();
-            seat.setSeatNumber(i);
-            seat.setGrade("VIP");
-            seat.setPrice(150000);
-            seat.setStatus(SeatStatus.AVAILABLE);
+        int seatNumber = 1;
+        for (GradeSection section : sections) {
+            for (int i = 0; i < section.seatCount(); i++) {
+                Seat seat = new Seat();
+                seat.setSeatNumber(seatNumber++);
+                seat.setGrade(section.grade());
+                seat.setPrice(section.price());
+                seat.setStatus(SeatStatus.AVAILABLE);
 
-            schedule.addSeat(seat);
+                schedule.addSeat(seat);
+            }
         }
         return schedule;
     }

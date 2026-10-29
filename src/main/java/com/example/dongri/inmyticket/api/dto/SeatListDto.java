@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.api.dto;
 
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatGrade;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 
 import lombok.Getter;
@@ -10,7 +11,7 @@ public class SeatListDto {
 
     private Long seatId;
     private int seatNumber;
-    private String grade;
+    private SeatGrade grade;
     private int price;
     private SeatStatus status;
 

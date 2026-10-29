@@ -2,9 +2,11 @@ package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -15,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.dongri.inmyticket.api.dto.ScheduleListDto;
 import com.example.dongri.inmyticket.domain.BusinessException;
 import com.example.dongri.inmyticket.domain.ErrorCode;
+import com.example.dongri.inmyticket.domain.GradeSection;
 import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatGrade;
 import com.example.dongri.inmyticket.domain.SeatStatus;
 import com.example.dongri.inmyticket.repository.HallRepository;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
@@ -39,8 +43,20 @@ public class ScheduleService {
     private final HallRepository hallRepository;
     private final SeatRepository seatRepository;
 
+    // 등급을 정하지 않은 회차 등록 - 기본 배치(GradeSection.defaults)
     @Transactional
     public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount) {
+        return saveSchedule(performanceId, hallId, startTime, totalSeatCount, null);
+    }
+
+    // sections가 null이면 기본 배치. 주면 구역 좌석 수 합이 totalSeatCount와 같아야 하고 등급은 한 번씩만
+    @Transactional
+    public Long saveSchedule(Long performanceId, Long hallId, LocalDateTime startTime, int totalSeatCount, List<GradeSection> sections) {
+        if (sections == null) {
+            sections = GradeSection.defaults(totalSeatCount);
+        }
+        validateSections(sections, totalSeatCount);
+
         // 1. 공연 엔티티 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_SCHEDULE, "존재하지 않는 공연입니다. id=" + performanceId));
@@ -78,7 +94,7 @@ public class ScheduleService {
         }
 
         // 3. 도메인 주도 생성 메서드 호출 (여기에 파라미터로 받은 startTime을 순수하게 쏙 넣어주면 돼!)
-        Schedule schedule = Schedule.createSchedule(performance, hall, startTime, totalSeatCount);
+        Schedule schedule = Schedule.createSchedule(performance, hall, startTime, sections);
 
         // 4. 데이터베이스 저장
         scheduleRepository.save(schedule);
@@ -86,6 +102,23 @@ public class ScheduleService {
         performance.scheduleAdded(startTime, LocalDateTime.now());
 
         return schedule.getId();
+    }
+
+    private void validateSections(List<GradeSection> sections, int totalSeatCount) {
+        if (sections.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_SCHEDULE, "좌석 등급을 하나 이상 정해야 합니다.");
+        }
+        Set<SeatGrade> grades = EnumSet.noneOf(SeatGrade.class);
+        for (GradeSection section : sections) {
+            if (!grades.add(section.grade())) {
+                throw new BusinessException(ErrorCode.INVALID_SCHEDULE, "같은 등급을 두 번 정할 수 없습니다. grade=" + section.grade());
+            }
+        }
+        int sum = sections.stream().mapToInt(GradeSection::seatCount).sum();
+        if (sum != totalSeatCount) {
+            throw new BusinessException(ErrorCode.INVALID_SCHEDULE,
+                    "등급별 좌석 수 합(" + sum + ")이 좌석 수(" + totalSeatCount + ")와 다릅니다.");
+        }
     }
 
     public Schedule findSchedule(Long scheduleId) {

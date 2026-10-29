@@ -1,11 +1,14 @@
 package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
+import com.example.dongri.inmyticket.domain.GradeSection;
 
 import com.example.dongri.inmyticket.domain.Hall;
 import com.example.dongri.inmyticket.domain.Performance;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatGrade;
 import com.example.dongri.inmyticket.repository.HallRepository;
 import com.example.dongri.inmyticket.repository.PerformanceRepository;
 import com.example.dongri.inmyticket.repository.ScheduleRepository;
@@ -19,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -210,5 +214,67 @@ public class ScheduleServiceTest {
 
         Assertions.assertEquals(3, firstPage.getContent().size());
         Assertions.assertEquals(10, firstPage.getTotalElements());
+    }
+
+    @Test
+    @DisplayName("등급을 정하지 않으면 앞 번호부터 VIP 20%, R 30%, S 30%, 나머지 A로 배치된다")
+    void saveSchedule_withoutGrades_usesDefaultLayout() {
+        Long scheduleId = scheduleService.saveSchedule(
+                performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 10);
+
+        List<String> layout = seatsInOrder(scheduleId).stream()
+                .map(seat -> seat.getGrade() + ":" + seat.getPrice())
+                .toList();
+        Assertions.assertEquals(List.of(
+                "VIP:150000", "VIP:150000",
+                "R:120000", "R:120000", "R:120000",
+                "S:90000", "S:90000", "S:90000",
+                "A:60000", "A:60000"), layout);
+    }
+
+    @Test
+    @DisplayName("등급 구역을 주면 그 순서대로 1번 좌석부터 등급과 가격이 붙는다")
+    void saveSchedule_withGrades_assignsSeatsInOrder() {
+        List<GradeSection> sections = List.of(
+                new GradeSection(SeatGrade.R, 2, 110000),
+                new GradeSection(SeatGrade.A, 3, 0));
+
+        Long scheduleId = scheduleService.saveSchedule(
+                performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 5, sections);
+
+        List<Seat> seats = seatsInOrder(scheduleId);
+        Assertions.assertEquals(List.of(1, 2, 3, 4, 5), seats.stream().map(Seat::getSeatNumber).toList());
+        Assertions.assertEquals(List.of(SeatGrade.R, SeatGrade.R, SeatGrade.A, SeatGrade.A, SeatGrade.A),
+                seats.stream().map(Seat::getGrade).toList());
+        Assertions.assertEquals(List.of(110000, 110000, 0, 0, 0), seats.stream().map(Seat::getPrice).toList());
+    }
+
+    @Test
+    @DisplayName("등급별 좌석 수 합이 좌석 수와 다르면 회차를 만들지 않는다")
+    void saveSchedule_gradeSumMismatch_throwsInvalidSchedule() {
+        List<GradeSection> sections = List.of(
+                new GradeSection(SeatGrade.VIP, 2, 150000),
+                new GradeSection(SeatGrade.R, 2, 120000));
+
+        BusinessException e = Assertions.assertThrows(BusinessException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 5, sections));
+        Assertions.assertEquals(ErrorCode.INVALID_SCHEDULE, e.getErrorCode());
+        Assertions.assertTrue(scheduleService.findSchedulesByPerformance(performance.getId()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("같은 등급을 두 번 정하면 회차를 만들지 않는다")
+    void saveSchedule_duplicateGrade_throwsInvalidSchedule() {
+        List<GradeSection> sections = List.of(
+                new GradeSection(SeatGrade.VIP, 2, 150000),
+                new GradeSection(SeatGrade.VIP, 3, 100000));
+
+        BusinessException e = Assertions.assertThrows(BusinessException.class,
+                () -> scheduleService.saveSchedule(performance.getId(), hall.getId(), LocalDateTime.now().plusDays(1), 5, sections));
+        Assertions.assertEquals(ErrorCode.INVALID_SCHEDULE, e.getErrorCode());
+    }
+
+    private List<Seat> seatsInOrder(Long scheduleId) {
+        return scheduleService.findSeatsBySchedule(scheduleId, PageRequest.of(0, 100, Sort.by("seatNumber"))).getContent();
     }
 }

@@ -26,7 +26,8 @@ public class Seat {
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
-    private String grade;
+    @Enumerated(EnumType.STRING)
+    private SeatGrade grade;
     private int seatNumber;
     private int price;
 

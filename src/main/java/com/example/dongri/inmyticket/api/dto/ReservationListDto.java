@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.Schedule;
 import com.example.dongri.inmyticket.domain.Seat;
+import com.example.dongri.inmyticket.domain.SeatGrade;
 
 import lombok.Getter;
 
@@ -40,7 +41,7 @@ public class ReservationListDto {
 
     @Getter
     public static class SeatInfo {
-        private String grade;
+        private SeatGrade grade;
         private int seatNumber;
 
         public SeatInfo(Seat seat) {
