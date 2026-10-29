@@ -60,9 +60,18 @@ public class Payment {
         return payment;
     }
 
-    // 예약 취소에 따른 결제 취소 처리
-    public void cancel() {
+    // 취소할 때 뗀 수수료와 실제로 돌려준 금액 (취소 전에는 null)
+    @Setter(AccessLevel.NONE)
+    private Integer cancelFee;
+
+    @Setter(AccessLevel.NONE)
+    private Integer refundedAmount;
+
+    // 예약 취소에 따른 결제 취소 처리 - PG에 요청한 환불 내역 그대로 기록
+    public void cancel(RefundQuote quote) {
         this.status = PaymentStatus.CANCELED;
+        this.cancelFee = quote.cancelFee();
+        this.refundedAmount = quote.refundAmount();
     }
 
 }

@@ -13,5 +13,6 @@ public interface PgClient {
     void approve(String paymentKey, String orderId, int amount);
 
     // 승인된 결제 취소 요청 (사용자 예매 취소 시 환불, 승인 후 DB 반영 실패 시 보상 공통)
-    void cancel(String paymentKey, String reason);
+    // cancelAmount: 돌려줄 금액 (취소 수수료를 뺀 부분 환불). null이면 전액
+    void cancel(String paymentKey, String reason, Integer cancelAmount);
 }

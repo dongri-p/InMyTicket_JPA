@@ -3,6 +3,7 @@ package com.example.dongri.inmyticket.external;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -56,20 +57,32 @@ public class TossPgClient implements PgClient {
     public void approve(String paymentKey, String orderId, int amount) {
         post("/v1/payments/confirm",
                 Map.of("paymentKey", paymentKey, "orderId", orderId, "amount", amount),
-                "결제 승인");
+                null, "결제 승인");
         log.info("토스페이먼츠 결제 승인 완료. orderId={}", orderId);
     }
 
     @Override
-    public void cancel(String paymentKey, String reason) {
-        post("/v1/payments/{paymentKey}/cancel", Map.of("cancelReason", reason), "결제 취소", paymentKey);
-        log.info("토스페이먼츠 결제 취소(환불) 완료. reason={}", reason);
+    public void cancel(String paymentKey, String reason, Integer cancelAmount) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("cancelReason", reason);
+        if (cancelAmount != null) {
+            body.put("cancelAmount", cancelAmount);
+        }
+        // 한 결제는 한 번만 취소하므로 paymentKey로 멱등 키를 만듦. 환불은 됐는데 DB 반영 전에 실패해 고객이 다시 취소해도
+        // 토스가 처음 결과를 돌려줘서, 부분 환불이 두 번 나가지 않음 (전액 취소였을 땐 "이미 취소됨" 오류로 막혔던 자리)
+        post("/v1/payments/{paymentKey}/cancel", body, "cancel-" + paymentKey, "결제 취소", paymentKey);
+        log.info("토스페이먼츠 결제 취소(환불) 완료. reason={}, cancelAmount={}", reason, cancelAmount);
     }
 
-    private void post(String uri, Map<String, Object> body, String action, Object... uriVariables) {
+    private void post(String uri, Map<String, Object> body, String idempotencyKey, String action, Object... uriVariables) {
         try {
             webClient.post()
                     .uri(uri, uriVariables)
+                    .headers(headers -> {
+                        if (idempotencyKey != null) {
+                            headers.set("Idempotency-Key", idempotencyKey);
+                        }
+                    })
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
                     .retrieve()

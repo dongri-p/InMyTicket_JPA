@@ -131,7 +131,7 @@ public class PaymentService {
             return;
         }
         try {
-            pgClient.cancel(paymentKey, "결제 반영 실패로 승인 취소");
+            pgClient.cancel(paymentKey, "결제 반영 실패로 승인 취소", null);
             log.warn("예약(id={}) 결제 DB 반영 실패로 PG 승인을 취소(보상)했습니다.", reservationId);
         } catch (RuntimeException cancelFailure) {
             // 보상까지 실패하면 고객에게 청구만 남은 상태 - 원래 실패 원인을 가리지 않도록 로그만 남기고 수동 환불 대상으로 표시
@@ -158,15 +158,16 @@ public class PaymentService {
     // 예약 취소 시 결제가 완료된 상태라면 PG 환불 통신 이후 취소 반영
     public void processCancel(Long memberId, Long reservationId) {
 
-        Optional<Payment> paymentToRefund = reservationService.findPaymentToRefund(memberId, reservationId);
+        Optional<RefundPlan> refund = reservationService.prepareRefund(memberId, reservationId);
 
-        // 1. 결제했던 PG로 환불 요청
-        paymentToRefund.ifPresent(payment ->
-                pgClient(payment.getPgProvider()).cancel(payment.getPaymentKey(), "고객 예매 취소"));
+        // 1. 결제했던 PG로, 취소 수수료를 뺀 금액만 환불 요청 (돌려줄 금액이 0원이면 PG를 부르지 않음 - 0원 좌석)
+        refund.filter(plan -> plan.quote().refundAmount() > 0)
+                .ifPresent(plan -> pgClient(plan.pgProvider()).cancel(plan.paymentKey(),
+                        "고객 예매 취소 (" + plan.quote().reason() + ")", plan.quote().refundAmount()));
 
         // 2. 외부 환불 통신이 성공하면(혹은 환불할 결제가 없으면), 진짜 DB를 업데이트하는 '짧은 트랜잭션 서비스'를 호출.
         // 확인 시점 이후 결제가 새로 완료됐다면(환불 대상이 없었는데 실제로는 결제가 생김) 조용히 넘어가지 않고
         // cancelAfterRefundCheck가 재시도를 요구하는 예외를 던짐
-        reservationService.cancelAfterRefundCheck(memberId, reservationId, paymentToRefund.isPresent());
+        reservationService.cancelAfterRefundCheck(memberId, reservationId, refund.map(RefundPlan::quote).orElse(null));
     }
 }

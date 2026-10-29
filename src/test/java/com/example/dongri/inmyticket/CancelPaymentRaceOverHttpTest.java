@@ -60,7 +60,7 @@ public class CancelPaymentRaceOverHttpTest {
             CompletableFuture.runAsync(() -> paymentApprovalService.approve(
                     member.getId(), reservationId, "osiv-race-key-" + UUID.randomUUID(), PgProvider.DEMO)).join();
             return result;
-        }).when(reservationService).findPaymentToRefund(anyLong(), anyLong());
+        }).when(reservationService).prepareRefund(anyLong(), anyLong());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(jwtProvider.createToken(member.getId(), member.getLoginId(), "USER"));

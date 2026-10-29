@@ -28,7 +28,7 @@ public class DemoPgClient implements PgClient {
     }
 
     @Override
-    public void cancel(String paymentKey, String reason) {
+    public void cancel(String paymentKey, String reason, Integer cancelAmount) {
         simulateNetworkCall("데모 결제 취소(환불) 완료.", "환불 통신 중 오류가 발생했습니다.");
     }
 

@@ -19,6 +19,9 @@ public class ReservationListDto {
     private int totalPrice;
     private LocalDateTime reservedAt;
     private boolean paid;
+    // 취소된 결제의 수수료·환불액 (결제가 없거나 아직 취소 전이면 null)
+    private Integer cancelFee;
+    private Integer refundedAmount;
     private String performanceTitle;
     private LocalDateTime scheduleStartTime;
     private List<SeatInfo> seats;
@@ -29,6 +32,10 @@ public class ReservationListDto {
         this.totalPrice = reservation.getTotalPrice();
         this.reservedAt = reservation.getReservedAt();
         this.paid = reservation.getPayment() != null;
+        if (reservation.getPayment() != null) {
+            this.cancelFee = reservation.getPayment().getCancelFee();
+            this.refundedAmount = reservation.getPayment().getRefundedAmount();
+        }
 
         Schedule schedule = reservation.getTickets().get(0).getSeat().getSchedule();
         this.performanceTitle = schedule.getPerformance().getTitle();

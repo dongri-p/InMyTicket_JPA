@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.CancelFeePolicy;
 import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.api.dto.ReservationListDto;
 import com.example.dongri.inmyticket.domain.Member;
 import com.example.dongri.inmyticket.domain.Payment;
+import com.example.dongri.inmyticket.domain.RefundQuote;
 import com.example.dongri.inmyticket.domain.Reservation;
 import com.example.dongri.inmyticket.domain.ReservationStatus;
 import com.example.dongri.inmyticket.domain.Schedule;
@@ -184,19 +186,43 @@ public class ReservationService {
         reservation.setProcessingStartedAt(null);
     }
 
-    // 환불이 필요한 예약인지 확인 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
+    // 환불이 필요한 예약인지 확인하고, 필요하면 얼마를 돌려줄지 계산 (결제가 완료된 예약이면 취소 전 PG 환불 통신이 필요함)
     // 외부 PG 통신을 트리거하기 전에 반드시 소유자 검증부터 해서, 타인의 reservationId로 남의 결제 환불을 유발하지 못하게 함.
-    // 공연 시작 이후 취소는 어차피 performCancel()에서 거부되므로, 되돌릴 수 없는 PG 환불 통신을
+    // 공연 시작 이후 취소나 이미 취소된 예약은 어차피 performCancel()에서 거부되므로, 되돌릴 수 없는 PG 환불 통신을
     // 먼저 내보내지 않도록 여기서도 미리 막는다(환불은 나갔는데 취소는 거부되는 상황 방지).
-    // 환불할 결제가 있으면 그 결제(paymentKey·결제한 PG를 환불 요청에 사용)를, 없으면 빈 값을 반환
-    public Optional<Payment> findPaymentToRefund(Long memberId, Long reservationId) {
+    // 환불할 결제가 있으면 환불 계획(paymentKey·결제한 PG·수수료 뺀 금액)을, 없으면 빈 값을 반환
+    public Optional<RefundPlan> prepareRefund(Long memberId, Long reservationId) {
+        Reservation reservation = findCancellable(memberId, reservationId);
+        Payment payment = reservation.getPayment();
+        if (payment == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new RefundPlan(payment.getPaymentKey(), payment.getPgProvider(),
+                quoteRefund(reservation, payment, LocalDateTime.now())));
+    }
+
+    // 지금 취소하면 얼마를 돌려받는지 미리 보기 (취소 확인 화면용). 실제 취소와 같은 계산
+    public RefundQuote quoteCancel(Long memberId, Long reservationId) {
+        Reservation reservation = findCancellable(memberId, reservationId);
+        Payment payment = reservation.getPayment();
+        return payment == null ? RefundQuote.nothingPaid() : quoteRefund(reservation, payment, LocalDateTime.now());
+    }
+
+    private Reservation findCancellable(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         reservation.assertOwner(memberId);
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
+        }
         if (reservation.isShowStarted()) {
             throw new BusinessException(ErrorCode.SHOW_ALREADY_STARTED, "공연이 이미 시작되어 예약을 취소할 수 없습니다.");
         }
-        return Optional.ofNullable(reservation.getPayment());
+        return reservation;
+    }
+
+    private RefundQuote quoteRefund(Reservation reservation, Payment payment, LocalDateTime now) {
+        return CancelFeePolicy.quote(payment.getAmount(), reservation.getReservedAt(), reservation.showStartTime(), now);
     }
 
     // 예매 취소하기 (PG 환불 통신 없이 즉시 DB 상태만 취소 처리함)
@@ -205,19 +231,20 @@ public class ReservationService {
     // 이 메서드는 결제 자체가 없는 케이스를 다루는 테스트/내부 용도로만 사용할 것.
     @Transactional
     void cancelWithoutRefundCheck(Long memberId, Long reservationId) {
-        performCancel(memberId, reservationId, true);
+        performCancel(memberId, reservationId, true, null);
     }
 
     // PaymentService.processCancel() 전용 진입점.
     // findPaymentToRefund()로 환불 필요 여부를 확인한 시점과 여기서 실제 락을 잡는 시점 사이에
     // 결제가 새로 완료되는 경쟁 상황이 생길 수 있음 - 그 사이 결제가 생겼는데 PG 환불 통신을
     // 안 거쳤다면(refundHandled=false), 조용히 취소하지 않고 재시도를 요구한다.
+    // refundedQuote: PG에 실제로 요청한 환불 내역 (환불할 결제가 없었으면 null). 결제 기록에도 이 금액을 그대로 남김
     @Transactional
-    void cancelAfterRefundCheck(Long memberId, Long reservationId, boolean refundHandled) {
-        performCancel(memberId, reservationId, refundHandled);
+    void cancelAfterRefundCheck(Long memberId, Long reservationId, RefundQuote refundedQuote) {
+        performCancel(memberId, reservationId, refundedQuote != null, refundedQuote);
     }
 
-    private void performCancel(Long memberId, Long reservationId, boolean refundHandled) {
+    private void performCancel(Long memberId, Long reservationId, boolean refundHandled, RefundQuote refundedQuote) {
 
         Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -250,9 +277,9 @@ public class ReservationService {
 
         releaseSeats(seats);
 
-        // 결제가 완료된 예약이면 결제도 취소 처리
+        // 결제가 완료된 예약이면 결제도 취소 처리 (환불 계산 없이 들어온 내부·테스트 경로는 지금 시점으로 계산)
         if (payment != null) {
-            payment.cancel();
+            payment.cancel(refundedQuote != null ? refundedQuote : quoteRefund(reservation, payment, LocalDateTime.now()));
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);

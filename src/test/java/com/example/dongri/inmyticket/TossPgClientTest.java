@@ -30,6 +30,7 @@ public class TossPgClientTest {
     private final AtomicReference<String> requestPath = new AtomicReference<>();
     private final AtomicReference<String> requestAuthorization = new AtomicReference<>();
     private final AtomicReference<String> requestBody = new AtomicReference<>();
+    private final AtomicReference<String> requestIdempotencyKey = new AtomicReference<>();
 
     @AfterEach
     void stopServer() {
@@ -68,15 +69,27 @@ public class TossPgClientTest {
     }
 
     @Test
-    @DisplayName("취소 요청은 paymentKey 경로로 취소 사유와 함께 보낸다")
+    @DisplayName("취소 요청은 paymentKey 경로로 취소 사유·환불 금액과 함께, 결제마다 같은 멱등 키로 보낸다")
     void cancel_sendsCancelRequest() throws IOException {
-        TossPgClient client = clientRespondingWith(200, "{\"status\":\"CANCELED\"}");
+        TossPgClient client = clientRespondingWith(200, "{\"status\":\"PARTIAL_CANCELED\"}");
 
-        client.cancel("pay_key_1", "고객 예매 취소");
+        client.cancel("pay_key_1", "고객 예매 취소", 135000);
 
         Assertions.assertEquals("/v1/payments/pay_key_1/cancel", requestPath.get());
         Assertions.assertEquals("고객 예매 취소",
                 objectMapper.readTree(requestBody.get()).get("cancelReason").asText());
+        Assertions.assertEquals(135000, objectMapper.readTree(requestBody.get()).get("cancelAmount").asInt());
+        Assertions.assertEquals("cancel-pay_key_1", requestIdempotencyKey.get());
+    }
+
+    @Test
+    @DisplayName("환불 금액을 안 주면(보상 취소) 전액 취소로 보낸다")
+    void cancel_withoutAmount_cancelsAll() throws IOException {
+        TossPgClient client = clientRespondingWith(200, "{\"status\":\"CANCELED\"}");
+
+        client.cancel("pay_key_1", "결제 반영 실패로 승인 취소", null);
+
+        Assertions.assertNull(objectMapper.readTree(requestBody.get()).get("cancelAmount"));
     }
 
     private TossPgClient clientRespondingWith(int status, String json) throws IOException {
@@ -84,6 +97,7 @@ public class TossPgClientTest {
         server.createContext("/", exchange -> {
             requestPath.set(exchange.getRequestURI().getPath());
             requestAuthorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
+            requestIdempotencyKey.set(exchange.getRequestHeaders().getFirst("Idempotency-Key"));
             requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
 
             byte[] body = json.getBytes(StandardCharsets.UTF_8);

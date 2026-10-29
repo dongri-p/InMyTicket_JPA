@@ -18,6 +18,7 @@ import com.example.dongri.inmyticket.api.dto.CreateResourceResponse;
 import com.example.dongri.inmyticket.api.dto.ListResult;
 import com.example.dongri.inmyticket.api.dto.ReservationListDto;
 import com.example.dongri.inmyticket.config.AuthenticatedMember;
+import com.example.dongri.inmyticket.domain.RefundQuote;
 import com.example.dongri.inmyticket.service.PaymentService;
 import com.example.dongri.inmyticket.service.ReservationService;
 
@@ -59,6 +60,15 @@ public class ReservationApiController {
             @PathVariable Long reservationId) {
 
         return reservationService.findMyReservation(authenticatedMember.getMemberId(), reservationId);
+    }
+
+    // 취소 전 환불 미리 보기 API - 지금 취소하면 수수료와 돌려받는 금액 (취소 API와 같은 계산)
+    @GetMapping("/api/v1/reservations/{reservationId}/refund-quote")
+    public RefundQuote refundQuote(
+            @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
+            @PathVariable Long reservationId) {
+
+        return reservationService.quoteCancel(authenticatedMember.getMemberId(), reservationId);
     }
 
     // 예매 취소 API - 본인 예약만 취소 가능 (JWT로 신원 확인)

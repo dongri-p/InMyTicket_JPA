@@ -82,6 +82,11 @@ public class Reservation {
         }
     }
 
+    // 공연 시작 시각 (한 예약은 한 회차 좌석만 묶으므로 첫 좌석의 회차 기준)
+    public LocalDateTime showStartTime() {
+        return tickets.get(0).getSeat().getSchedule().getStartTime();
+    }
+
     // 예약된 좌석이 속한 공연이 이미 시작됐는지 여부 (취소/결제 승인에서 공통으로 사용)
     public boolean isShowStarted() {
         LocalDateTime now = LocalDateTime.now();

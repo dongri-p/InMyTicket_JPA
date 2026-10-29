@@ -54,7 +54,7 @@ public class PaymentServiceCompensationTest {
         Assertions.assertSame(dbFailure, thrown);
         InOrder inOrder = Mockito.inOrder(pgClient, reservationService);
         inOrder.verify(pgClient).approve(PAYMENT_KEY, ORDER_ID, AMOUNT);
-        inOrder.verify(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString());
+        inOrder.verify(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString(), Mockito.isNull());
         inOrder.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
 
@@ -70,7 +70,7 @@ public class PaymentServiceCompensationTest {
                 () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then
-        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString(), Mockito.any());
         Mockito.verify(paymentApprovalService, Mockito.never()).approve(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
@@ -82,7 +82,7 @@ public class PaymentServiceCompensationTest {
         IllegalStateException dbFailure = new IllegalStateException("DB 반영 실패");
         Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY, PgProvider.DEMO);
         Mockito.doThrow(new IllegalStateException("환불 통신 중 오류가 발생했습니다."))
-                .when(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString());
+                .when(pgClient).cancel(Mockito.eq(PAYMENT_KEY), Mockito.anyString(), Mockito.isNull());
 
         // when
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,
@@ -106,7 +106,7 @@ public class PaymentServiceCompensationTest {
                 () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
         // then
-        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(pgClient, Mockito.never()).cancel(Mockito.anyString(), Mockito.anyString(), Mockito.any());
         Mockito.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
     }
 }

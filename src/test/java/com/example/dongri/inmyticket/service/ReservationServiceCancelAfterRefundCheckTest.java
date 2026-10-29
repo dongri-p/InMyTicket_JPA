@@ -40,9 +40,9 @@ public class ReservationServiceCancelAfterRefundCheckTest {
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
         paymentApprovalService.approve(member.getId(), reservationId, "race-payment-key-" + UUID.randomUUID(), PgProvider.DEMO);
 
-        // when & then: refundHandled=false로 넘어왔지만 실제로는 결제가 있으므로 재시도 예외를 던짐
+        // when & then: 환불 내역 없이(null) 넘어왔지만 실제로는 결제가 있으므로 재시도 예외를 던짐
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
-                () -> reservationService.cancelAfterRefundCheck(member.getId(), reservationId, false));
+                () -> reservationService.cancelAfterRefundCheck(member.getId(), reservationId, null));
         Assertions.assertTrue(exception.getMessage().contains("다시 시도"));
 
         // and: 예약은 여전히 CONFIRMED로 남아있고(조용히 취소되지 않음), 좌석도 그대로 유지됨
