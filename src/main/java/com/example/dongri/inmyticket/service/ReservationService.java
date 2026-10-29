@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,9 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final BookingQueueService bookingQueueService;
 
+    // 예매 오픈 전 안내 문구의 시각 형식 (예: 10월 30일 20:00)
+    private static final DateTimeFormatter OPEN_AT_FORMAT = DateTimeFormatter.ofPattern("M월 d일 HH:mm");
+
     // 좌석 1개 예매 - 좌석 목록 버전에 위임
     @Transactional
     public Long reserve(Long memberId, Long seatId) {
@@ -61,7 +65,8 @@ public class ReservationService {
             Schedule target = schedules.get(0);
             LocalDateTime now = LocalDateTime.now();
             if (target.isBeforeBookingOpen(now)) {
-                throw new BusinessException(ErrorCode.BOOKING_NOT_OPEN, "예매는 " + target.getBookingOpenAt() + "에 열립니다.");
+                throw new BusinessException(ErrorCode.BOOKING_NOT_OPEN,
+                        "예매는 " + target.getBookingOpenAt().format(OPEN_AT_FORMAT) + "에 열립니다.");
             }
             bookingQueueService.assertAdmitted(target, memberId, now);
         }
