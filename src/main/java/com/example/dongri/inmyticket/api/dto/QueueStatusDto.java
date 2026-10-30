@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket.api.dto;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 // 대기열에서 내 상태. 화면은 state에 따라 카운트다운 / 대기 화면 / 좌석 선택을 보여줌
@@ -34,6 +35,7 @@ public record QueueStatusDto(String state, LocalDateTime bookingOpenAt, Long pos
         return new QueueStatusDto("ADMITTED", null, null, null, null, admissionExpiresInSeconds);
     }
 
+    @JsonIgnore
     public boolean isWaiting() {
         return "WAITING".equals(state);
     }
