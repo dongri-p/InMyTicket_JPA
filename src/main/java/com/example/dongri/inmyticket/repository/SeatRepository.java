@@ -18,7 +18,9 @@ import jakarta.persistence.LockModeType;
 
 public interface SeatRepository extends JpaRepository<Seat, Long> {
 
-    Page<Seat> findByScheduleId(Long scheduleId, Pageable pageable);
+    // 좌석 번호 순서를 명시함. 순서를 안 주면 MySQL이 고른 인덱스 순서를 따라 (schedule_id, status) 인덱스로 읽을 때
+    // 빈 좌석이 앞에 몰리고, 페이지를 나눠 받는 사이 좌석 상태가 바뀌면 같은 좌석이 두 번 오거나 빠질 수 있음
+    Page<Seat> findByScheduleIdOrderBySeatNumberAscIdAsc(Long scheduleId, Pageable pageable);
     
     /**
      * 비관적 락을 걸고 좌석을 조회

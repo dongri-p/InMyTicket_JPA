@@ -198,7 +198,7 @@ public class ScheduleService {
     // 특정 회차의 좌석 목록 조회 (비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면
     // 대량조회로 인한 부하 위험이 있어 size를 제한 - 공연 목록 API와 동일한 이유)
     public Page<Seat> findSeatsBySchedule(Long scheduleId, Pageable pageable) {
-        Page<Seat> seats = seatRepository.findByScheduleId(scheduleId, pageable);
+        Page<Seat> seats = seatRepository.findByScheduleIdOrderBySeatNumberAscIdAsc(scheduleId, pageable);
         // 좌석이 하나도 없을 때만 회차 자체가 존재하지 않는 것인지 확인 (정상 케이스는 조회 1회로 끝남)
         if (seats.getTotalElements() == 0 && scheduleRepository.findById(scheduleId).isEmpty()) {
             throw new BusinessException(ErrorCode.SCHEDULE_NOT_FOUND);

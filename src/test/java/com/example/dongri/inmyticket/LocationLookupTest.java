@@ -175,7 +175,7 @@ public class LocationLookupTest {
         hallRepository.save(hall);
         Long scheduleId = scheduleService.saveSchedule(
                 savePerformance().getId(), hall.getId(), LocalDateTime.now().plusDays(1), 1);
-        Seat seat = seatRepository.findByScheduleId(scheduleId, PageRequest.of(0, 1)).getContent().get(0);
+        Seat seat = seatRepository.findByScheduleIdOrderBySeatNumberAscIdAsc(scheduleId, PageRequest.of(0, 1)).getContent().get(0);
 
         CreateReservationRequest request = new CreateReservationRequest();
         request.setSeatIds(List.of(seat.getId()));
