@@ -29,8 +29,8 @@ public class BookingQueueApiController {
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
             @PathVariable Long scheduleId) {
 
-        return bookingQueueService.join(scheduleService.findSchedule(scheduleId),
-                authenticatedMember.getMemberId(), LocalDateTime.now());
+        return withAvailableSeats(bookingQueueService.join(scheduleService.findSchedule(scheduleId),
+                authenticatedMember.getMemberId(), LocalDateTime.now()), scheduleId);
     }
 
     // 내 순번·입장 여부 (대기 화면이 몇 초마다 물어봄)
@@ -39,7 +39,15 @@ public class BookingQueueApiController {
             @AuthenticationPrincipal AuthenticatedMember authenticatedMember,
             @PathVariable Long scheduleId) {
 
-        return bookingQueueService.status(scheduleService.findSchedule(scheduleId),
-                authenticatedMember.getMemberId(), LocalDateTime.now());
+        return withAvailableSeats(bookingQueueService.status(scheduleService.findSchedule(scheduleId),
+                authenticatedMember.getMemberId(), LocalDateTime.now()), scheduleId);
+    }
+
+    // 기다리는 사람에게만 남은 좌석을 알려줌 (매진이어도 줄은 유지 - 결제 안 된 예약이 풀리면 좌석이 다시 생김)
+    private QueueStatusDto withAvailableSeats(QueueStatusDto status, Long scheduleId) {
+        if (!status.isWaiting()) {
+            return status;
+        }
+        return status.withAvailableSeats(scheduleService.countAvailableSeatsRecent(scheduleId));
     }
 }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -42,6 +43,12 @@ public class ScheduleService {
     private final PerformanceRepository performanceRepository;
     private final HallRepository hallRepository;
     private final SeatRepository seatRepository;
+
+    // 대기 화면 폴링용 잔여석 (회차 -> 마지막으로 센 값). 줄 선 수천 명이 몇 초마다 물어봐도 회차당 1초에 한 번만 셈
+    private final Map<Long, RecentCount> recentAvailableSeats = new ConcurrentHashMap<>();
+
+    private record RecentCount(int count, long countedAtMillis) {
+    }
 
     // 등급을 정하지 않은 회차 등록 - 기본 배치(GradeSection.defaults)
     @Transactional
@@ -174,6 +181,18 @@ public class ScheduleService {
         seatRepository.countBySchedulesAndStatus(scheduleIds, SeatStatus.AVAILABLE)
                 .forEach(c -> counts.put(c.getScheduleId(), (int) c.getSeatCount()));
         return counts;
+    }
+
+    // 잔여석을 1초까지는 지난 값으로 돌려줌 (대기 화면 안내용 - 예매 가능 여부는 좌석 락에서 따로 확인)
+    public int countAvailableSeatsRecent(Long scheduleId) {
+        long now = System.currentTimeMillis();
+        RecentCount recent = recentAvailableSeats.get(scheduleId);
+        if (recent != null && now - recent.countedAtMillis() < 1000) {
+            return recent.count();
+        }
+        int count = countAvailableSeats(List.of(scheduleId)).get(scheduleId);
+        recentAvailableSeats.put(scheduleId, new RecentCount(count, now));
+        return count;
     }
 
     // 특정 회차의 좌석 목록 조회 (비인증 공개 API이므로 페이지네이션 없이 전체 조회를 허용하면

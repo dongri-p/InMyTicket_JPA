@@ -21,7 +21,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.example.dongri.inmyticket.api.BookingQueueApiController;
 import com.example.dongri.inmyticket.api.dto.QueueStatusDto;
+import com.example.dongri.inmyticket.config.AuthenticatedMember;
 import com.example.dongri.inmyticket.domain.BusinessException;
 import com.example.dongri.inmyticket.domain.ErrorCode;
 import com.example.dongri.inmyticket.domain.Member;
@@ -42,6 +44,7 @@ public class BookingQueueTest {
     static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
 
     @Autowired private BookingQueueService bookingQueueService;
+    @Autowired private BookingQueueApiController bookingQueueApiController;
     @Autowired private ReservationService reservationService;
     @Autowired private MemberRepository memberRepository;
     @Autowired private ScheduleRepository scheduleRepository;
@@ -123,6 +126,33 @@ public class BookingQueueTest {
         for (Long memberId : memberIds) {
             Assertions.assertEquals("ADMITTED", bookingQueueService.status(schedule, memberId, now).state());
         }
+    }
+
+    @Test
+    @DisplayName("기다리는 사람에게는 남은 좌석을 알려주고, 매진돼도 줄에서 빼지 않는다")
+    void waitingShowsAvailableSeats_keptWhenSoldOut() throws InterruptedException {
+        Seat seat = seatWithOpenAt(LocalDateTime.now().minusMinutes(1));
+        Long scheduleId = seat.getSchedule().getId();
+        Member a = TestFixtures.createAndSaveMember(memberRepository, "qSeatA");
+        Member b = TestFixtures.createAndSaveMember(memberRepository, "qSeatB");
+        AuthenticatedMember authA = new AuthenticatedMember(a.getId(), a.getLoginId());
+        AuthenticatedMember authB = new AuthenticatedMember(b.getId(), b.getLoginId());
+
+        bookingQueueApiController.join(authA, scheduleId);
+        bookingQueueService.admitAll();
+        QueueStatusDto bWaiting = bookingQueueApiController.join(authB, scheduleId);
+        Assertions.assertEquals("WAITING", bWaiting.state());
+        Assertions.assertEquals(1, bWaiting.availableSeats());
+        // 입장한 사람에겐 잔여석을 붙이지 않음 (좌석 화면이 직접 보여줌)
+        Assertions.assertNull(bookingQueueApiController.myStatus(authA, scheduleId).availableSeats());
+
+        // A가 마지막 좌석을 예매 -> 1초 뒤(잔여석을 다시 세는 주기) B는 여전히 줄에 있고 잔여석 0
+        reservationService.reserve(a.getId(), seat.getId());
+        Thread.sleep(1100);
+        QueueStatusDto bSoldOut = bookingQueueApiController.myStatus(authB, scheduleId);
+        Assertions.assertEquals("WAITING", bSoldOut.state());
+        Assertions.assertEquals(1L, bSoldOut.position());
+        Assertions.assertEquals(0, bSoldOut.availableSeats());
     }
 
     @Test
