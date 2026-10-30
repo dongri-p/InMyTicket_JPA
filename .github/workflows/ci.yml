@@ -3,6 +3,11 @@ name: Backend CI
 on:
   push:
     branches: [main]
+    # 문서·측정 결과만 바뀐 push는 테스트·배포를 돌리지 않음 (배포 중 백엔드가 뜨는 20초 동안 502가 나므로)
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'perf/**'
   pull_request:
     branches: [main]
 
