@@ -2,13 +2,14 @@ package com.example.dongri.inmyticket.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 import com.example.dongri.inmyticket.api.dto.QueueStatusDto;
@@ -26,6 +27,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BookingQueueService {
+
+    // KEYS[1] = 줄, ARGV = 꺼낼 인원, 입장 TTL(초), 입장 키 앞부분. 꺼낸 인원 수를 돌려줌
+    private static final RedisScript<Long> ADMIT_SCRIPT = RedisScript.of("""
+            local popped = redis.call('ZPOPMIN', KEYS[1], ARGV[1])
+            for i = 1, #popped, 2 do
+                redis.call('SET', ARGV[3] .. popped[i], '1', 'EX', ARGV[2])
+            end
+            return #popped / 2
+            """, Long.class);
+
+    // KEYS[1] = 줄, KEYS[2] = 내 입장 키, ARGV = 회원, 줄 선 시각. 입장 확인과 줄 서기 사이에 입장 처리가 끼면 입장한 사람이 다시 줄에 서게 됨
+    private static final RedisScript<Long> JOIN_SCRIPT = RedisScript.of("""
+            if redis.call('EXISTS', KEYS[2]) == 0 then
+                redis.call('ZADD', KEYS[1], 'NX', ARGV[2], ARGV[1])
+            end
+            return 1
+            """, Long.class);
 
     private final StringRedisTemplate redis;
     private final Duration window;
@@ -59,9 +77,8 @@ public class BookingQueueService {
         }
         Long scheduleId = schedule.getId();
         return withRedis(() -> {
-            if (!Boolean.TRUE.equals(redis.hasKey(admittedKey(scheduleId, memberId)))) {
-                redis.opsForZSet().addIfAbsent(waitingKey(scheduleId), memberId.toString(), System.currentTimeMillis());
-            }
+            redis.execute(JOIN_SCRIPT, List.of(waitingKey(scheduleId), admittedKey(scheduleId, memberId)),
+                    memberId.toString(), String.valueOf(System.currentTimeMillis()));
             activeScheduleIds.add(scheduleId);
             return queueStatus(scheduleId, memberId);
         });
@@ -105,30 +122,31 @@ public class BookingQueueService {
     }
 
     // 앞에서 count명을 꺼내 입장 허가. ZPOPMIN이라 서버가 여러 대여도 같은 사람을 두 번 꺼내지 않음
+    // 꺼내기와 입장 키 쓰기를 한 스크립트로 묶음 - 따로 보내면 그 사이 순번을 물어본 사람은 줄에도 입장에도 없어 NOT_IN_QUEUE를 받음
     int admitNext(Long scheduleId, int count) {
-        Set<TypedTuple<String>> popped = redis.opsForZSet().popMin(waitingKey(scheduleId), count);
-        if (popped == null || popped.isEmpty()) {
+        Long admitted = redis.execute(ADMIT_SCRIPT, List.of(waitingKey(scheduleId)),
+                String.valueOf(count), String.valueOf(admissionTtl.toSeconds()), "queue:" + scheduleId + ":admitted:");
+        if (admitted == null || admitted == 0) {
             activeScheduleIds.remove(scheduleId);
             return 0;
         }
-        for (TypedTuple<String> member : popped) {
-            redis.opsForValue().set(admittedKey(scheduleId, Long.valueOf(member.getValue())), "1", admissionTtl);
-        }
-        return popped.size();
+        return admitted.intValue();
     }
 
+    // 줄 -> 입장 키 순서로 봄. 입장 처리는 줄에서 빼기와 입장 키 쓰기를 한 번에 하므로,
+    // 줄에서 못 찾았다면 그 전에 입장 처리가 끝나 입장 키가 이미 있음 (반대 순서면 두 조회 사이에 입장 처리가 끼어 둘 다 못 찾음)
     private QueueStatusDto queueStatus(Long scheduleId, Long memberId) {
+        Long rank = redis.opsForZSet().rank(waitingKey(scheduleId), memberId.toString());
+        if (rank != null) {
+            long position = rank + 1;
+            return QueueStatusDto.waiting(position, (position + admitPerSecond - 1) / admitPerSecond);
+        }
         Long ttlSeconds = redis.getExpire(admittedKey(scheduleId, memberId));
         if (ttlSeconds != null && ttlSeconds > 0) {
             return QueueStatusDto.admitted(ttlSeconds);
         }
-        Long rank = redis.opsForZSet().rank(waitingKey(scheduleId), memberId.toString());
-        if (rank == null) {
-            // 줄에 없고 입장 허가도 없음 (아직 안 섰거나, 입장 시간이 지남) - 화면이 다시 줄을 세움
-            return QueueStatusDto.notInQueue();
-        }
-        long position = rank + 1;
-        return QueueStatusDto.waiting(position, (position + admitPerSecond - 1) / admitPerSecond);
+        // 줄에 없고 입장 허가도 없음 (아직 안 섰거나, 입장 시간이 지남) - 화면이 다시 줄을 세움
+        return QueueStatusDto.notInQueue();
     }
 
     // 대기열 운영 중 Redis가 응답하지 않으면 503 (대기열을 건너뛰고 예매를 열어 주지는 않음)

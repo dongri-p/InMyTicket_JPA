@@ -1,6 +1,13 @@
 package com.example.dongri.inmyticket.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -73,6 +80,49 @@ public class BookingQueueTest {
         // 입장한 A는 예매 성공, 입장한 회원이 다시 줄을 서도 입장 상태 유지
         Assertions.assertNotNull(reservationService.reserve(a.getId(), seat.getId()));
         Assertions.assertEquals("ADMITTED", bookingQueueService.join(schedule, a.getId(), now).state());
+    }
+
+    @Test
+    @DisplayName("입장 처리 중에 순번을 물어봐도 줄에서도 입장에서도 빠진 순간이 보이지 않는다")
+    void admitWhilePolling_neverNotInQueue() throws Exception {
+        Schedule schedule = seatWithOpenAt(LocalDateTime.now().minusMinutes(1)).getSchedule();
+        LocalDateTime now = LocalDateTime.now();
+        List<Long> memberIds = new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            Long memberId = 900_000L + i;   // 대기열은 Redis만 보므로 회원을 DB에 만들 필요 없음
+            bookingQueueService.join(schedule, memberId, now);
+            memberIds.add(memberId);
+        }
+
+        // 한 스레드는 5명씩 입장시키고, 나머지는 그동안 모두의 순번을 계속 물어봄 (대기 화면 폴링)
+        AtomicInteger notInQueue = new AtomicInteger();
+        ExecutorService pool = Executors.newFixedThreadPool(9);
+        Future<?> admitter = pool.submit(() -> {
+            while (bookingQueueService.admitNext(schedule.getId(), 5) > 0) {
+            }
+        });
+        List<Future<?>> pollers = new ArrayList<>();
+        for (int t = 0; t < 8; t++) {
+            pollers.add(pool.submit(() -> {
+                while (!admitter.isDone()) {
+                    for (Long memberId : memberIds) {
+                        if ("NOT_IN_QUEUE".equals(bookingQueueService.status(schedule, memberId, now).state())) {
+                            notInQueue.incrementAndGet();
+                        }
+                    }
+                }
+            }));
+        }
+        admitter.get(30, TimeUnit.SECONDS);
+        for (Future<?> poller : pollers) {
+            poller.get(30, TimeUnit.SECONDS);
+        }
+        pool.shutdown();
+
+        Assertions.assertEquals(0, notInQueue.get());
+        for (Long memberId : memberIds) {
+            Assertions.assertEquals("ADMITTED", bookingQueueService.status(schedule, memberId, now).state());
+        }
     }
 
     @Test
