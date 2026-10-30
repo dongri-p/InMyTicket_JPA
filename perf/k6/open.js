@@ -68,13 +68,21 @@ function availableSeats(token) {
 
 function waitInQueue(token) {
   const started = Date.now();
-  let state = http.post(`${BASE_URL}/api/v1/schedules/${OPEN_SCHEDULE}/queue`, null, auth(token, 'queue')).json('state');
+  // 1000명이 한꺼번에 연결하면 Docker 네트워크에서 연결 자체가 실패할 때가 있어 줄 서기는 다시 시도 (화면도 실패하면 다시 줄을 세움)
+  let res = http.post(`${BASE_URL}/api/v1/schedules/${OPEN_SCHEDULE}/queue`, null, auth(token, 'queue'));
+  for (let retry = 0; res.status === 0 && retry < 5; retry++) {
+    sleep(POLL_SECONDS);
+    res = http.post(`${BASE_URL}/api/v1/schedules/${OPEN_SCHEDULE}/queue`, null, auth(token, 'queue'));
+  }
+  let state = res.json('state');
   while (state === 'WAITING') {
     sleep(POLL_SECONDS);
     state = http.get(`${BASE_URL}/api/v1/schedules/${OPEN_SCHEDULE}/queue/me`, auth(token, 'queue')).json('state');
   }
   queueWait.add(Date.now() - started);
-  check(state, { 'admitted': (s) => s === 'ADMITTED' });
+  if (!check(state, { 'admitted': (s) => s === 'ADMITTED' })) {
+    console.warn(`입장 못 함: state=${state}`);
+  }
 }
 
 export default function (data) {
