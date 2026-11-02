@@ -1,0 +1,72 @@
+== windows accept-count=10 rep=1
+ conn_refused: 724 1181.769908/s
+ connecting_ms: p(50)=0s p(95)=71.08ms max=299.06ms
+ ok: 276 450.508971/s
+ other_fail: 0 0/s
+ total_ms: p(50)=0s p(95)=456.87ms max=896.31ms
+== windows accept-count=10 rep=2
+ conn_refused: 480 904.104911/s
+ connecting_ms: p(50)=44.2ms p(95)=109.43ms max=383.41ms
+ ok: 520 979.446987/s
+ other_fail: 0 0/s
+ total_ms: p(50)=233.46ms p(95)=496.74ms max=811.76ms
+== windows accept-count=10 rep=3
+ conn_refused: 485 872.178322/s
+ connecting_ms: p(50)=57.67ms p(95)=118.89ms max=459.51ms
+ ok: 515 926.127496/s
+ other_fail: 0 0/s
+ total_ms: p(50)=235.15ms p(95)=465.41ms max=968.58ms
+== windows accept-count=100 rep=1
+ conn_refused: 82 124.407118/s
+ connecting_ms: p(50)=133.23ms p(95)=372.99ms max=447.62ms
+ ok: 918 1392.752859/s
+ other_fail: 0 0/s
+ total_ms: p(50)=404.29ms p(95)=894.13ms max=1.08s 
+== windows accept-count=100 rep=2
+ conn_refused: 43 72.294339/s
+ connecting_ms: p(50)=212.14ms p(95)=427.86ms max=497.94ms
+ ok: 957 1608.969359/s
+ other_fail: 0 0/s
+ total_ms: p(50)=488.92ms p(95)=1s max=1.08s 
+== windows accept-count=100 rep=3
+ conn_refused: 38 80.092559/s
+ connecting_ms: p(50)=60.07ms p(95)=322.12ms max=373.09ms
+ ok: 962 2027.606371/s
+ other_fail: 0 0/s
+ total_ms: p(50)=333.82ms p(95)=706.97ms max=809.1ms 
+== windows accept-count=1000 rep=1
+ conn_refused: 0 0/s
+ connecting_ms: p(50)=278.17ms p(95)=667.87ms max=767.44ms
+ ok: 1000 1148.001885/s
+ other_fail: 0 0/s
+ total_ms: p(50)=812.31ms p(95)=1.49s max=1.63s 
+== windows accept-count=1000 rep=2
+ conn_refused: 384 857.649707/s
+ connecting_ms: p(50)=46.35ms p(95)=181.64ms max=278ms 
+ ok: 616 1375.813072/s
+ other_fail: 0 0/s
+ total_ms: p(50)=250.66ms p(95)=585.4ms max=710.39ms
+== windows accept-count=1000 rep=3
+ conn_refused: 1 1.51756/s
+ connecting_ms: p(50)=240.29ms p(95)=419.09ms max=487.44ms
+ ok: 999 1516.042302/s
+ other_fail: 0 0/s
+ total_ms: p(50)=606.13ms p(95)=867.64ms max=1.01s 
+== windows accept-count=4096 rep=1
+ conn_refused: 1 1.076433/s
+ connecting_ms: p(50)=344.24ms p(95)=732.43ms max=806.61ms
+ ok: 999 1075.356454/s
+ other_fail: 0 0/s
+ total_ms: p(50)=894.67ms p(95)=1.62s max=1.71s 
+== windows accept-count=4096 rep=2
+ conn_refused: 85 114.83056/s
+ connecting_ms: p(50)=188.76ms p(95)=417.64ms max=479.89ms
+ ok: 915 1236.117208/s
+ other_fail: 0 0/s
+ total_ms: p(50)=488.64ms p(95)=1.01s max=1.14s 
+== windows accept-count=4096 rep=3
+ conn_refused: 0 0/s
+ connecting_ms: p(50)=435.71ms p(95)=543.37ms max=638.91ms
+ ok: 1000 1147.265151/s
+ other_fail: 0 0/s
+ total_ms: p(50)=938.57ms p(95)=1.22s max=1.41s 

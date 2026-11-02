@@ -59,6 +59,12 @@
    docker run --rm -i -e BASE_URL=http://host.docker.internal:8081 -e VUS=1000 -e OPEN_SCHEDULE=230 -e QUEUE=1 grafana/k6:1.0.0 run - < perf/k6/open.js
    ```
 
+7. 연결 폭주 (`connect.js`). 서버를 `--server.tomcat.accept-count=<값>`으로 띄우고, 서버 컨테이너와 같은 Docker 네트워크에서 실행합니다.
+
+   ```bash
+   docker run --rm -i --network <네트워크> -e BASE_URL=http://<서버 컨테이너>:8081 -e VUS=1000 grafana/k6:1.0.0 run - < perf/k6/connect.js
+   ```
+
 ## 결과 파일
 
 [results/](results/)는 k6 요약 출력 원본입니다. 파일 이름 뒤 숫자가 동시 사용자 수이고, 시간을 정해 돌린 측정은 모두 60초입니다.
@@ -82,3 +88,4 @@
 | `k6-browse-100-counter*.txt`, `k6-browse-100-seatcount*.txt` | 조회 100명: 같은 비교 (`seatcount`, `-2`는 회차 조회·count가 트랜잭션 두 번이던 때, `-3`, `-4`는 합친 뒤) |
 | `k6-open-1000-noqueue-*.txt`, `k6-open-1000-queue20.txt` | 예매 오픈 1000명 → 367석: 대기열 없음 / 대기열 20명/초 (첫 측정, 16명 미입장) |
 | `k6-open-1000-queue20-race.txt`, `k6-open-1000-queue20-atomic.txt` | 같은 측정: 입장 누락 수정 전(`NOT_IN_QUEUE` 2명) / 수정 후(1000명 모두 입장) |
+| `k6-connect-1000-windows.txt`, `k6-connect-1000-linux.txt` | 1000명 동시 연결 (`connect.js`), `accept-count` 10·100·1000·4096 각 3회: Windows 서버 + Docker Desktop 경유 / Linux 컨테이너끼리 |
