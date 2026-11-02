@@ -76,8 +76,8 @@ public class PaymentServiceCompensationTest {
     }
 
     @Test
-    @DisplayName("보상(PG 승인 취소)마저 실패해도 원래 실패 원인이 전파되고 예약은 PENDING으로 되돌린다")
-    void compensationFails_originalExceptionPropagated_andStillReverts() {
+    @DisplayName("보상(PG 승인 취소)마저 실패해도 원래 실패 원인이 전파되고 예약은 PROCESSING으로 남긴다")
+    void compensationFails_originalExceptionPropagated_andStaysProcessing() {
         // given
         IllegalStateException dbFailure = new IllegalStateException("DB 반영 실패");
         Mockito.doThrow(dbFailure).when(paymentApprovalService).approve(MEMBER_ID, RESERVATION_ID, PAYMENT_KEY, PgProvider.DEMO);
@@ -88,9 +88,9 @@ public class PaymentServiceCompensationTest {
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class,
                 () -> paymentService.processPayment(MEMBER_ID, RESERVATION_ID, PgProvider.DEMO, PAYMENT_KEY, ORDER_ID, AMOUNT));
 
-        // then
+        // then: 되돌리면 승인된 돈을 찾아갈 길이 없어지므로 PROCESSING으로 둠 (스케줄러가 다시 처리)
         Assertions.assertSame(dbFailure, thrown);
-        Mockito.verify(reservationService).revertProcessingToPending(RESERVATION_ID);
+        Mockito.verify(reservationService, Mockito.never()).revertProcessingToPending(RESERVATION_ID);
     }
 
     @Test

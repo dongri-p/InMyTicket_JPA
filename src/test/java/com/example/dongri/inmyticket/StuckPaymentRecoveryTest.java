@@ -163,6 +163,25 @@ public class StuckPaymentRecoveryTest {
     }
 
     @Test
+    @DisplayName("승인 취소까지 실패하면 PROCESSING으로 두었다가 다음 주기에 다시 취소한다")
+    void stuck_cancelFails_retriesNextTime() {
+        leaveStuck();
+        Schedule schedule = scheduleRepository.findById(seat.getSchedule().getId()).orElseThrow();
+        schedule.setStartTime(LocalDateTime.now().minusMinutes(1));
+        scheduleRepository.save(schedule);
+        Mockito.doReturn(true).when(demoPgClient).isApproved(paymentKey);
+        Mockito.doThrow(new BusinessException(ErrorCode.PG_UNAVAILABLE)).doNothing()
+                .when(demoPgClient).cancel(Mockito.eq(paymentKey), Mockito.anyString(), Mockito.isNull());
+
+        recover();
+        Assertions.assertEquals(ReservationStatus.PROCESSING, status());
+
+        recover();
+        Assertions.assertEquals(ReservationStatus.PENDING, status());
+        Mockito.verify(demoPgClient, Mockito.times(2)).cancel(Mockito.eq(paymentKey), Mockito.anyString(), Mockito.isNull());
+    }
+
+    @Test
     @DisplayName("방금 결제를 시작한 예약은 PG에 묻지 않는다")
     void inFlight_isNotLookedUp() {
         reservationService.beginPaymentProcessing(member.getId(), reservationId, price(), paymentKey, PgProvider.DEMO);

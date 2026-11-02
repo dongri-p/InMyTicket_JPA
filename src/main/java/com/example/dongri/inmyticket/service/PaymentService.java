@@ -125,8 +125,9 @@ public class PaymentService {
         } catch (RuntimeException e) {
             // PG에서는 승인(돈이 빠져나감)됐는데 DB 반영이 실패하면 결제 기록 없이 청구만 남음.
             // 분산 트랜잭션으로 묶을 수 없으므로 PG 승인 취소로 되돌리는 보상 처리를 먼저 수행
-            compensatePgApproval(pgClient, reservationId, paymentKey);
-            revertToPendingOrLog(reservationId);
+            if (compensatePgApproval(pgClient, reservationId, paymentKey)) {
+                revertToPendingOrLog(reservationId);
+            }
             throw e;
         }
     }
@@ -157,28 +158,33 @@ public class PaymentService {
             log.warn("예약(id={}) 응답을 못 받은 결제가 PG에서 승인된 것을 확인해 예매를 확정했습니다.", stuck.reservationId());
         } catch (RuntimeException e) {
             // 승인됐는데 확정할 수 없음(그사이 공연 시작 등) -> 일반 결제와 똑같이 승인을 취소하고 되돌림
-            compensatePgApproval(pgClient(stuck.pgProvider()), stuck.reservationId(), stuck.paymentKey());
-            revertToPendingOrLog(stuck.reservationId());
+            if (compensatePgApproval(pgClient(stuck.pgProvider()), stuck.reservationId(), stuck.paymentKey())) {
+                revertToPendingOrLog(stuck.reservationId());
+            }
         }
         return true;
     }
 
-    // 승인 후 DB 반영에 실패한 PG 결제를 취소하는 보상 처리
-    private void compensatePgApproval(PgClient pgClient, Long reservationId, String paymentKey) {
+    // 승인 후 DB 반영에 실패한 PG 결제를 취소하는 보상 처리. 예약을 되돌려도 되면 true.
+    // 취소까지 실패하면 false -> 되돌리지 않고 PROCESSING으로 둬서 recoverStuckPayments가 다시 처리하게 함
+    // (되돌리면 예약이 자동만료돼 승인된 돈을 다시 찾아갈 길이 없어짐)
+    private boolean compensatePgApproval(PgClient pgClient, Long reservationId, String paymentKey) {
         // 이미 다른 결제로 기록된 paymentKey라면(중복 키 재사용 등으로 approve()가 unique 제약에 걸린 경우)
         // 그 키를 취소하면 정상 완료된 남의 결제를 환불해버리게 되므로 보상하지 않음.
         // (실제 PG는 이미 처리된 키의 승인 요청을 PG 단계에서 거절하므로 여기까지 오지 않음)
         if (paymentRepository.existsByPaymentKey(paymentKey)) {
             log.warn("예약(id={}) 결제 실패 - paymentKey가 이미 다른 결제로 기록되어 있어 PG 승인 취소를 생략합니다.", reservationId);
-            return;
+            return true;
         }
         try {
             pgClient.cancel(paymentKey, "결제 반영 실패로 승인 취소", null);
             log.warn("예약(id={}) 결제 DB 반영 실패로 PG 승인을 취소(보상)했습니다.", reservationId);
+            return true;
         } catch (RuntimeException cancelFailure) {
-            // 보상까지 실패하면 고객에게 청구만 남은 상태 - 원래 실패 원인을 가리지 않도록 로그만 남기고 수동 환불 대상으로 표시
-            log.error("예약(id={}) PG 승인 취소(보상)에 실패했습니다. paymentKey={} 수동 환불이 필요합니다.",
+            // 원래 실패 원인을 가리지 않도록 예외는 삼킴. 예약은 PROCESSING으로 남아 스케줄러가 다시 시도
+            log.error("예약(id={}) PG 승인 취소(보상)에 실패해 나중에 다시 처리합니다. paymentKey={}",
                     reservationId, paymentKey, cancelFailure);
+            return false;
         }
     }
 
