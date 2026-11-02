@@ -1,5 +1,6 @@
 package com.example.dongri.inmyticket.service;
 
+import com.example.dongri.inmyticket.domain.PgProvider;
 import com.example.dongri.inmyticket.domain.BusinessException;
 
 import com.example.dongri.inmyticket.domain.Member;
@@ -90,7 +91,7 @@ public class ReservationCancelServiceTest {
     void cancel_whileProcessingPayment_throwsIllegalState() {
         // given
         Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
+        reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO);
 
         // when & then
         Assertions.assertThrows(BusinessException.class,
@@ -143,7 +144,7 @@ public class ReservationCancelServiceTest {
 
         // when & then
         Assertions.assertThrows(BusinessException.class,
-                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice()));
+                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO));
 
         // and: 결제 시작이 거부됐으므로 예약 상태는 PENDING 그대로 유지된다
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();

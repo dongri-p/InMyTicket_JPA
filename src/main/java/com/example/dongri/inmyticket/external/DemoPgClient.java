@@ -32,6 +32,12 @@ public class DemoPgClient implements PgClient {
         simulateNetworkCall("데모 결제 취소(환불) 완료.", "환불 통신 중 오류가 발생했습니다.");
     }
 
+    // 데모 승인은 PG 없이 서버 안에서 끝나 조회할 거래가 없음. 결제 기록이 남기 전에 끊겼다면 청구된 돈도 없음
+    @Override
+    public boolean isApproved(String paymentKey) {
+        return false;
+    }
+
     private void simulateNetworkCall(String successLogMessage, String failureMessage) {
         try {
             Thread.sleep(SIMULATED_LATENCY_MS);

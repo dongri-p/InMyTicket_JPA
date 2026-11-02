@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReservationExpirationScheduler {
 
     private final ReservationService reservationService;
+    private final PaymentService paymentService;
 
     @Value("${reservation.pending-timeout-minutes}")
     private long pendingTimeoutMinutes;
@@ -32,13 +33,13 @@ public class ReservationExpirationScheduler {
         }
     }
 
-    // PG 통신 중 서버가 죽어 PROCESSING에 고착된 예약을 PENDING으로 복구
+    // PG 응답을 못 받았거나 서버가 죽어 PROCESSING에 고착된 예약을, PG에 승인 여부를 물어 확정하거나 PENDING으로 복구
     @Scheduled(fixedDelayString = "${reservation.expiration-check-interval-ms}")
     public void recoverStuckProcessingReservations() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(processingTimeoutMinutes);
-        int recoveredCount = reservationService.recoverStuckProcessingReservations(cutoff);
+        int recoveredCount = paymentService.recoverStuckPayments(cutoff);
         if (recoveredCount > 0) {
-            log.warn("결제 진행 중(PROCESSING) 상태로 고착된 {}건의 예약을 PENDING으로 복구했습니다. (기준 시각: {})", recoveredCount, cutoff);
+            log.warn("결제 진행 중(PROCESSING) 상태로 고착된 {}건의 예약을 정리했습니다. (기준 시각: {})", recoveredCount, cutoff);
         }
     }
 }

@@ -39,14 +39,14 @@ public class ProcessingStuckAfterCrashRecoveryTest {
         Member member = TestFixtures.createAndSaveMember(memberRepository, "crashUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO);
 
         Reservation stuck = reservationRepository.findById(reservationId).orElseThrow();
         stuck.setProcessingStartedAt(LocalDateTime.now().minusMinutes(10));
         reservationRepository.save(stuck);
 
         // when
-        int recoveredCount = reservationService.recoverStuckProcessingReservations(LocalDateTime.now().minusMinutes(5));
+        int recoveredCount = paymentService.recoverStuckPayments(LocalDateTime.now().minusMinutes(5));
 
         // then: PENDING으로 돌아오고, 사용자가 다시 결제하면 정상 확정됨
         Assertions.assertEquals(1, recoveredCount);
@@ -67,10 +67,10 @@ public class ProcessingStuckAfterCrashRecoveryTest {
         Member member = TestFixtures.createAndSaveMember(memberRepository, "inFlightUser");
         Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO);
 
         // when
-        int recoveredCount = reservationService.recoverStuckProcessingReservations(LocalDateTime.now().minusMinutes(5));
+        int recoveredCount = paymentService.recoverStuckPayments(LocalDateTime.now().minusMinutes(5));
 
         // then
         Assertions.assertEquals(0, recoveredCount);

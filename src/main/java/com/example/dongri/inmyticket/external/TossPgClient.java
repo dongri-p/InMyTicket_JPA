@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class TossPgClient implements PgClient {
 
-    // 토스 권장 승인 응답 대기 시간은 길게 잡혀 있어서 넉넉히 둠. 넘기면 실패로 보고 예약을 PENDING으로 되돌림
+    // 토스 권장 승인 응답 대기 시간은 길게 잡혀 있어서 넉넉히 둠. 넘기면 승인 여부를 모르는 상태로 보고 나중에 조회함
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     private final WebClient webClient;
@@ -74,6 +74,24 @@ public class TossPgClient implements PgClient {
         log.info("토스페이먼츠 결제 취소(환불) 완료. reason={}, cancelAmount={}", reason, cancelAmount);
     }
 
+    // 결제 조회 API. 승인 완료(DONE)만 승인으로 봄. 토스에 없는 결제(404)는 승인되지 않은 것
+    @Override
+    public boolean isApproved(String paymentKey) {
+        try {
+            String body = webClient.get()
+                    .uri("/v1/payments/{paymentKey}", paymentKey)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block(TIMEOUT);
+            return "DONE".equals(objectMapper.readTree(body).path("status").asText());
+        } catch (WebClientResponseException.NotFound e) {
+            return false;
+        } catch (Exception e) {
+            log.warn("토스페이먼츠 결제 조회 실패. 원인={}", e.getMessage());
+            throw new BusinessException(ErrorCode.PG_UNAVAILABLE, "결제 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+
     private void post(String uri, Map<String, Object> body, String idempotencyKey, String action, Object... uriVariables) {
         try {
             webClient.post()
@@ -89,12 +107,17 @@ public class TossPgClient implements PgClient {
                     .toBodilessEntity()
                     .block(TIMEOUT);
         } catch (WebClientResponseException e) {
+            // 5xx는 거절이 아니라 처리됐는지 모르는 상태 -> 통신 오류와 같게 다룸
+            if (e.getStatusCode().is5xxServerError()) {
+                log.warn("토스페이먼츠 {} 서버 오류. status={}", action, e.getStatusCode());
+                throw new BusinessException(ErrorCode.PG_UNAVAILABLE, action + " 통신 중 오류가 발생했습니다.", e);
+            }
             // 토스는 실패 시 {"code": "...", "message": "..."}로 이유를 내려줌 -> 사용자에게 그 문구를 보여줌
             String message = readTossMessage(e.getResponseBodyAsString());
             log.warn("토스페이먼츠 {} 실패. status={}, body={}", action, e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.PAYMENT_REJECTED, action + "에 실패했습니다. " + message, e);
         } catch (RuntimeException e) {
-            // 타임아웃·연결 실패: 승인 여부를 알 수 없지만 결제 기록이 없으므로 미승인으로 봄 (README 한계에 적어 둠)
+            // 타임아웃·연결 실패: 처리됐는지 알 수 없음. 승인이면 PaymentService가 나중에 조회해서 결론을 냄
             log.warn("토스페이먼츠 {} 통신 오류. 원인={}", action, e.getMessage());
             throw new BusinessException(ErrorCode.PG_UNAVAILABLE, action + " 통신 중 오류가 발생했습니다.", e);
         }

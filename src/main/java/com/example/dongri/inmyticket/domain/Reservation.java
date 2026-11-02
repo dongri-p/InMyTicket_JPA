@@ -46,6 +46,13 @@ public class Reservation {
     // reservedAt(예약 시각)을 기준으로 삼으면 예약 직후가 아니라 늦게 결제를 시작한 진행 중인 건까지 되돌릴 수 있어 따로 둠
     private LocalDateTime processingStartedAt;
 
+    // 승인 요청 중인 결제. 응답을 못 받고 끝나면 이 키로 PG에 승인 여부를 물음 (요청 전에 저장해야 서버가 죽어도 남음)
+    private String processingPaymentKey;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private PgProvider processingPgProvider;
+
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
     private List<Ticket> tickets = new ArrayList<>();
 

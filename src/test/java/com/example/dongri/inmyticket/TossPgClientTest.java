@@ -1,6 +1,7 @@
 package com.example.dongri.inmyticket;
 
 import com.example.dongri.inmyticket.domain.BusinessException;
+import com.example.dongri.inmyticket.domain.ErrorCode;
 
 import com.example.dongri.inmyticket.external.TossPgClient;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,6 +67,47 @@ public class TossPgClientTest {
                 () -> client.approve("pay_key_1", "imt-7-abc123", 150000));
 
         Assertions.assertTrue(thrown.getMessage().contains("한도초과 혹은 잔액부족"), thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("토스 서버 오류(5xx)는 거절이 아니라 결과를 모르는 통신 오류로 본다")
+    void approve_serverError_isUnavailableNotRejected() throws IOException {
+        TossPgClient client = clientRespondingWith(500, "{\"code\":\"FAILED_INTERNAL_SYSTEM_PROCESSING\",\"message\":\"내부 오류\"}");
+
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class,
+                () -> client.approve("pay_key_1", "imt-7-abc123", 150000));
+
+        Assertions.assertEquals(ErrorCode.PG_UNAVAILABLE, thrown.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("결제 조회: 승인 완료(DONE)만 승인으로 보고 조회 경로는 paymentKey다")
+    void isApproved_onlyDoneIsApproved() throws IOException {
+        TossPgClient done = clientRespondingWith(200, "{\"status\":\"DONE\"}");
+        Assertions.assertTrue(done.isApproved("pay_key_1"));
+        Assertions.assertEquals("/v1/payments/pay_key_1", requestPath.get());
+        server.stop(0);
+
+        TossPgClient inProgress = clientRespondingWith(200, "{\"status\":\"IN_PROGRESS\"}");
+        Assertions.assertFalse(inProgress.isApproved("pay_key_1"));
+    }
+
+    @Test
+    @DisplayName("결제 조회: 토스에 없는 결제(404)는 승인되지 않은 것이다")
+    void isApproved_notFound_isFalse() throws IOException {
+        TossPgClient client = clientRespondingWith(404, "{\"code\":\"NOT_FOUND_PAYMENT\",\"message\":\"존재하지 않는 결제 정보 입니다.\"}");
+
+        Assertions.assertFalse(client.isApproved("pay_key_1"));
+    }
+
+    @Test
+    @DisplayName("결제 조회: 서버 오류면 미승인으로 단정하지 않고 예외를 던진다")
+    void isApproved_serverError_throws() throws IOException {
+        TossPgClient client = clientRespondingWith(500, "{\"code\":\"FAILED_INTERNAL_SYSTEM_PROCESSING\",\"message\":\"내부 오류\"}");
+
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class, () -> client.isApproved("pay_key_1"));
+
+        Assertions.assertEquals(ErrorCode.PG_UNAVAILABLE, thrown.getErrorCode());
     }
 
     @Test

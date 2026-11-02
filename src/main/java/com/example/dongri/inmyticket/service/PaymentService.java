@@ -2,6 +2,7 @@ package com.example.dongri.inmyticket.service;
 
 import com.example.dongri.inmyticket.api.dto.PaymentDto;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -99,11 +100,20 @@ public class PaymentService {
 
         // 0. 긴 PG 통신에 들어가기 전, 예약을 PROCESSING으로 전환해 자동만료 스케줄러가
         // 결제 진행 중인 예약을 건드리지 못하게 함. 결제창 금액이 예약 금액과 같은지도 여기서 확인
-        reservationService.beginPaymentProcessing(memberId, reservationId, amount);
+        reservationService.beginPaymentProcessing(memberId, reservationId, amount, paymentKey, provider);
 
-        // 1. 외부 결제 대행사(PG) 승인 요청 - 실패하면 승인된 돈이 없으므로 PENDING으로만 되돌림
+        // 1. 외부 결제 대행사(PG) 승인 요청 - 거절이면 승인된 돈이 없으므로 PENDING으로만 되돌림.
+        // 타임아웃처럼 결과를 모르면 돈이 빠져나갔을 수 있어 PROCESSING으로 두고, recoverStuckPayments가 PG에 물어 결론을 냄
+        // (PENDING으로 되돌리면 승인됐어도 예약이 자동만료돼 돈만 나가고 좌석을 잃음)
         try {
             pgClient.approve(paymentKey, orderId, amount);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.PG_UNAVAILABLE) {
+                log.warn("예약(id={}) 결제 승인 결과를 알 수 없어 PROCESSING으로 두고 나중에 확인합니다.", reservationId);
+                throw new BusinessException(ErrorCode.PAYMENT_RESULT_UNKNOWN, ErrorCode.PAYMENT_RESULT_UNKNOWN.getMessage(), e);
+            }
+            revertToPendingOrLog(reservationId);
+            throw e;
         } catch (RuntimeException e) {
             revertToPendingOrLog(reservationId);
             throw e;
@@ -119,6 +129,38 @@ public class PaymentService {
             revertToPendingOrLog(reservationId);
             throw e;
         }
+    }
+
+    // cutoff가 지나도록 PROCESSING인 예약을 PG에 물어 정리 (스케줄러 전용). 처리한 건수를 돌려줌
+    // PG 통신은 트랜잭션 밖에서 함. 한 건이 실패해도 나머지는 계속하고, 실패한 건은 PROCESSING으로 남아 다음 주기에 다시 물음
+    public int recoverStuckPayments(LocalDateTime cutoff) {
+        int recoveredCount = 0;
+        for (StuckPayment stuck : reservationService.findStuckPayments(cutoff)) {
+            try {
+                if (recoverStuckPayment(stuck, cutoff)) {
+                    recoveredCount++;
+                }
+            } catch (RuntimeException e) {
+                log.warn("예약(id={}) 결제 승인 여부를 확인하지 못해 다음에 다시 확인합니다. 원인={}", stuck.reservationId(), e.getMessage());
+            }
+        }
+        return recoveredCount;
+    }
+
+    private boolean recoverStuckPayment(StuckPayment stuck, LocalDateTime cutoff) {
+        // 결제 키가 없으면 이 정보를 저장하기 전에 시작한 결제라 물어볼 수 없음 -> 전처럼 결제 기록이 없으면 미승인으로 봄
+        if (stuck.paymentKey() == null || !pgClient(stuck.pgProvider()).isApproved(stuck.paymentKey())) {
+            return reservationService.revertStuckToPending(stuck.reservationId(), cutoff);
+        }
+        try {
+            paymentApprovalService.approve(stuck.memberId(), stuck.reservationId(), stuck.paymentKey(), stuck.pgProvider());
+            log.warn("예약(id={}) 응답을 못 받은 결제가 PG에서 승인된 것을 확인해 예매를 확정했습니다.", stuck.reservationId());
+        } catch (RuntimeException e) {
+            // 승인됐는데 확정할 수 없음(그사이 공연 시작 등) -> 일반 결제와 똑같이 승인을 취소하고 되돌림
+            compensatePgApproval(pgClient(stuck.pgProvider()), stuck.reservationId(), stuck.paymentKey());
+            revertToPendingOrLog(stuck.reservationId());
+        }
+        return true;
     }
 
     // 승인 후 DB 반영에 실패한 PG 결제를 취소하는 보상 처리

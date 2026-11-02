@@ -95,7 +95,7 @@ public class ReservationExpirationTest {
         // given
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO);
 
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         reservation.setReservedAt(LocalDateTime.now().minusMinutes(20));
@@ -179,7 +179,7 @@ public class ReservationExpirationTest {
         // given - 결제 시작(PROCESSING) 후 오래 지난 예약
         Seat seat = createSeat();
         Long reservationId = reservationService.reserve(member.getId(), seat.getId());
-        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice());
+        reservationService.beginPaymentProcessing(member.getId(), reservationId, reservationRepository.findById(reservationId).orElseThrow().getTotalPrice(), "test-key", PgProvider.DEMO);
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow();
         reservation.setProcessingStartedAt(LocalDateTime.now().minusMinutes(20));
         reservationRepository.save(reservation);
@@ -188,7 +188,7 @@ public class ReservationExpirationTest {
         TransactionTemplate paymentTx = new TransactionTemplate(transactionManager);
         paymentTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        // when - recoverStuckProcessingReservations()와 같은 순서
+        // when - recoverStuckPayments의 재확인과 같은 순서
         ReservationStatus seenStatus = schedulerTx.execute(status -> {
             List<Long> candidateIds = reservationRepository.findIdsByStatusAndProcessingStartedAtBefore(ReservationStatus.PROCESSING, LocalDateTime.now().minusMinutes(10));
             Assertions.assertTrue(candidateIds.contains(reservationId));

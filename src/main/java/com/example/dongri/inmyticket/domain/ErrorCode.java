@@ -53,7 +53,8 @@ public enum ErrorCode {
     UNSUPPORTED_PAYMENT_PROVIDER(400, "지원하지 않는 결제 수단입니다."),
     PAYMENT_REJECTED(400, "결제에 실패했습니다."),
     QUEUE_UNAVAILABLE(503, "대기열을 확인할 수 없습니다. 잠시 뒤 다시 시도해 주세요."),
-    PG_UNAVAILABLE(502, "결제 서버와 통신 중 오류가 발생했습니다.");
+    PG_UNAVAILABLE(502, "결제 서버와 통신 중 오류가 발생했습니다."),
+    PAYMENT_RESULT_UNKNOWN(502, "결제 결과를 확인하지 못했습니다. 다시 결제하지 마시고 몇 분 뒤 내 예매에서 확인해 주세요.");
 
     private final int status;
     private final String message;
