@@ -29,6 +29,9 @@ server:
   # Tomcat RemoteIpValve는 내부망(10/8, 172.16/12, 192.168/16, loopback)에서 온 헤더만 신뢰하고
   # 오른쪽부터 첫 번째 외부 IP를 고르므로, 클라이언트가 헤더를 위조해 앞에 끼워 넣어도 무시됨
   forward-headers-strategy: native
+  tomcat:
+    # 예매 오픈처럼 연결이 한꺼번에 몰릴 때 기본값 100이면 대기열이 넘쳐 Linux에서는 연결이 1~2초 늦어짐 (perf/results/k6-connect-1000-linux.txt)
+    accept-count: 1000
 
 jwt:
   secret: ${JWT_SECRET}
