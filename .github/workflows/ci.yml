@@ -33,8 +33,49 @@ jobs:
           # local 프로필의 H2 TCP 서버 대신 메모리 DB 사용
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
 
+  # H2와 MySQL은 락·SQL 동작이 달라서, 운영과 같은 MySQL 8.0 + Flyway 스키마로도 전체 테스트를 돌림
+  test-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testroot
+          MYSQL_DATABASE: inmyticket_test
+          TZ: Asia/Seoul
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -ptestroot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Test on MySQL
+        run: ./gradlew test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/inmyticket_test?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: testroot
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          SPRING_FLYWAY_ENABLED: 'true'
+          SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+          JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Seoul
+
   image:
-    needs: test
+    needs: [test, test-mysql]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
