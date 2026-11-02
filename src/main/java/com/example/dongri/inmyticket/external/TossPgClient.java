@@ -74,7 +74,8 @@ public class TossPgClient implements PgClient {
         log.info("토스페이먼츠 결제 취소(환불) 완료. reason={}, cancelAmount={}", reason, cancelAmount);
     }
 
-    // 결제 조회 API. 승인 완료(DONE)만 승인으로 봄. 토스에 없는 결제(404)는 승인되지 않은 것
+    // 결제 조회 API. 승인 완료(DONE)만 승인으로 봄. 토스에 없는 결제는 승인되지 않은 것.
+    // 다른 404(상점을 못 찾음 등)는 결제 상태를 알려 준 게 아니므로 미승인으로 단정하지 않음
     @Override
     public boolean isApproved(String paymentKey) {
         try {
@@ -85,7 +86,11 @@ public class TossPgClient implements PgClient {
                     .block(TIMEOUT);
             return "DONE".equals(objectMapper.readTree(body).path("status").asText());
         } catch (WebClientResponseException.NotFound e) {
-            return false;
+            if (readTossField(e.getResponseBodyAsString(), "code").startsWith("NOT_FOUND_PAYMENT")) {
+                return false;
+            }
+            log.warn("토스페이먼츠 결제 조회 실패. body={}", e.getResponseBodyAsString());
+            throw new BusinessException(ErrorCode.PG_UNAVAILABLE, "결제 조회 중 오류가 발생했습니다.", e);
         } catch (Exception e) {
             log.warn("토스페이먼츠 결제 조회 실패. 원인={}", e.getMessage());
             throw new BusinessException(ErrorCode.PG_UNAVAILABLE, "결제 조회 중 오류가 발생했습니다.", e);
@@ -113,7 +118,7 @@ public class TossPgClient implements PgClient {
                 throw new BusinessException(ErrorCode.PG_UNAVAILABLE, action + " 통신 중 오류가 발생했습니다.", e);
             }
             // 토스는 실패 시 {"code": "...", "message": "..."}로 이유를 내려줌 -> 사용자에게 그 문구를 보여줌
-            String message = readTossMessage(e.getResponseBodyAsString());
+            String message = readTossField(e.getResponseBodyAsString(), "message");
             log.warn("토스페이먼츠 {} 실패. status={}, body={}", action, e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.PAYMENT_REJECTED, action + "에 실패했습니다. " + message, e);
         } catch (RuntimeException e) {
@@ -123,10 +128,10 @@ public class TossPgClient implements PgClient {
         }
     }
 
-    private String readTossMessage(String responseBody) {
+    private String readTossField(String responseBody, String field) {
         try {
-            JsonNode message = objectMapper.readTree(responseBody).get("message");
-            return message != null ? message.asText() : "";
+            JsonNode value = objectMapper.readTree(responseBody).get(field);
+            return value != null ? value.asText() : "";
         } catch (Exception e) {
             return "";
         }

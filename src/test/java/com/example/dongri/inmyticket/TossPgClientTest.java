@@ -101,6 +101,16 @@ public class TossPgClientTest {
     }
 
     @Test
+    @DisplayName("결제 조회: 결제가 없다는 뜻이 아닌 404는 미승인으로 단정하지 않는다")
+    void isApproved_otherNotFound_throws() throws IOException {
+        TossPgClient client = clientRespondingWith(404, "{\"code\":\"NOT_FOUND_MERCHANT\",\"message\":\"존재하지 않는 상점 정보입니다.\"}");
+
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class, () -> client.isApproved("pay_key_1"));
+
+        Assertions.assertEquals(ErrorCode.PG_UNAVAILABLE, thrown.getErrorCode());
+    }
+
+    @Test
     @DisplayName("결제 조회: 서버 오류면 미승인으로 단정하지 않고 예외를 던진다")
     void isApproved_serverError_throws() throws IOException {
         TossPgClient client = clientRespondingWith(500, "{\"code\":\"FAILED_INTERNAL_SYSTEM_PROCESSING\",\"message\":\"내부 오류\"}");
