@@ -23,7 +23,8 @@ import java.util.UUID;
 
 // PG 통신 도중 서버가 죽으면 processPayment()의 catch(PENDING 되돌리기)가 실행되지 않음.
 // beginPaymentProcessing()만 호출하고 승인을 하지 않은 상태 = "PROCESSING 전환 직후 서버가 죽은 상태"로 재현
-@SpringBootTest
+// 복구를 테스트가 직접 호출하므로, 실제 스케줄러가 같은 예약을 함께 처리하지 않게 주기를 늘림
+@SpringBootTest(properties = "reservation.expiration-check-interval-ms=3600000")
 public class ProcessingStuckAfterCrashRecoveryTest {
 
     @Autowired private ReservationService reservationService;
