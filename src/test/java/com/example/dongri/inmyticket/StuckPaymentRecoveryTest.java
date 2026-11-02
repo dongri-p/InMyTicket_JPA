@@ -31,7 +31,8 @@ import java.util.UUID;
 
 // 승인 응답을 못 받았을 때 돈과 예약이 어긋나지 않는지: 결과를 모르면 PROCESSING으로 두고, PG에 물어서 확정하거나 되돌림.
 // 토스 대신 DemoPgClient를 spy로 바꿔 "PG가 승인했다/안 했다/응답이 없다"를 재현
-@SpringBootTest
+// 복구를 테스트가 직접 호출하므로, 실제 스케줄러가 같은 예약을 함께 처리하지 않게 주기를 늘림
+@SpringBootTest(properties = "reservation.expiration-check-interval-ms=3600000")
 public class StuckPaymentRecoveryTest {
 
     @Autowired private PaymentService paymentService;
