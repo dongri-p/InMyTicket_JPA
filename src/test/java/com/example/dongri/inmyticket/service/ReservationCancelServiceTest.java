@@ -132,6 +132,24 @@ public class ReservationCancelServiceTest {
     }
 
     @Test
+    @DisplayName("취소된 예약을 결제하면 청구되지 않았고 다시 선택하라고 알려준다")
+    void beginPaymentProcessing_cancelledReservation_explainsWhy() {
+        // given: 결제창에 머무는 사이 자동 만료된 예약
+        Seat seat = TestFixtures.createAndSaveAvailableSeat(scheduleRepository);
+        Long reservationId = reservationService.reserve(owner.getId(), seat.getId());
+        Reservation expired = reservationRepository.findById(reservationId).orElseThrow();
+        expired.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(expired);
+
+        // when
+        BusinessException thrown = Assertions.assertThrows(BusinessException.class,
+                () -> reservationService.beginPaymentProcessing(owner.getId(), reservationId, expired.getTotalPrice(), "test-key", PgProvider.DEMO));
+
+        // then
+        Assertions.assertTrue(thrown.getMessage().contains("청구된 금액은 없습니다"), thrown.getMessage());
+    }
+
+    @Test
     @DisplayName("공연이 이미 시작된 예약은 결제를 시작할 수 없다")
     void beginPaymentProcessing_afterScheduleStarted_throwsIllegalState() {
         // given: 예매 시점엔 공연 시작 전이었지만, 이후 시간이 지나 공연이 시작된 상황을 재현

@@ -147,6 +147,11 @@ public class ReservationService {
         if (reservation.getStatus() == ReservationStatus.PROCESSING) {
             throw new BusinessException(ErrorCode.PAYMENT_ALREADY_PROCESSING);
         }
+        // 결제창에 오래 머무는 사이 자동 만료된 경우가 대표적. PG 승인 전에 막으므로 청구되지 않았다고 알려줄 수 있음
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.RESERVATION_NOT_PAYABLE,
+                    "예약이 취소되어 결제되지 않았습니다. 청구된 금액은 없습니다. 결제 없이 10분이 지나면 예약이 자동으로 취소되니, 좌석을 다시 선택해 주세요.");
+        }
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_PAYABLE);
         }
