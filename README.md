@@ -36,6 +36,7 @@
 - **DB**: MySQL 8.0 (운영), H2 (로컬·테스트), Redis 7.4 (예매 대기열)
 - **Frontend**: React 19, Vite
 - **Infra**: AWS EC2, Docker Compose, Nginx, Let's Encrypt, GitHub Actions, GHCR
+- **부하 측정**: k6
 
 ## 구조
 
@@ -50,6 +51,7 @@ flowchart LR
         Backend -- 예매 대기열 --> Redis[("Redis")]
     end
     Backend -- 공연 정보 동기화 --> KOPIS["KOPIS API"]
+    Backend -- 결제 승인·조회·취소 --> Toss["토스페이먼츠 API"]
 ```
 
 `main`에 push하면 GitHub Actions가 테스트 → 이미지 빌드(GHCR) → EC2 배포까지 이어서 진행합니다. 처음엔 EC2(RAM 1GB)에서 직접 빌드했는데, 빌드된 이미지를 받아오기만 하도록 바꾸면서 배포 단계가 2분 10초에서 25초 정도로 줄었습니다.
@@ -201,8 +203,9 @@ EC2(t2.micro)에 올리면서 겪은 일들입니다. 자세한 내용은 [docs/
 | POST | `/api/v1/reservations` | 좌석 예매 | 회원 |
 | GET | `/api/v1/reservations/me` | 내 예매 목록 | 회원 |
 | GET | `/api/v1/reservations/{reservationId}` | 예매 단건 (본인만) | 회원 |
+| GET | `/api/v1/reservations/{reservationId}/refund-quote` | 취소 전 수수료·환불액 미리 보기 | 회원 |
 | POST | `/api/v1/reservations/{reservationId}/cancel` | 예매 취소 (결제 건은 환불) | 회원 |
-| POST | `/api/v1/payments` | 결제 승인 (`provider`: TOSS·DEMO, 결제창의 `paymentKey`·`orderId`·`amount`) | 회원 |
+| POST | `/api/v1/payments` | 결제 승인 (`provider`: TOSS·DEMO, 토스 결제위젯이 돌려준 `paymentKey`·`orderId`·`amount`) | 회원 |
 | GET | `/api/v1/payments/{paymentId}` | 결제 단건 (본인 예약의 결제만) | 회원 |
 | POST | `/api/v1/performances/sync` | KOPIS 공연 정보 동기화 | 관리자 |
 | GET | `/api/v1/halls` | 공연장 목록 | 관리자 |
